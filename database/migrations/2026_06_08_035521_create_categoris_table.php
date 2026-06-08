@@ -11,29 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('profil', function (Blueprint $table) {
-            $table->id(); 
-            
-            $table->unsignedBigInteger('id_pengguna');
-            
-            $table->enum('tipe_profil', ['konsumen', 'merchant', 'admin']);
-            
-            $table->string('nama_lengkap')->nullable(); // Nama asli konsumen/admin/pemilik merchant
-            $table->string('nomor_telepon')->nullable();
-            $table->text('alamat')->nullable();
-            
-            $table->string('nama_usaha')->nullable();
-            $table->text('deskripsi')->nullable();
-            $table->string('link_map')->nullable();
-            
-            $table->enum('status_verifikasi', ['menunggu', 'disetujui', 'ditolak'])->nullable();
-            $table->unsignedBigInteger('diverifikasi_oleh')->nullable();
-            $table->text('alasan_penolakan')->nullable();
-            
+        Schema::create('categoris', function (Blueprint $table) {
+            $table->id();
+            $table->bigInteger(id_merchant);
             $table->timestamps();
-
-            $table->foreign('id_pengguna')->references('id')->on('pengguna')->onDelete('cascade');
-            $table->foreign('diverifikasi_oleh')->references('id')->on('pengguna')->onDelete('set null');
         });
     }
 
@@ -42,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('profil');
+        Schema::dropIfExists('categoris');
     }
 };
