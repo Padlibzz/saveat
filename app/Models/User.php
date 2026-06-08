@@ -25,10 +25,10 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'peran',
         'status',
         'Profil_image',
         'no_telphone',
+        'peran'
     ];
 
     /**
@@ -40,6 +40,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
 
     /**
      * Get the attributes that should be cast.
@@ -53,4 +54,6 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+  
 }
