@@ -55,5 +55,12 @@ class User extends Authenticatable
         ];
     }
 
+    public function merchant()
+    {
+        // Asumsi relasi user ke profil merchant (menggunakan model Profil)
+        return $this->hasOne(\App\Models\Profil::class, 'id_pengguna')
+                    ->where('tipe_profil', 'merchant');
+    }
+
   
 }

@@ -69,11 +69,12 @@ class MerchantListingController extends Controller
 
             //Proses upload foto jika ada
             if ($request->hasFile('foto')) {
-                $file = $request->file('foto');
-                $namaFoto = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('storage/listings'), $namaFoto);
-                $input['foto'] = 'listings/' . $namaFoto;
-            }
+    $file = $request->file('foto');
+    $namaFoto = time() . '_' . $file->getClientOriginalName();
+    // Gunakan fungsi storeAs milik Laravel
+    $path = $file->storeAs('listings', $namaFoto, 'public'); 
+    $input['foto'] = 'storage/' . $path;
+}
 
             // Set data otomatis sebelum masuk database
             $input['id_merchant'] = $merchant->id;
