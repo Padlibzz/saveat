@@ -18,8 +18,6 @@ return new class extends Migration
             
             $table->enum('tipe_profil', ['konsumen', 'merchant', 'admin']);
             
-            $table->string('nama_lengkap')->nullable(); // Nama asli konsumen/admin/pemilik merchant
-            $table->string('nomor_telepon')->nullable();
             $table->text('alamat')->nullable();
             
             $table->string('nama_usaha')->nullable();
