@@ -111,7 +111,12 @@ class ProfilController extends Controller
 
     public function verifikasiMerchant(Request $request, $id)
     {
-        $profil = Profil::find($id);
+        
+    if ($request->user()->peran !== 'admin') {
+        return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki akses admin'], 403);
+    }
+
+    $profil = Profil::find($id);
 
         if (!$profil || $profil->tipe_profil !== 'merchant') {
             return response()->json(['status' => 'error', 'message' => 'Data merchant tidak valid'], 404);
