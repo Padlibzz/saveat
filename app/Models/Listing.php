@@ -12,7 +12,7 @@ class Listing extends Model
 
     protected $fillable = [
         'id_merchant',
-        'id_categori',
+        'id_kategori',
         'nama',
         'foto',
         'harga_normal',
@@ -34,8 +34,8 @@ class Listing extends Model
         return $this->belongsTo(Merchant::class, 'id_merchant');
     }
 
-    public function categori(): BelongsTo
+    public function kategori(): BelongsTo
     {
-        return $this->belongsTo(Categori::class, 'id_categori');
+        return $this->belongsTo(Kategori::class, 'id_kategori');
     }
 }

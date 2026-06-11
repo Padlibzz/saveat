@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -27,7 +28,7 @@ class User extends Authenticatable
         'email',
         'password',
         'status',
-        'Profil_image',
+        'profil_image', 
         'no_telphone',
         'peran',
     ];
@@ -55,9 +56,13 @@ class User extends Authenticatable
         ];
     }
 
-    public function merchant()
+    public function profil(): HasOne
     {
-        // Asumsi relasi user ke profil merchant (menggunakan model Profil)
+        return $this->hasOne(Profil::class, 'id_pengguna');
+    }
+
+    public function merchant(): HasOne
+    {
         return $this->hasOne(Profil::class, 'id_pengguna')
             ->where('tipe_profil', 'merchant');
     }

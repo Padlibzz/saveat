@@ -28,11 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/profil/{id}', [ProfilController::class, 'update']);
     Route::patch('/profil/{id}/verifikasi', [ProfilController::class, 'verifikasiMerchant']);
 
-    Route::get('/merchant/listings', [MerchantListingController::class, 'index']);
-    Route::post('/merchant/listings', [MerchantListingController::class, 'store']);
-
 });
 
+// Endpoint untuk merchant disatukan secara eksklusif di dalam middleware 'role:merchant'
 Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:merchant')->prefix('merchant')->group(function () {
         Route::get('/listings', [MerchantListingController::class, 'index']);
