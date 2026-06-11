@@ -39,7 +39,7 @@ class MerchantListingController extends Controller
         $merchant = $request->user()->merchant;
 
         // Validasi hak akses merchant
-        if (! $merchant || $merchant->status_verifikasi !== 'approved') {
+        if (! $merchant || $merchant->status_verifikasi !== 'disetujui') {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Aksi ditolak. Akun Merchant Anda belum diverifikasi oleh Admin.',
@@ -48,7 +48,7 @@ class MerchantListingController extends Controller
 
         // Validasi input data dari frontend
         $validator = Validator::make($request->all(), [
-            'id_categori' => 'required|exists:categoris,id',
+           'kategori_id' => 'required|exists:categoris,id', 
             'nama' => 'required|string|max:255',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'harga_normal' => 'required|numeric|min:0',

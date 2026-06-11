@@ -14,22 +14,15 @@ return new class extends Migration
         Schema::create('claims', function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_pengguna')
-                ->constrained('users')
+                ->constrained('pengguna')
                 ->onDelete('cascade');
-            $table->integer('jumlah_porsi');
-            $table->decimal('harga_perporsi', 10, 2);
+            $table->foreignId('id_listings')
+                ->constrained('listings')
+                ->onDelete('cascade');
+            $table->integer('jumlah');
             $table->decimal('total_harga', 10, 2);
-            $table->enum('status', [
-                'aktif',
-                'diproses',
-                'sudah_diambil',
-                'kadaluarsa',
-                'dibatalkan',
-            ])->default('aktif');
-            $table->string('code_qr')->unique();
-            $table->timestamp('diambil_pada')->nullable();
-            $table->timestamp('kadaluarsa_pada')->nullable();
-            $table->text('catatan')->nullable();
+            $table->string('kode_klaim')->unique();
+            $table->enum('status', ['pending', 'diambil', 'batal']) ->default('pending');
             $table->timestamps();
         });
     }

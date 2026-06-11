@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Claim extends Model
@@ -10,20 +11,11 @@ class Claim extends Model
 
     protected $fillable = [
         'id_pengguna',
-        'id_listing',
-        'jumlah_porsi',
-        'harga_perporsi',
+        'id_listings',
+        'jumlah',
         'total_harga',
+        'kode_klaim',
         'status',
-        'code_qr',
-        'diambil_pada',
-        'kadaluarsa_pada',
-        'catatan',
-    ];
-
-    protected $casts = [
-        'diambil_pada' => 'datetime',
-        'kadaluarsa_pada' => 'datetime',
     ];
 
     public function pengguna()
@@ -33,17 +25,6 @@ class Claim extends Model
 
     public function listing()
     {
-        return $this->belongsTo(
-            ListingMakanan::class,
-            'id_listing'
-        );
-    }
-
-    public function notifications()
-    {
-        return $this->hasMany(
-            Notification::class,
-            'id_claims'
-        );
+        return $this->belongsTo(Listing::class, 'id_listings');
     }
 }

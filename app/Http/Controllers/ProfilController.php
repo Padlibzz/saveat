@@ -113,7 +113,6 @@ class ProfilController extends Controller
 
     public function verifikasiMerchant(Request $request, $id)
     {
-
         if ($request->user()->peran !== 'admin') {
             return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki akses admin'], 403);
         }
@@ -136,10 +135,17 @@ class ProfilController extends Controller
             'diverifikasi_oleh' => $request->diverifikasi_oleh,
         ]);
 
+        // PERBAIKAN: Otomatis sinkronisasi peran ke tabel pengguna berdasarkan keputusan verifikasi admin
+        if ($request->status_verifikasi === 'disetujui') {
+            $profil->pengguna->update(['peran' => 'merchant']);
+        } elseif ($request->status_verifikasi === 'ditolak') {
+            $profil->pengguna->update(['peran' => 'konsumen']);
+        }
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Status merchant berhasil diperbarui',
-            'data' => $profil,
+            'message' => 'Status merchant berhasil diperbarui dan peran pengguna telah disinkronkan',
+            'data' => $profil->load('pengguna'), // Memuat ulang data pengguna terbaru untuk memastikan perubahan terlihat
         ], 200);
     }
 }

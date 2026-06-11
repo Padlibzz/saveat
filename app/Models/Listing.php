@@ -10,9 +10,9 @@ class Listing extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
+   protected $fillable = [
         'id_merchant',
-        'id_kategori',
+        'kategori_id', // <-- Pastikan ini menggunakan kategori_id
         'nama',
         'foto',
         'harga_normal',

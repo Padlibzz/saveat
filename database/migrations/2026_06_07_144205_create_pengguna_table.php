@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+   public function up(): void
     {
         Schema::create('pengguna', function (Blueprint $table) {
             $table->id();
@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->enum('peran', ['konsumen', 'merchant', 'admin']);
             $table->enum('status', ['aktif', 'nonaktif', 'diblokir'])->default('aktif');
-            $table->string('Profil_image')->nullable();
+            $table->string('profil_image')->nullable(); // <-- Diubah menjadi huruf kecil
             $table->string('no_telphone');
             $table->timestamps();
         });
