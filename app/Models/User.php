@@ -12,9 +12,10 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $table = 'pengguna';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -28,7 +29,7 @@ class User extends Authenticatable
         'status',
         'Profil_image',
         'no_telphone',
-        'peran'
+        'peran',
     ];
 
     /**
@@ -40,7 +41,6 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-
 
     /**
      * Get the attributes that should be cast.
@@ -58,9 +58,7 @@ class User extends Authenticatable
     public function merchant()
     {
         // Asumsi relasi user ke profil merchant (menggunakan model Profil)
-        return $this->hasOne(\App\Models\Profil::class, 'id_pengguna')
-                    ->where('tipe_profil', 'merchant');
+        return $this->hasOne(Profil::class, 'id_pengguna')
+            ->where('tipe_profil', 'merchant');
     }
-
-  
 }

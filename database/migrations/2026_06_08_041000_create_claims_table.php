@@ -24,7 +24,7 @@ return new class extends Migration
                 'diproses',
                 'sudah_diambil',
                 'kadaluarsa',
-                'dibatalkan'
+                'dibatalkan',
             ])->default('aktif');
             $table->string('code_qr')->unique();
             $table->timestamp('diambil_pada')->nullable();

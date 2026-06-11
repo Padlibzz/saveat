@@ -24,13 +24,13 @@ return new class extends Migration
                 'claims_masuk',
                 'claims_berhasil',
                 'listing_expired',
-                'pesanan_selesai'
+                'pesanan_selesai',
             ]);
             $table->string('judul');
             $table->text('pesan');
             $table->boolean('is_read')
                 ->default(false);
-                    $table->timestamps();
+            $table->timestamps();
         });
     }
 

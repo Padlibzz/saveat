@@ -12,22 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('profil', function (Blueprint $table) {
-            $table->id(); 
-            
+            $table->id();
+
             $table->unsignedBigInteger('id_pengguna');
-            
+
             $table->enum('tipe_profil', ['konsumen', 'merchant', 'admin']);
-            
+
             $table->text('alamat')->nullable();
-            
+
             $table->string('nama_usaha')->nullable();
             $table->text('deskripsi')->nullable();
             $table->string('link_map')->nullable();
-            
+
             $table->enum('status_verifikasi', ['menunggu', 'disetujui', 'ditolak'])->nullable();
             $table->unsignedBigInteger('diverifikasi_oleh')->nullable();
             $table->text('alasan_penolakan')->nullable();
-            
+
             $table->timestamps();
 
             $table->foreign('id_pengguna')->references('id')->on('pengguna')->onDelete('cascade');

@@ -14,7 +14,7 @@ class Notification extends Model
         'jenis',
         'judul',
         'pesan',
-        'is_read'
+        'is_read',
     ];
 
     public function pengguna()

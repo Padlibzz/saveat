@@ -4,16 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\Claim;
 use App\Models\Notification;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // Pastikan ini di-import
 
 class ClaimController extends Controller
 {
-    public function selesai ($id)
+    public function selesai(Request $request, $id)
     {
         $claims = Claim::findOrFail($id);
+
+        if ($claims->id_pengguna !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak. Anda tidak berhak menyelesaikan pesanan ini.',
+            ], 403);
+        }
+
         $claims->update([
             'status' => 'sudah_diambil',
-            'diambil_pada' => now()
+            'diambil_pada' => now(),
         ]);
 
         Notification::create([
@@ -22,12 +30,12 @@ class ClaimController extends Controller
             'jenis' => 'pesanan_selesai',
             'judul' => 'Pesanan Selesai',
             'pesan' => 'Pesanan Anda telah selesai dan siap diambil.',
-            'is_read' => false
+            'is_read' => false,
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Pesanan berhasil diselesaikan'
+            'message' => 'Pesanan berhasil diselesaikan',
         ]);
     }
 }

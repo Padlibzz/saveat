@@ -18,7 +18,7 @@ class Claim extends Model
         'code_qr',
         'diambil_pada',
         'kadaluarsa_pada',
-        'catatan'
+        'catatan',
     ];
 
     protected $casts = [

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -12,14 +12,14 @@ class AuthController extends Controller
     {
         $request->validate([
             'login_identifier' => 'required',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
         $user = User::where('email', $request->login_identifier)
-                    ->orWhere('username', $request->login_identifier)
-                    ->first();
+            ->orWhere('username', $request->login_identifier)
+            ->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json(['pesan' => 'Email/Username atau password salah'], 401);
         }
 
@@ -27,33 +27,33 @@ class AuthController extends Controller
 
         return response()->json([
             'pesan' => 'Login berhasil',
-            'access_token' => $token
+            'access_token' => $token,
         ], 200);
     }
 
     public function register(Request $request)
     {
         $request->validate([
-            'nama'     => 'required',
+            'nama' => 'required',
             'username' => 'required|unique:pengguna,username',
-            'email'    => 'required|email|unique:pengguna,email',
+            'email' => 'required|email|unique:pengguna,email',
             'password' => 'required|min:6',
-            'no_telphone' => 'required'
+            'no_telphone' => 'required',
         ]);
 
         $user = User::create([
-            'nama'     => $request->nama,
+            'nama' => $request->nama,
             'username' => $request->username,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password), 
-            'peran'    => 'konsumen', 
-            'status'   => 'aktif',
-            'no_telphone' => $request->no_telphone
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'peran' => 'konsumen',
+            'status' => 'aktif',
+            'no_telphone' => $request->no_telphone,
         ]);
 
         return response()->json([
             'pesan' => 'Registrasi berhasil',
-            'data'  => $user
-        ], 201); 
+            'data' => $user,
+        ], 201);
     }
 }

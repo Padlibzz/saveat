@@ -1,20 +1,18 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClaimController;
+use App\Http\Controllers\MerchantListingController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfilController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\ClaimController;
-use App\Http\Controllers\ProfilController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\MerchantListingController;
-
-
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
@@ -32,5 +30,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/merchant/listings', [MerchantListingController::class, 'index']);
     Route::post('/merchant/listings', [MerchantListingController::class, 'store']);
-    
+
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware('role:merchant')->prefix('merchant')->group(function () {
+        Route::get('/listings', [MerchantListingController::class, 'index']);
+        Route::post('/listings', [MerchantListingController::class, 'store']);
+    });
 });
