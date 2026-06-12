@@ -38,6 +38,6 @@ class Listing extends Model
     public function kategori(): BelongsTo
     {
         // Pastikan nama model kategori Anda adalah Kategori
-        return $this->belongsTo(Kategori::class, 'kategori_id');
+        return $this->belongsTo(Kategori::class, 'categori_id');
     }
 }
