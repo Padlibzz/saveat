@@ -6,15 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('profil', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('user_id')->unique(); // Setiap pengguna hanya memiliki satu profil
+            $table->unsignedBigInteger('user_id')->unique(); 
 
             $table->enum('tipe_profil', ['konsumen', 'merchant', 'admin']);
 
@@ -31,13 +28,11 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('diverifikasi_oleh')->references('id')->on('users')->onDelete('set null');
+            // PERBAIKAN: Di bawah ini diganti menjadi on('users')
+            $table->foreign('diverifikasi_oleh')->references('id')->on('users')->onDelete('set null'); 
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('profil');
