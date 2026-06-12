@@ -2,30 +2,52 @@
 
 namespace App\Models;
 
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected $table = 'pengguna';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
     protected $fillable = [
-        'name',
+        'nama',
         'username',
         'email',
         'password',
+        'status',
+        'profil_image', 
         'no_telphone',
         'peran',
-        'status',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -34,14 +56,14 @@ class User extends Authenticatable
         ];
     }
 
-    public function profil()
+    public function profil(): HasOne
     {
-        return $this->hasOne(Profil::class, 'user_id');
+        return $this->hasOne(Profil::class, 'id_pengguna');
     }
 
-    // Relasi untuk memudahkan pemanggilan $request->user()->merchant
-    public function merchant()
+    public function merchant(): HasOne
     {
-        return $this->hasOne(Profil::class, 'user_id')->where('tipe_profil', 'merchant');
+        return $this->hasOne(Profil::class, 'id_pengguna')
+            ->where('tipe_profil', 'merchant');
     }
 }

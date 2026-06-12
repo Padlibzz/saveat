@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class MerchantListingController extends Controller
 {
+    // Menampilkan semua daftar listing makanan milik merchant yang sedang login
     public function index(Request $request)
     {
         $merchant = $request->user()->merchant;
@@ -19,6 +21,7 @@ class MerchantListingController extends Controller
             ], 404);
         }
 
+        // Ambil data listing beserta nama kategorinya
         $listings = Listing::with('categori')
             ->where('id_merchant', $merchant->id)
             ->orderBy('created_at', 'desc')
@@ -30,10 +33,12 @@ class MerchantListingController extends Controller
         ], 200);
     }
 
+    // Membuat listing makanan baru oleh merchant
     public function store(Request $request)
     {
         $merchant = $request->user()->merchant;
 
+        // Validasi hak akses merchant
         if (! $merchant || $merchant->status_verifikasi !== 'disetujui') {
             return response()->json([
                 'status' => 'error',
@@ -41,8 +46,9 @@ class MerchantListingController extends Controller
             ], 403);
         }
 
+        // Validasi input data dari frontend
         $validator = Validator::make($request->all(), [
-            'kategori_id' => 'required|exists:categoris,id', 
+           'kategori_id' => 'required|exists:categoris,id', 
             'nama' => 'required|string|max:255',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'harga_normal' => 'required|numeric|min:0',
@@ -61,14 +67,15 @@ class MerchantListingController extends Controller
         try {
             $input = $request->all();
 
-            // Cara upload gambar yang sesuai standar Laravel
+            //Proses upload foto jika ada
             if ($request->hasFile('foto')) {
                 $file = $request->file('foto');
                 $namaFoto = time().'_'.$file->getClientOriginalName();
-                $path = $file->storeAs('listings', $namaFoto, 'public');
-                $input['foto'] = $path;
+                $file->move(public_path('storage/listings'), $namaFoto);
+                $input['foto'] = 'listings/' . $namaFoto;
             }
 
+            // Data otomatis sebelum masuk database
             $input['id_merchant'] = $merchant->id;
             $input['stok_sisa'] = $request->stok_total;
             $input['status'] = 'aktif';

@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Claim;
 use App\Models\Listing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class ClaimController extends Controller
 {
+    // Menampilkan riwayat klaim makanan milik konsumen yang sedang login
     public function index(Request $request)
     {
         $claims = Claim::with(['listings.merchant', 'listings.kategori'])
-            ->where('user_id', $request->user()->id)
+            ->where('id_pengguna', $request->pengguna()->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -23,8 +26,10 @@ class ClaimController extends Controller
         ], 200);
     }
 
+    // Proses melakukan klaim makanan
     public function store(Request $request)
     {
+        // Validasi input jumlah pesanan
         $validator = Validator::make($request->all(), [
             'id_listings' => 'required|exists:listings,id',
             'jumlah' => 'required|integer|min:1',
@@ -37,10 +42,11 @@ class ClaimController extends Controller
             ], 422);
         }
 
+        //Jika salah satu query gagal, database otomatis di rollback
         return DB::transaction(function () use ($request) {
-            // lockForUpdate mencegah double claim oleh user berbeda di detik yang sama
-            $listings = Listing::lockForUpdate()->find($request->id_listings);
+            $listings = Listing::find($request->id_listings);
             
+            // cek apakah makanan sudah melewati batas waktu pengambilan
             if (now()->greaterThan($listings->batas_waktu)) {
                 return response()->json([
                     'status' => 'error',
@@ -48,51 +54,13 @@ class ClaimController extends Controller
                 ], 400);
             }
 
+            // Cek kecukupan stok sisa
             if ($listings->stok_sisa < $request->jumlah) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Gagal klaim: Stok sisa tidak mencukupi. Sisa stok: ' . $listings->stok_sisa
                 ], 400);
             }
-
-            // Menyimpan riwayat klaim
-            $claim = Claim::create([
-                'user_id' => $request->user()->id,
-                'id_listings' => $request->id_listings,
-                'jumlah' => $request->jumlah,
-                'status' => 'diproses' 
-            ]);
-
-            // Mengurangi stok secara otomatis
-            $listings->decrement('stok_sisa', $request->jumlah);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Berhasil melakukan klaim',
-                'data' => $claim
-            ], 201);
         });
-    }
-
-    public function selesai(Request $request, $id)
-    {
-        $claim = Claim::find($id);
-
-        if (!$claim) {
-            return response()->json(['status' => 'error', 'message' => 'Data klaim tidak ditemukan'], 404);
-        }
-
-        // Hanya pemilik klaim atau admin/merchant yang boleh menyelesaikan
-        if ($claim->user_id !== $request->user()->id && $request->user()->peran !== 'admin') {
-            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki akses.'], 403);
-        }
-
-        $claim->update(['status' => 'selesai']);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Klaim berhasil diselesaikan',
-            'data' => $claim
-        ], 200);
     }
 }
