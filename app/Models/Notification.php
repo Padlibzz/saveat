@@ -9,24 +9,21 @@ class Notification extends Model
     protected $table = 'notifications';
 
     protected $fillable = [
-        'id_pengguna',
-        'id_claims',
+        'user_id',   
+        'claim_id',  
         'jenis',
         'judul',
         'pesan',
         'is_read',
     ];
 
-    public function pengguna()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'id_pengguna');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function claims()
+    public function claim() 
     {
-        return $this->belongsTo(
-            Claim::class,
-            'id_claims'
-        );
+        return $this->belongsTo(Claim::class, 'claim_id');
     }
 }

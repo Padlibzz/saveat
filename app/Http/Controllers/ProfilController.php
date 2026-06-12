@@ -9,7 +9,7 @@ class ProfilController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Profil::with('pengguna');
+        $query = Profil::with('user');
 
         if ($request->has('tipe')) {
             $query->where('tipe_profil', $request->tipe);
@@ -26,7 +26,7 @@ class ProfilController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'id_pengguna' => 'required|exists:pengguna,id', 
+            'user_id' => 'required|exists:users,id', 
             'tipe_profil' => 'required|in:konsumen,merchant,admin',
             'alamat' => 'nullable|string',
         ];
@@ -54,7 +54,7 @@ class ProfilController extends Controller
 
     public function show($id)
     {
-        $profil = Profil::with(['pengguna', 'verifikator'])->find($id);
+        $profil = Profil::with(['user', 'verifikator'])->find($id);
 
         if (! $profil) {
             return response()->json(['status' => 'error', 'message' => 'Profil tidak ditemukan'], 404);
@@ -74,7 +74,7 @@ class ProfilController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Profil tidak ditemukan'], 404);
         }
 
-        if ($profil->id_pengguna !== $request->user()->id && $request->user()->peran !== 'admin') {
+        if ($profil->user_id !== $request->user()->id && $request->user()->peran !== 'admin') {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Aksi ditolak. Anda tidak memiliki akses untuk mengubah profil ini.',
@@ -126,7 +126,7 @@ class ProfilController extends Controller
         $request->validate([
             'status_verifikasi' => 'required|in:disetujui,ditolak',
             'alasan_penolakan' => 'required_if:status_verifikasi,ditolak|nullable|string',
-            'diverifikasi_oleh' => 'required|exists:pengguna,id', 
+            'diverifikasi_oleh' => 'required|exists:users,id', 
         ]);
 
         $profil->update([
@@ -135,17 +135,16 @@ class ProfilController extends Controller
             'diverifikasi_oleh' => $request->diverifikasi_oleh,
         ]);
 
-        // PERBAIKAN: Otomatis sinkronisasi peran ke tabel pengguna berdasarkan keputusan verifikasi admin
         if ($request->status_verifikasi === 'disetujui') {
-            $profil->pengguna->update(['peran' => 'merchant']);
+            $profil->user->update(['peran' => 'merchant']);
         } elseif ($request->status_verifikasi === 'ditolak') {
-            $profil->pengguna->update(['peran' => 'konsumen']);
+            $profil->user->update(['peran' => 'konsumen']);
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Status merchant berhasil diperbarui dan peran pengguna telah disinkronkan',
-            'data' => $profil->load('pengguna'), // Memuat ulang data pengguna terbaru untuk memastikan perubahan terlihat
+            'message' => 'Status merchant berhasil diperbarui dan peran disinkronkan',
+            'data' => $profil->load('user'),
         ], 200);
     }
 }

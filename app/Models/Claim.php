@@ -2,29 +2,29 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Claim extends Model
 {
-    protected $table = 'claims';
-
     protected $fillable = [
-        'id_pengguna',
-        'id_listings',
+        'user_id',
+        'listing_id', 
         'jumlah',
-        'total_harga',
+        'total_harga', 
         'kode_klaim',
-        'status',
+        'metode_pembayaran', 
+        'status_pembayaran', 
+        'waktu_pembayaran',  
+        'status'
     ];
 
-    public function pengguna()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'id_pengguna');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function listing()
     {
-        return $this->belongsTo(Listing::class, 'id_listings');
+        return $this->belongsTo(Listing::class, 'listing_id');
     }
 }
