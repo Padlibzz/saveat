@@ -26,7 +26,7 @@ class ProfilController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'user_id' => 'required|exists:users,id', 
+            'user_id' => 'required|exists:users,id',
             'tipe_profil' => 'required|in:konsumen,merchant,admin',
             'alamat' => 'nullable|string',
         ];
@@ -98,8 +98,8 @@ class ProfilController extends Controller
 
         if ($request->has('tipe_profil') && $request->tipe_profil === 'merchant' && $profil->tipe_profil !== 'merchant') {
             $validatedData['status_verifikasi'] = 'menunggu';
-            $validatedData['diverifikasi_oleh'] = null; 
-            $validatedData['alasan_penolakan'] = null;  
+            $validatedData['diverifikasi_oleh'] = null;
+            $validatedData['alasan_penolakan'] = null;
         }
 
         $profil->update($validatedData);
@@ -126,7 +126,7 @@ class ProfilController extends Controller
         $request->validate([
             'status_verifikasi' => 'required|in:disetujui,ditolak',
             'alasan_penolakan' => 'required_if:status_verifikasi,ditolak|nullable|string',
-            'diverifikasi_oleh' => 'required|exists:users,id', 
+            'diverifikasi_oleh' => 'required|exists:users,id',
         ]);
 
         $profil->update([

@@ -4,17 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Claim extends Model
+class AbuseReport extends Model
 {
     protected $fillable = [
         'user_id',
         'listing_id',
-        'jumlah',
-        'total_harga',
-        'kode_klaim',
-        'metode_pembayaran', // <-- TAMBAHAN
-        'status_pembayaran', // <-- TAMBAHAN
-        'waktu_pembayaran',  // <-- TAMBAHAN
+        'alasan',
+        'deskripsi',
         'status',
     ];
 

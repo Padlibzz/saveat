@@ -10,19 +10,19 @@ return new class extends Migration
     {
         Schema::create('claims', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')
-                ->constrained('users')
-                ->onDelete('cascade');
-            
-            // UBAH: id_listings menjadi listing_id
-            $table->foreignId('listing_id')
-                ->constrained('listings')
-                ->onDelete('cascade');
-                
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('listing_id')->constrained('listings')->onDelete('cascade');
+
             $table->integer('jumlah');
             $table->decimal('total_harga', 10, 2);
             $table->string('kode_klaim')->unique();
-            $table->enum('status', ['pending', 'diambil', 'batal']) ->default('pending');
+
+            // TAMBAHAN: Sistem Pembayaran
+            $table->string('metode_pembayaran')->nullable(); // contoh: 'qris', 'gopay', 'transfer_bank'
+            $table->enum('status_pembayaran', ['belum_dibayar', 'sudah_dibayar', 'gagal'])->default('belum_dibayar');
+            $table->timestamp('waktu_pembayaran')->nullable();
+
+            $table->enum('status', ['pending', 'diambil', 'batal'])->default('pending');
             $table->timestamps();
         });
     }

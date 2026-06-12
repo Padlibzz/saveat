@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('listings', function (Blueprint $table) {
             $table->id();
-            // PERBAIKAN: merchant_id merujuk ke tabel profils
             $table->foreignId('merchant_id')->constrained('profils')->onDelete('cascade');
-            $table->foreignId('kategori_id')->constrained('categoris')->onDelete('restrict');
+            // PERBAIKAN: constrained diubah ke 'categories' (sebelumnya 'categoris')
+            $table->foreignId('kategori_id')->constrained('categories')->onDelete('restrict');
             $table->string('nama');
             $table->string('foto')->nullable();
             $table->decimal('harga_normal', 10, 2);

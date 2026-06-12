@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class Profil extends Model
 {
     protected $fillable = [
-        'user_id', 
-        'tipe_profil', 
-        'nama_usaha', 
-        'alamat', 
-        'deskripsi', 
-        'link_map', 
-        'status_verifikasi', 
-        'diverifikasi_oleh', 
-        'alasan_penolakan'
+        'user_id',
+        'tipe_profil',
+        'nama_usaha',
+        'alamat',
+        'deskripsi',
+        'link_map',
+        'status_verifikasi',
+        'diverifikasi_oleh',
+        'alasan_penolakan',
     ];
 
     public function user()

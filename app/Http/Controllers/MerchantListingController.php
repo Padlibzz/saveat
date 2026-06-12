@@ -19,9 +19,8 @@ class MerchantListingController extends Controller
             ], 404);
         }
 
-        // PERBAIKAN: Gunakan 'kategori' dan 'merchant_id'
         $listings = Listing::with('kategori')
-            ->where('merchant_id', $merchant->id) 
+            ->where('merchant_id', $merchant->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -43,13 +42,14 @@ class MerchantListingController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'kategori_id' => 'required|exists:categoris,id', 
+            // PERBAIKAN: Ubah 'categoris' menjadi 'categories' agar sesuai nama tabel
+            'kategori_id' => 'required|exists:categories,id',
             'nama' => 'required|string|max:255',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'harga_normal' => 'required|numeric|min:0',
-            'harga_diskon' => 'required|numeric|min:0|lt:harga_normal', 
+            'harga_diskon' => 'required|numeric|min:0|lt:harga_normal',
             'stok_total' => 'required|integer|min:1',
-            'batas_waktu' => 'required|date|after:now', 
+            'batas_waktu' => 'required|date|after:now',
         ]);
 
         if ($validator->fails()) {
@@ -69,8 +69,7 @@ class MerchantListingController extends Controller
                 $input['foto'] = $path;
             }
 
-            // PERBAIKAN: Gunakan 'merchant_id' bukan 'id_merchant'
-            $input['merchant_id'] = $merchant->id; 
+            $input['merchant_id'] = $merchant->id;
             $input['stok_sisa'] = $request->stok_total;
             $input['status'] = 'aktif';
 
