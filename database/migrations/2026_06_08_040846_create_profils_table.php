@@ -31,7 +31,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('diverifikasi_oleh')->references('id')->on('pengguna')->onDelete('set null');
+            $table->foreign('diverifikasi_oleh')->references('id')->on('users')->onDelete('set null');
         });
     }
 

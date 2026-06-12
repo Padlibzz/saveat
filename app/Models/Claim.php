@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Claim extends Model
 {
+    // PERBAIKAN: Tambahkan total_harga dan kode_klaim ke dalam fillable
     protected $fillable = [
         'user_id',
         'id_listings',
         'jumlah',
+        'total_harga',
+        'kode_klaim',
         'status'
     ];
 

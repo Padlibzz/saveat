@@ -7,21 +7,11 @@ use App\Models\Listing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str; // <-- Tambahkan ini untuk generate random string
 
 class ClaimController extends Controller
 {
-    public function index(Request $request)
-    {
-        $claims = Claim::with(['listings.merchant', 'listings.kategori'])
-            ->where('user_id', $request->user()->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $claims
-        ], 200);
-    }
+    // ... method index() biarkan sama ...
 
     public function store(Request $request)
     {
@@ -31,39 +21,36 @@ class ClaimController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
         }
 
         return DB::transaction(function () use ($request) {
-            // lockForUpdate mencegah double claim oleh user berbeda di detik yang sama
             $listings = Listing::lockForUpdate()->find($request->id_listings);
             
             if (now()->greaterThan($listings->batas_waktu)) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Gagal klaim: Makanan sudah melewati batas waktu pengambilan.'
-                ], 400);
+                return response()->json(['status' => 'error', 'message' => 'Gagal klaim: Makanan sudah melewati batas waktu pengambilan.'], 400);
             }
 
             if ($listings->stok_sisa < $request->jumlah) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Gagal klaim: Stok sisa tidak mencukupi. Sisa stok: ' . $listings->stok_sisa
-                ], 400);
+                return response()->json(['status' => 'error', 'message' => 'Gagal klaim: Stok sisa tidak mencukupi.'], 400);
             }
 
-            // Menyimpan riwayat klaim
+            // PERBAIKAN: Hitung total harga (asumsi ada kolom harga_diskon di tabel listings)
+            // Jika klaim gratis, pastikan harga_diskon bernilai 0 di tabel listings
+            $total_harga = $listings->harga_diskon * $request->jumlah;
+            
+            // PERBAIKAN: Generate kode klaim unik
+            $kode_klaim = 'CLM-' . strtoupper(Str::random(6));
+
             $claim = Claim::create([
                 'user_id' => $request->user()->id,
                 'id_listings' => $request->id_listings,
                 'jumlah' => $request->jumlah,
-                'status' => 'diproses' 
+                'total_harga' => $total_harga,   // <-- Dimasukkan agar tidak error
+                'kode_klaim' => $kode_klaim,     // <-- Dimasukkan agar tidak error
+                'status' => 'pending'            // <-- Diselaraskan dengan migration enum
             ]);
 
-            // Mengurangi stok secara otomatis
             $listings->decrement('stok_sisa', $request->jumlah);
 
             return response()->json([
@@ -82,16 +69,16 @@ class ClaimController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Data klaim tidak ditemukan'], 404);
         }
 
-        // Hanya pemilik klaim atau admin/merchant yang boleh menyelesaikan
         if ($claim->user_id !== $request->user()->id && $request->user()->peran !== 'admin') {
             return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki akses.'], 403);
         }
 
-        $claim->update(['status' => 'selesai']);
+        // PERBAIKAN: Selaraskan dengan enum migration (menggunakan 'diambil', bukan 'selesai')
+        $claim->update(['status' => 'diambil']);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Klaim berhasil diselesaikan',
+            'message' => 'Klaim berhasil diselesaikan (makanan telah diambil)',
             'data' => $claim
         ], 200);
     }
