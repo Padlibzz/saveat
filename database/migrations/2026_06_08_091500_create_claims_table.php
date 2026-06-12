@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('claims', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')
-                ->constrained('users')
+            $table->foreignId('id_pengguna')
+                ->constrained('pengguna')
                 ->onDelete('cascade');
             $table->foreignId('id_listings')
                 ->constrained('listings')

@@ -34,15 +34,15 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'nama' => 'required', // Tetap biarkan 'nama' jika request dari Frontend masih pakai 'nama'
-            'username' => 'required|unique:users,username',
-            'email' => 'required|email|unique:users,email',
+            'nama' => 'required',
+            'username' => 'required|unique:pengguna,username',
+            'email' => 'required|email|unique:pengguna,email',
             'password' => 'required|min:6',
             'no_telphone' => 'required',
         ]);
 
         $user = User::create([
-            'name' => $request->nama, // Menerima input 'nama' untuk masuk ke kolom 'name'
+            'nama' => $request->nama,
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
