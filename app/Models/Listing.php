@@ -11,8 +11,8 @@ class Listing extends Model
     use HasFactory;
 
    protected $fillable = [
-        'id_merchant',
-        'kategori_id', // <-- Pastikan ini menggunakan kategori_id
+        'merchant_id', // <-- PERBAIKAN
+        'kategori_id', 
         'nama',
         'foto',
         'harga_normal',
@@ -31,11 +31,13 @@ class Listing extends Model
 
     public function merchant(): BelongsTo
     {
-        return $this->belongsTo(Merchant::class, 'id_merchant');
+        // PERBAIKAN: Merujuk ke model Profil, bukan Merchant
+        return $this->belongsTo(Profil::class, 'merchant_id');
     }
 
     public function kategori(): BelongsTo
     {
-        return $this->belongsTo(Kategori::class, 'id_kategori');
+        // Pastikan nama model kategori Anda adalah Kategori
+        return $this->belongsTo(Kategori::class, 'kategori_id');
     }
 }

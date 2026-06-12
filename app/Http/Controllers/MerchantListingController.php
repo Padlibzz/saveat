@@ -19,8 +19,9 @@ class MerchantListingController extends Controller
             ], 404);
         }
 
-        $listings = Listing::with('categori')
-            ->where('id_merchant', $merchant->id)
+        // PERBAIKAN: Gunakan 'kategori' dan 'merchant_id'
+        $listings = Listing::with('kategori')
+            ->where('merchant_id', $merchant->id) 
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -61,7 +62,6 @@ class MerchantListingController extends Controller
         try {
             $input = $request->all();
 
-            // Cara upload gambar yang sesuai standar Laravel
             if ($request->hasFile('foto')) {
                 $file = $request->file('foto');
                 $namaFoto = time().'_'.$file->getClientOriginalName();
@@ -69,7 +69,8 @@ class MerchantListingController extends Controller
                 $input['foto'] = $path;
             }
 
-            $input['id_merchant'] = $merchant->id;
+            // PERBAIKAN: Gunakan 'merchant_id' bukan 'id_merchant'
+            $input['merchant_id'] = $merchant->id; 
             $input['stok_sisa'] = $request->stok_total;
             $input['status'] = 'aktif';
 

@@ -6,10 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Claim extends Model
 {
-    // PERBAIKAN: Tambahkan total_harga dan kode_klaim
     protected $fillable = [
         'user_id',
-        'id_listings',
+        'listing_id', // UBAH: id_listings menjadi listing_id
         'jumlah',
         'total_harga', 
         'kode_klaim',  
@@ -21,8 +20,9 @@ class Claim extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function listings()
+    // UBAH: Nama method menjadi singular 'listing' karena belongsTo merujuk ke 1 item
+    public function listing()
     {
-        return $this->belongsTo(Listing::class, 'id_listings');
+        return $this->belongsTo(Listing::class, 'listing_id'); // Sesuaikan foreign key
     }
 }

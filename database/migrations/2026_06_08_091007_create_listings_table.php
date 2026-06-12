@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('listings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_merchant')->constrained('pengguna')->onDelete('cascade');
+            // PERBAIKAN: merchant_id merujuk ke tabel profils
+            $table->foreignId('merchant_id')->constrained('profils')->onDelete('cascade');
             $table->foreignId('kategori_id')->constrained('categoris')->onDelete('restrict');
             $table->string('nama');
             $table->string('foto')->nullable();
@@ -24,9 +25,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('listings');

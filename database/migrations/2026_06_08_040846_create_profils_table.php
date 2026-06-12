@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('profil', function (Blueprint $table) {
+        // UBAH: 'profil' menjadi 'profils'
+        Schema::create('profils', function (Blueprint $table) {
             $table->id();
 
             $table->unsignedBigInteger('user_id')->unique(); 
@@ -28,13 +29,13 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            // PERBAIKAN: Di bawah ini diganti menjadi on('users')
             $table->foreign('diverifikasi_oleh')->references('id')->on('users')->onDelete('set null'); 
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('profil');
+        // UBAH: 'profil' menjadi 'profils'
+        Schema::dropIfExists('profils');
     }
 };

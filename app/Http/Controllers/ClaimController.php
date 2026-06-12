@@ -7,13 +7,14 @@ use App\Models\Listing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str; // <-- Perbaikan: Diperlukan untuk Str::random()
+use Illuminate\Support\Str; 
 
 class ClaimController extends Controller
 {
     public function index(Request $request)
     {
-        $claims = Claim::with(['listings.merchant', 'listings.kategori'])
+        // UBAH: relasi dipanggil dengan nama 'listing' bukan 'listings'
+        $claims = Claim::with(['listing.merchant', 'listing.kategori'])
             ->where('user_id', $request->user()->id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -26,8 +27,9 @@ class ClaimController extends Controller
 
     public function store(Request $request)
     {
+        // UBAH: validasi menggunakan listing_id
         $validator = Validator::make($request->all(), [
-            'id_listings' => 'required|exists:listings,id',
+            'listing_id' => 'required|exists:listings,id',
             'jumlah' => 'required|integer|min:1',
         ]);
 
@@ -39,39 +41,36 @@ class ClaimController extends Controller
         }
 
         return DB::transaction(function () use ($request) {
-            $listings = Listing::lockForUpdate()->find($request->id_listings);
+            // UBAH: pencarian menggunakan listing_id
+            $listing = Listing::lockForUpdate()->find($request->listing_id);
             
-            if (now()->greaterThan($listings->batas_waktu)) {
+            if (now()->greaterThan($listing->batas_waktu)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Gagal klaim: Makanan sudah melewati batas waktu pengambilan.'
                 ], 400);
             }
 
-            if ($listings->stok_sisa < $request->jumlah) {
+            if ($listing->stok_sisa < $request->jumlah) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Gagal klaim: Stok sisa tidak mencukupi. Sisa stok: ' . $listings->stok_sisa
+                    'message' => 'Gagal klaim: Stok sisa tidak mencukupi. Sisa stok: ' . $listing->stok_sisa
                 ], 400);
             }
 
-            // PERBAIKAN: Hitung total harga (pastikan di database listing ada harga_diskon, jika tidak akan dianggap 0)
-            $total_harga = ($listings->harga_diskon ?? 0) * $request->jumlah;
-            
-            // PERBAIKAN: Generate kode klaim unik
+            $total_harga = ($listing->harga_diskon ?? 0) * $request->jumlah;
             $kode_klaim = 'CLM-' . strtoupper(Str::random(6));
 
-            // PERBAIKAN: Masukkan semua data wajib dan sesuaikan status dengan migration
             $claim = Claim::create([
                 'user_id' => $request->user()->id,
-                'id_listings' => $request->id_listings,
+                'listing_id' => $request->listing_id, // UBAH ke listing_id
                 'jumlah' => $request->jumlah,
                 'total_harga' => $total_harga,
                 'kode_klaim' => $kode_klaim,
-                'status' => 'pending' // Sebelumnya 'diproses', ini akan error karena di migration hanya boleh 'pending', 'diambil', 'batal'
+                'status' => 'pending' 
             ]);
 
-            $listings->decrement('stok_sisa', $request->jumlah);
+            $listing->decrement('stok_sisa', $request->jumlah);
 
             return response()->json([
                 'status' => 'success',
@@ -93,7 +92,6 @@ class ClaimController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki akses.'], 403);
         }
 
-        // PERBAIKAN: Sesuaikan dengan status enum di migration ('diambil' bukan 'selesai')
         $claim->update(['status' => 'diambil']);
 
         return response()->json([
