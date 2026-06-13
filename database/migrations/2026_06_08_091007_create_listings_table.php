@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('listings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('merchant_id')->constrained('profils')->onDelete('cascade');
-            // PERBAIKAN: constrained diubah ke 'categories' (sebelumnya 'categoris')
             $table->foreignId('kategori_id')->constrained('categories')->onDelete('restrict');
             $table->string('nama');
             $table->string('foto')->nullable();
@@ -20,7 +19,7 @@ return new class extends Migration
             $table->integer('stok_total');
             $table->integer('stok_sisa');
             $table->dateTime('batas_waktu');
-            $table->enum('status', ['aktif', 'habis', 'diarsipkan', 'ditolak'])->default('aktif');
+            $table->enum('status', ['aktif', 'hampir_habis', 'tutup', 'diarsipkan', 'ditolak'])->default('aktif');
             $table->timestamps();
         });
     }

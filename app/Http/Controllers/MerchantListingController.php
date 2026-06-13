@@ -44,8 +44,6 @@ class MerchantListingController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            // PERBAIKAN: Ubah 'categoris' menjadi 'categories' agar sesuai nama tabel
-            'kategori_id' => 'required|exists:categories,id',
             'kategori_id' => 'required|exists:categories,id', 
             'nama' => 'required|string|max:255',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -93,50 +91,106 @@ class MerchantListingController extends Controller
         }
     }
 
-    // public function dashboard(Request $request)
-    // {
-    //     $merchant = $request->user()->merchant;
+    public function update(Request $request, $id)
+    {
+        $merchant = $request->user()->merchant;
 
-    //     if (!merchant) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => 'Profil merchant tidak ditemukan.'
-    //         ], 404);
-    //     }
+        $listing = Listing::where('id', $id)
+            ->where('merchant_id', $merchant->id)
+            ->first();
 
-    //     $totalTerselamatkan = Claim::whereHas('listing', function ($query) use ($merchant) {
-    //         $query->where('id_merchant', $merchant->id);
-    //     })
-    //     ->where('status', 'diambil')
-    //     ->sum('jumlah');
+        if (! $listing) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Listing tidak ditemukan atau bukan milik Anda.',
+            ], 404);
+        }
 
-    //     $totalPendapatan = Claim::whereHas('listing', function ($query) use ($merchant) {
-    //         $query->where('merchant_id', $merchant->id);
-    //     })
-    //     ->where('status_pembayaran', 'sudah_dibayar')
-    //     ->sum('total_harga');
+        if (! in_array($listing->status, ['aktif', 'hampir_habis'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Listing yang sudah tutup/diarsipkan tidak dapat diedit.',
+            ], 400);
+        }
 
-    //     $produkAktif = Listing::where('merchant_id', $merchant->id)
-    //     ->where('status', 'aktif')
-    //     ->where('stok_sisa', '>', 0)
-    //     ->count();
+        $validator = Validator::make($request->all(), [
+            'kategori_id' => 'sometimes|exists:categories,id',
+            'nama' => 'sometimes|string|max:255',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'harga_normal' => 'sometimes|numeric|min:0',
+            'harga_diskon' => 'sometimes|numeric|min:0|lt:harga_normal',
+            'stok_total' => 'sometimes|integer|min:1',
+            'batas_waktu' => 'sometimes|date|after:now',
+        ]);
 
-    //     $transaksiTerbaru = Claim::with(['listing', 'user'])
-    //         ->whereHas('listing', function ($query) use ($merchant) {
-    //             $query->where('merchant_id', $merchant->id);
-    //         })
-    //         ->orderBy('created_at', 'desc')
-    //         ->take(5)
-    //         ->get();
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
 
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'data' => [
-    //             'total_makanan_terselamatkan' => $totalTerselamatkan,
-    //             'total_pendapatan' => (float) $totalPendapatan,
-    //             'total_produk_aktif' => $produkAktif,
-    //             'riwayat_transaksi_terbaru' => $transaksiTerbaru
-    //         ]
-    //     ], 200);
-    // }
+        $input = $validator->validated();
+
+        // Jika stok total diubah, sesuaikan stok sisa secara proporsional
+        if ($request->filled('stok_total')) {
+            $terjual = $listing->stok_total - $listing->stok_sisa;
+            $stokBaru = $request->stok_total - $terjual;
+
+            if ($stokBaru < 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Stok total baru tidak boleh kurang dari jumlah porsi yang sudah terklaim ('.$terjual.').',
+                ], 400);
+            }
+
+            $input['stok_sisa'] = $stokBaru;
+        }
+
+        if ($request->hasFile('foto')) {
+            $file = $request->file('foto');
+            $namaFoto = time().'_'.$file->getClientOriginalName();
+            $path = $file->storeAs('listings', $namaFoto, 'public');
+            $input['foto'] = $path;
+        }
+
+        $listing->update($input);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Listing berhasil diperbarui.',
+            'data' => $listing,
+        ], 200);
+    }
+
+    public function tutup(Request $request, $id)
+    {
+        $merchant = $request->user()->merchant;
+
+        $listing = Listing::where('id', $id)
+            ->where('merchant_id', $merchant->id)
+            ->first();
+
+        if (! $listing) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Listing tidak ditemukan atau bukan milik Anda.',
+            ], 404);
+        }
+
+        if ($listing->status === 'tutup') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Listing ini sudah ditutup.',
+            ], 400);
+        }
+
+        $listing->update(['status' => 'tutup']);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Listing berhasil ditutup.',
+            'data' => $listing,
+        ], 200);
+    }
 }
