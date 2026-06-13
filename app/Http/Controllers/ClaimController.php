@@ -155,4 +155,38 @@ class ClaimController extends Controller
             'data' => $claim
         ], 200);
     }
+
+    public function riwayat(Request $request)
+    {
+        $klaims = Claim::with(['listing:id,nama,foto,status,batas_waktu', 'listing.merchant:id,nama_usaha'])
+            ->where('user_id', $request->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($klaim) {
+                $klaim->status_riwayat = $this->mapStatusRiwayat($klaim);
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $klaims,
+        ], 200);
+    }
+
+    public function mapStatusRiwayat(Claim $klaim): string
+    {
+        if ($klaim->status === 'diambil') {
+            return 'sudah_diambil';
+        }
+
+        if ($klaim->status === 'batal') {
+            return 'kadaluarsa';
+        }
+
+        // status === 'pending' atau lainnya yang masih berjalan
+        if ($klaim->listing && $klaim->listing->status === 'tutup') {
+            return 'kadaluarsa';
+        }
+
+        return 'aktif';
+    }
 }

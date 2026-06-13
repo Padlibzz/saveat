@@ -118,7 +118,17 @@ class MerchantListingController extends Controller
             'nama' => 'sometimes|string|max:255',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'harga_normal' => 'sometimes|numeric|min:0',
-            'harga_diskon' => 'sometimes|numeric|min:0|lt:harga_normal',
+            'harga_diskon' => [
+                'sometimes',
+                'numeric',
+                'min:0',
+                function ($attribute, $value, $fail) use ($request, $listing) {
+                    $hargaNormal = $request->input('harga_normal', $listing->harga_normal);
+                    if ($value >= $hargaNormal) {
+                        $fail('Harga diskon harus lebih kecil dari harga normal.');
+                    }
+                },
+            ],
             'stok_total' => 'sometimes|integer|min:1',
             'batas_waktu' => 'sometimes|date|after:now',
         ]);
