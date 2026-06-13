@@ -21,6 +21,7 @@ class MerchantListingController extends Controller
 
         $listings = Listing::with('kategori')
             ->where('merchant_id', $merchant->id)
+            ->where('merchant_id', $merchant->id) 
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -44,6 +45,7 @@ class MerchantListingController extends Controller
         $validator = Validator::make($request->all(), [
             // PERBAIKAN: Ubah 'categoris' menjadi 'categories' agar sesuai nama tabel
             'kategori_id' => 'required|exists:categories,id',
+            'kategori_id' => 'required|exists:categories,id', 
             'nama' => 'required|string|max:255',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'harga_normal' => 'required|numeric|min:0',
@@ -70,6 +72,7 @@ class MerchantListingController extends Controller
             }
 
             $input['merchant_id'] = $merchant->id;
+            $input['merchant_id'] = $merchant->id; 
             $input['stok_sisa'] = $request->stok_total;
             $input['status'] = 'aktif';
 

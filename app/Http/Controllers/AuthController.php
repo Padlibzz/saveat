@@ -34,7 +34,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'nama' => 'required', // Tetap biarkan 'nama' jika request dari Frontend masih pakai 'nama'
+            'nama' => 'required', 
             'username' => 'required|unique:users,username',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
@@ -42,7 +42,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->nama, // Menerima input 'nama' untuk masuk ke kolom 'name'
+            'name' => $request->nama, 
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),

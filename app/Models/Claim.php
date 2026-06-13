@@ -16,6 +16,14 @@ class Claim extends Model
         'status_pembayaran', // <-- TAMBAHAN
         'waktu_pembayaran',  // <-- TAMBAHAN
         'status',
+        'listing_id', 
+        'jumlah',
+        'total_harga', 
+        'kode_klaim',
+        'metode_pembayaran', 
+        'status_pembayaran', 
+        'waktu_pembayaran',  
+        'status'
     ];
 
     public function user()

@@ -135,7 +135,6 @@ class ProfilController extends Controller
             'diverifikasi_oleh' => $request->diverifikasi_oleh,
         ]);
 
-        // Sinkronisasi peran pada tabel users
         if ($request->status_verifikasi === 'disetujui') {
             $profil->user->update(['peran' => 'merchant']);
         } elseif ($request->status_verifikasi === 'ditolak') {

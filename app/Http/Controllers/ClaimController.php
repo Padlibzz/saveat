@@ -37,6 +37,7 @@ class ClaimController extends Controller
         return DB::transaction(function () use ($request) {
             $listing = Listing::lockForUpdate()->find($request->listing_id);
 
+            
             if (now()->greaterThan($listing->batas_waktu)) {
                 return response()->json(['status' => 'error', 'message' => 'Gagal klaim: Makanan sudah melewati batas waktu pengambilan.'], 400);
             }
@@ -52,6 +53,11 @@ class ClaimController extends Controller
             $claim = Claim::create([
                 'user_id' => $request->user()->id,
                 'listing_id' => $request->listing_id,
+            $kode_klaim = 'CLM-' . strtoupper(Str::random(8));
+
+            $claim = Claim::create([
+                'user_id' => $request->user()->id,
+                'listing_id' => $request->listing_id, 
                 'jumlah' => $request->jumlah,
                 'total_harga' => $total_harga,
                 'kode_klaim' => $kode_klaim,
@@ -60,12 +66,16 @@ class ClaimController extends Controller
             ]);
 
             // Stok "dibooking" (dikurangi sementara)
+                'status' => 'pending' 
+            ]);
+
             $listing->decrement('stok_sisa', $request->jumlah);
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Berhasil membuat pesanan, silakan lanjutkan ke pembayaran.',
                 'data' => $claim,
+                'data' => $claim
             ], 201);
         });
     }
@@ -77,6 +87,7 @@ class ClaimController extends Controller
         $claim = Claim::find($id);
 
         if (! $claim || $claim->user_id !== $request->user()->id) {
+        if (!$claim || $claim->user_id !== $request->user()->id) {
             return response()->json(['status' => 'error', 'message' => 'Pesanan tidak valid.'], 404);
         }
 
@@ -86,12 +97,14 @@ class ClaimController extends Controller
 
         $request->validate([
             'metode_pembayaran' => 'required|string',
+            'metode_pembayaran' => 'required|string'
         ]);
 
         $claim->update([
             'metode_pembayaran' => $request->metode_pembayaran,
             'status_pembayaran' => 'sudah_dibayar',
             'waktu_pembayaran' => now(),
+            'waktu_pembayaran' => now()
         ]);
 
         return response()->json([
@@ -106,6 +119,12 @@ class ClaimController extends Controller
     public function scanQr(Request $request)
     {
         // Merchant harus sudah verifikasi
+            'data' => $claim
+        ], 200);
+    }
+
+    public function scanQr(Request $request)
+    {
         $merchant = $request->user()->merchant;
         if (! $merchant || $merchant->status_verifikasi !== 'disetujui') {
             return response()->json(['status' => 'error', 'message' => 'Aksi ditolak. Akun Merchant tidak valid.'], 403);
@@ -123,6 +142,15 @@ class ClaimController extends Controller
         }
 
         // Pastikan makanan tersebut benar-benar milik merchant yang menge-scan
+            'kode_klaim' => 'required|string'
+        ]);
+
+        $claim = Claim::with('listing')->where('kode_klaim', $request->kode_klaim)->first();
+
+        if (!$claim) {
+            return response()->json(['status' => 'error', 'message' => 'QR Code tidak valid atau pesanan tidak ditemukan.'], 404);
+        }
+
         if ($claim->listing->merchant_id !== $merchant->id) {
             return response()->json(['status' => 'error', 'message' => 'Ini bukan pesanan untuk toko Anda.'], 403);
         }
@@ -144,6 +172,7 @@ class ClaimController extends Controller
             'status' => 'success',
             'message' => 'Scan Berhasil! Pesanan atas nama konsumen telah selesai dan makanan bisa diserahkan.',
             'data' => $claim,
+            'data' => $claim
         ], 200);
     }
 }

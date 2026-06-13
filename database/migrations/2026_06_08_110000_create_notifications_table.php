@@ -15,6 +15,9 @@ return new class extends Migration
             // PERBAIKAN: claim_id merujuk ke tabel claims
             $table->foreignId('claim_id')->nullable()->constrained('claims')->nullOnDelete();
 
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('claim_id')->nullable()->constrained('claims')->nullOnDelete();
+            
             $table->enum('jenis', [
                 'claims_masuk',
                 'claims_berhasil',

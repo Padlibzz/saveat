@@ -39,7 +39,6 @@ class User extends Authenticatable
         return $this->hasOne(Profil::class, 'user_id');
     }
 
-    // Relasi untuk memudahkan pemanggilan $request->user()->merchant
     public function merchant()
     {
         return $this->hasOne(Profil::class, 'user_id')->where('tipe_profil', 'merchant');
