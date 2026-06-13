@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+   public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
@@ -19,8 +19,7 @@ return new class extends Migration
             $table->string('no_telphone');
             $table->enum('peran', ['konsumen', 'merchant', 'admin'])->default('konsumen');
             $table->string('status')->default('aktif');
-
-            $table->string('email')->unique();
+            $table->string('profil_image')->nullable(); // Ditambahkan untuk menyimpan gambar profil
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
@@ -42,7 +41,6 @@ return new class extends Migration
             $table->integer('last_activity')->index();
         });
     }
-
     /**
      * Reverse the migrations.
      */
