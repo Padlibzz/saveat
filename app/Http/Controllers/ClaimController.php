@@ -133,4 +133,26 @@ class ClaimController extends Controller
             'data' => $claim
         ], 200);
     }
+
+    public function selesai(Request $request, $id)
+    {
+        $claim = Claim::find($id);
+
+        if (!$claim || $claim->user_id !== $request->user()->id) {
+            return response()->json(['status' => 'error', 'message' => 'Pesanan tidak valid.'], 404);
+        }
+
+        // Memastikan hanya pesanan yang sudah dibayar/diproses yang bisa diselesaikan
+        if ($claim->status === 'batal') {
+            return response()->json(['status' => 'error', 'message' => 'Pesanan sudah dibatalkan.'], 400);
+        }
+
+        $claim->update(['status' => 'diambil']); // Sesuaikan string status dengan enum database Anda
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pesanan berhasil diselesaikan.',
+            'data' => $claim
+        ], 200);
+    }
 }
