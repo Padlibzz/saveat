@@ -13,9 +13,6 @@ class Listing extends Model
     protected $fillable = [
         'merchant_id',
         'kategori_id',
-   protected $fillable = [
-        'merchant_id', 
-        'kategori_id', 
         'nama',
         'foto',
         'harga_normal',

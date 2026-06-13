@@ -34,7 +34,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'nama' => 'required', 
+            'name' => 'required', // UBAH: dari 'nama' menjadi 'name'
             'username' => 'required|unique:users,username',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
@@ -42,7 +42,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->nama, 
+            'name' => $request->name, // UBAH: menangkap request 'name'
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
