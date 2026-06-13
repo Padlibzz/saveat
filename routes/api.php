@@ -8,8 +8,7 @@ use App\Http\Controllers\ClaimController;
 use App\Http\Controllers\MerchantListingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfilController;
-use App\Http\Controllers\ActivityLogController; 
-use App\Http\Controllers\AbuseReportController;
+use App\Http\Controller\ListingContoroller;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
