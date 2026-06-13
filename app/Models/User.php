@@ -11,7 +11,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-   protected $fillable = [
+  protected $fillable = [
         'name',
         'username',
         'email',
@@ -19,7 +19,7 @@ class User extends Authenticatable
         'no_telphone',
         'peran',
         'status',
-        'profil_image', // Pastikan kolom ini masuk ke fillable
+        'profil_image', // <--- Tambahkan baris ini
     ];
 
     protected $hidden = [
