@@ -17,7 +17,7 @@ class RoleMiddleware
         if (! $request->user() || $request->user()->peran !== $role) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Akses ditolak. Anda tidak memiliki izin untuk mengakses fitur ini.'
+                'message' => 'Akses ditolak. Anda tidak memiliki izin untuk mengakses fitur ini.',
             ], 403);
         }
 

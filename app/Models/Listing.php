@@ -10,6 +10,9 @@ class Listing extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'merchant_id',
+        'kategori_id',
    protected $fillable = [
         'merchant_id', 
         'kategori_id', 
@@ -36,6 +39,7 @@ class Listing extends Model
 
     public function kategori(): BelongsTo
     {
+        // PERBAIKAN: Ubah 'categori_id' menjadi 'kategori_id'
         return $this->belongsTo(Kategori::class, 'kategori_id');
     }
 }

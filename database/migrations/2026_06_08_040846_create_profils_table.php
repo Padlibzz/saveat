@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // UBAH: 'profil' menjadi 'profils'
+        Schema::create('profils', function (Blueprint $table) {
+            $table->id();
+
+            $table->unsignedBigInteger('user_id')->unique();
         Schema::create('profils', function (Blueprint $table) {
             $table->id();
 
@@ -28,12 +33,14 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('diverifikasi_oleh')->references('id')->on('users')->onDelete('set null');
             $table->foreign('diverifikasi_oleh')->references('id')->on('users')->onDelete('set null'); 
         });
     }
 
     public function down(): void
     {
+        // UBAH: 'profil' menjadi 'profils'
         Schema::dropIfExists('profils');
     }
 };

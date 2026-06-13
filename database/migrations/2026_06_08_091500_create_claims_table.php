@@ -12,6 +12,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('listing_id')->constrained('listings')->onDelete('cascade');
+
+            $table->integer('jumlah');
+            $table->decimal('total_harga', 10, 2);
+            $table->string('kode_klaim')->unique();
+
+            // TAMBAHAN: Sistem Pembayaran
+            $table->string('metode_pembayaran')->nullable(); // contoh: 'qris', 'gopay', 'transfer_bank'
             
             $table->integer('jumlah');
             $table->decimal('total_harga', 10, 2);

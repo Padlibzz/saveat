@@ -10,6 +10,11 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
+            // PERBAIKAN: user_id merujuk ke tabel users
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            // PERBAIKAN: claim_id merujuk ke tabel claims
+            $table->foreignId('claim_id')->nullable()->constrained('claims')->nullOnDelete();
+
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('claim_id')->nullable()->constrained('claims')->nullOnDelete();
             

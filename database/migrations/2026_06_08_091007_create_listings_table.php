@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('listings', function (Blueprint $table) {
             $table->id();
             $table->foreignId('merchant_id')->constrained('profils')->onDelete('cascade');
+            // PERBAIKAN: constrained diubah ke 'categories' (sebelumnya 'categoris')
             $table->foreignId('kategori_id')->constrained('categories')->onDelete('restrict');
             $table->string('nama');
             $table->string('foto')->nullable();

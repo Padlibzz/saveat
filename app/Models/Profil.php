@@ -13,6 +13,10 @@ class Profil extends Model
     protected $table = 'profil';
 
     protected $fillable = [
+        'user_id',
+        'tipe_profil',
+        'nama_usaha',
+        'alamat',
         'id_pengguna',
         'tipe_profil',
         'alamat',
