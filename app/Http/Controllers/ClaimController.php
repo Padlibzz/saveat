@@ -138,6 +138,33 @@ class ClaimController extends Controller
             ], 400);
         }
 
+        // =================================================================
+        // 1. MODE SIMULASI (SEDANG AKTIF)
+        // Bypass langsung menjadi lunas tanpa lewat payment gateway
+        // =================================================================
+        $metode = $request->input('metode_pembayaran', 'qris');
+
+        $claim->update([
+            'metode_pembayaran' => $metode,
+            'status_pembayaran' => 'sudah_dibayar',
+        ]);
+
+        return response()->json([
+            'status'   => 'success',
+            'message'  => 'Simulasi pembayaran berhasil! Pesanan telah lunas.',
+            'claim_id' => $claim->id,
+            'metode'   => $metode,
+            'data'     => $claim
+        ], 200);
+
+
+        /*
+        // =================================================================
+        // 2. MODE MIDTRANS NYATA (NON-AKTIF)
+        // Hapus tanda komentar (/* ... * /) di bawah ini jika Midtrans sudah di-acc.
+        // PENTING: Jangan lupa jadikan komentar pada blok "MODE SIMULASI" di atas!
+        // =================================================================
+        
         $metodeTersedia = [
             'qris', 'dana', 'gopay', 'ovo', 'shopeepay',
             'linkaja', 'transfer_bank', 'tunai',
@@ -147,7 +174,6 @@ class ClaimController extends Controller
             'metode_pembayaran' => 'required|string|in:' . implode(',', $metodeTersedia),
         ]);
 
-        // Simpan pilihan metode pembayaran, lanjutkan ke PaymentController untuk buat transaksi Midtrans
         $claim->update([
             'metode_pembayaran' => $request->metode_pembayaran,
         ]);
@@ -158,6 +184,7 @@ class ClaimController extends Controller
             'claim_id' => $claim->id,
             'metode'   => $request->metode_pembayaran,
         ], 200);
+        */
     }
 
     public function scanQr(Request $request)
