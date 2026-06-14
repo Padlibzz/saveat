@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Category;
 
 class Listing extends Model
 {
@@ -37,6 +38,6 @@ class Listing extends Model
     public function kategori(): BelongsTo
     {
         // PERBAIKAN: Ubah 'categori_id' menjadi 'kategori_id'
-        return $this->belongsTo(Kategori::class, 'kategori_id');
+        return $this->belongsTo(Category::class, 'kategori_id');
     }
 }
