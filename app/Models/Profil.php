@@ -10,14 +10,12 @@ class Profil extends Model
 {
     use HasFactory;
 
-    protected $table = 'profil';
+    // 1. UBAH: Sesuaikan nama tabel dengan yang ada di database (tambah huruf 's')
+    protected $table = 'profils';
 
+    // 2. UBAH: Bersihkan duplikasi dan hapus 'id_pengguna' yang sudah tidak dipakai
     protected $fillable = [
         'user_id',
-        'tipe_profil',
-        'nama_usaha',
-        'alamat',
-        'id_pengguna',
         'tipe_profil',
         'alamat',
         'nama_usaha',
@@ -28,9 +26,10 @@ class Profil extends Model
         'alasan_penolakan',
     ];
 
-    public function pengguna(): BelongsTo
+    // 3. UBAH: Nama relasi diubah dari pengguna() menjadi user() dan memakai user_id
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id_pengguna');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function verifikator(): BelongsTo

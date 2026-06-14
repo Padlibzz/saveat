@@ -35,8 +35,8 @@ class AdminController extends Controller
     {
         $query = User::query();
 
-        if($request->filled('role')) {
-            $query->where('role', $request->role);
+        if($request->filled('peran')) {
+            $query->where('peran', $request->peran);
         }
 
         if($request->filled('status')) {

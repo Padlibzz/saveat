@@ -12,10 +12,12 @@ use App\Http\Controllers\MerchantDashboardController;
 use App\Http\Controllers\MerchantListingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\CategoryController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::get('/listings', [ListingController::class, 'index']);
+Route::get('/categories', [CategoryController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $r) => $r->user());
