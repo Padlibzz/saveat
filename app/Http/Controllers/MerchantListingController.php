@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Claim;
 use App\Models\Listing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class MerchantListingController extends Controller
@@ -21,8 +21,7 @@ class MerchantListingController extends Controller
         }
 
         $listings = Listing::with('kategori')
-            ->where('merchant_id', $merchant->id)
-            ->where('merchant_id', $merchant->id) 
+            ->where('merchant_id', $merchant->id) // Duplikasi sebelumnya sudah dihapus
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -70,8 +69,7 @@ class MerchantListingController extends Controller
                 $input['foto'] = $path;
             }
 
-            $input['merchant_id'] = $merchant->id;
-            $input['merchant_id'] = $merchant->id; 
+            $input['merchant_id'] = $merchant->id; // Duplikasi sebelumnya sudah dihapus
             $input['stok_sisa'] = $request->stok_total;
             $input['status'] = 'aktif';
 
@@ -157,7 +155,13 @@ class MerchantListingController extends Controller
             $input['stok_sisa'] = $stokBaru;
         }
 
+        // Tweak: Tambahkan logika hapus foto lama dari storage
         if ($request->hasFile('foto')) {
+            // Hapus gambar lama jika ada
+            if ($listing->foto && Storage::disk('public')->exists($listing->foto)) {
+                Storage::disk('public')->delete($listing->foto);
+            }
+
             $file = $request->file('foto');
             $namaFoto = time().'_'.$file->getClientOriginalName();
             $path = $file->storeAs('listings', $namaFoto, 'public');
