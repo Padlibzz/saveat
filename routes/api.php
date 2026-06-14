@@ -11,6 +11,7 @@ use App\Http\Controllers\ListingController;
 use App\Http\Controllers\MerchantDashboardController;
 use App\Http\Controllers\MerchantListingController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\CategoryController;
 
@@ -18,6 +19,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/payment-methods', [ClaimController::class, 'paymentMethods']);
+Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $r) => $r->user());
@@ -34,9 +37,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/claims/{id}/bayar', [ClaimController::class, 'bayar']);
     Route::patch('/claims/{id}/selesai', [ClaimController::class, 'selesai']); 
 
+    Route::post('/payments/{claimId}/create', [PaymentController::class, 'createTransaction']);
+    Route::get('/payments/{claimId}/status', [PaymentController::class, 'checkStatus']);
+
     Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::patch('/notifications/{id}/read', [NotificationController::class, 'read']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'readAll']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'read']);
     
     Route::post('/abuse-reports', [AbuseReportController::class, 'store']);
 

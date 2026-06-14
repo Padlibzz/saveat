@@ -1,0 +1,64 @@
+$kind: http-request
+name: Update Profil
+method: PATCH
+url: '{{base_url}}/profil/{{profil_id}}'
+order: 4000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{access_token}}'
+headers:
+  - key: Accept
+    value: application/json
+body:
+  type: formdata
+  content:
+    - key: name
+      type: text
+      value: 'John Doe'
+    - key: no_telphone
+      type: text
+      value: '08123456789'
+    - key: tipe_profil
+      type: text
+      value: 'merchant'
+    - key: alamat
+      type: text
+      value: 'Jl. Baru No. 2'
+    - key: nama_usaha
+      type: text
+      value: 'Warung Baru'
+    - key: deskripsi
+      type: text
+      value: 'Deskripsi baru'
+    - key: link_map
+      type: text
+      value: 'https://maps.google.com/?q=-6.2,106.8'
+    - key: profil_image
+      type: file
+      src: ''
+      disabled: true
+events:
+  - listen: test
+    script:
+      type: text/javascript
+      exec: |-
+        pm.test("Status code is successful (2xx)", function () {
+            pm.expect(pm.response.code).to.be.within(200, 299);
+        });
+        pm.test("Response time is acceptable", function () {
+            pm.expect(pm.response.responseTime).to.be.below(5000);
+        });
+        pm.test("Content-Type is application/json", function () {
+            pm.expect(pm.response.headers.get("Content-Type")).to.include("application/json");
+        });
+        pm.test("Response body is valid JSON", function () {
+            pm.response.to.be.json;
+        });
+        pm.test("Response confirms profil update", function () {
+            if (pm.response.code === 200) {
+                const json = pm.response.json();
+                pm.expect(json).to.be.an("object");
+            }
+        });

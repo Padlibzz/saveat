@@ -1,0 +1,30 @@
+$kind: http-request
+name: Midtrans Webhook Simulator
+method: POST
+url: '{{base_url}}/payments/webhook'
+order: 3000
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "order_id": "{{midtrans_order_id}}",
+      "status_code": "200",
+      "gross_amount": "50000.00",
+      "payment_type": "gopay",
+      "transaction_id": "test-transaction-id-123",
+      "transaction_status": "settlement",
+      "fraud_status": "accept",
+      "signature_key": "REPLACE_WITH_VALID_SIGNATURE"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Webhook diterima", () => {
+          pm.response.to.have.status(200);
+      });

@@ -1,0 +1,63 @@
+$kind: http-request
+name: Create Claim
+method: POST
+url: '{{base_url}}/claims'
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{access_token}}'
+headers:
+  - key: Accept
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "listing_id": "{{listing_id}}",
+      "jumlah": 2
+    }
+events:
+  - listen: test
+    script:
+      type: text/javascript
+      exec: |-
+        if (pm.response.code === 200 || pm.response.code === 201) {
+            const json = pm.response.json();
+            const id = (json.data && (json.data.id || json.data.claim_id)) || json.id || json.claim_id;
+            if (id) {
+                pm.environment.set("claim_id", id);
+                console.log("claim_id saved to environment: " + id);
+            } else {
+                console.warn("Create Claim succeeded but no claim_id found in response.");
+            }
+            const kode = (json.data && json.data.kode_klaim) || json.kode_klaim;
+            if (kode) {
+                pm.environment.set("kode_klaim", kode);
+                console.log("kode_klaim saved to environment: " + kode);
+            } else {
+                console.warn("Create Claim succeeded but no kode_klaim found in response.");
+            }
+        } else {
+            console.error("Create Claim failed with status: " + pm.response.code);
+        }
+        pm.test("Status code is successful (2xx)", function () {
+            pm.expect(pm.response.code).to.be.within(200, 299);
+        });
+        pm.test("Response time is acceptable", function () {
+            pm.expect(pm.response.responseTime).to.be.below(5000);
+        });
+        pm.test("Content-Type is application/json", function () {
+            pm.expect(pm.response.headers.get("Content-Type")).to.include("application/json");
+        });
+        pm.test("Response body is valid JSON", function () {
+            pm.response.to.be.json;
+        });
+        pm.test("Response contains claim data with id", function () {
+            if (pm.response.code === 200 || pm.response.code === 201) {
+                const json = pm.response.json();
+                const id = (json.data && (json.data.id || json.data.claim_id)) || json.id || json.claim_id;
+                pm.expect(id).to.exist;
+            }
+        });

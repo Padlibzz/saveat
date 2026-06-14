@@ -12,18 +12,23 @@ class Claim extends Model
         'jumlah',
         'total_harga',
         'kode_klaim',
-        'metode_pembayaran', // <-- TAMBAHAN
-        'status_pembayaran', // <-- TAMBAHAN
-        'waktu_pembayaran',  // <-- TAMBAHAN
+        'metode_pembayaran',
+        'status_pembayaran',
+        'waktu_pembayaran',
         'status',
-        'listing_id', 
-        'jumlah',
-        'total_harga', 
-        'kode_klaim',
-        'metode_pembayaran', 
-        'status_pembayaran', 
-        'waktu_pembayaran',  
-        'status'
+        // Midtrans columns
+        'midtrans_order_id',
+        'midtrans_transaction_id',
+        'midtrans_payment_type',
+        'midtrans_snap_token',
+        'midtrans_redirect_url',
+        'midtrans_transaction_status',
+        'midtrans_raw_response',
+    ];
+
+    protected $casts = [
+        'midtrans_raw_response' => 'array',
+        'waktu_pembayaran'      => 'datetime',
     ];
 
     public function user()

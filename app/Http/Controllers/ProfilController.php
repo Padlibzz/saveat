@@ -27,7 +27,6 @@ class ProfilController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'user_id' => 'required|exists:users,id',
             'tipe_profil' => 'required|in:konsumen,merchant,admin',
             'alamat' => 'nullable|string',
         ];
@@ -39,6 +38,9 @@ class ProfilController extends Controller
         }
 
         $validatedData = $request->validate($rules);
+
+        // Always use the authenticated user's ID — never trust user_id from the request body
+        $validatedData['user_id'] = $request->user()->id;
 
         if ($request->tipe_profil === 'merchant') {
             $validatedData['status_verifikasi'] = 'menunggu';

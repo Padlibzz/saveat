@@ -138,19 +138,25 @@ class ClaimController extends Controller
             ], 400);
         }
 
-        $request->validate(['metode_pembayaran' => 'required|string']);
+        $metodeTersedia = [
+            'qris', 'dana', 'gopay', 'ovo', 'shopeepay',
+            'linkaja', 'transfer_bank', 'tunai',
+        ];
 
+        $request->validate([
+            'metode_pembayaran' => 'required|string|in:' . implode(',', $metodeTersedia),
+        ]);
+
+        // Simpan pilihan metode pembayaran, lanjutkan ke PaymentController untuk buat transaksi Midtrans
         $claim->update([
-            'metode_pembayaran'  => $request->metode_pembayaran,
-            'status_pembayaran'  => 'sudah_dibayar',
-            'waktu_pembayaran'   => now(),
+            'metode_pembayaran' => $request->metode_pembayaran,
         ]);
 
         return response()->json([
-            'status'  => 'success',
-            'message' => 'Pembayaran berhasil. Tunjukkan QR Code ini ke Merchant.',
-            'qr_data' => $claim->kode_klaim,
-            'data'    => $claim,
+            'status'   => 'success',
+            'message'  => 'Metode pembayaran dipilih. Lanjutkan ke endpoint POST /payments/{id}/create untuk membuat transaksi.',
+            'claim_id' => $claim->id,
+            'metode'   => $request->metode_pembayaran,
         ], 200);
     }
 
@@ -240,6 +246,25 @@ class ClaimController extends Controller
             'status'  => 'success',
             'message' => 'Pesanan berhasil diselesaikan.',
             'data'    => $claim,
+        ], 200);
+    }
+
+    public function paymentMethods()
+    {
+        $methods = [
+            ['kode' => 'qris',          'nama' => 'QRIS',          'kategori' => 'qr_code'],
+            ['kode' => 'dana',          'nama' => 'DANA',          'kategori' => 'e_wallet'],
+            ['kode' => 'gopay',         'nama' => 'GoPay',         'kategori' => 'e_wallet'],
+            ['kode' => 'ovo',           'nama' => 'OVO',           'kategori' => 'e_wallet'],
+            ['kode' => 'shopeepay',     'nama' => 'ShopeePay',     'kategori' => 'e_wallet'],
+            ['kode' => 'linkaja',       'nama' => 'LinkAja',       'kategori' => 'e_wallet'],
+            ['kode' => 'transfer_bank', 'nama' => 'Transfer Bank', 'kategori' => 'bank'],
+            ['kode' => 'tunai',         'nama' => 'Tunai',         'kategori' => 'cash'],
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => $methods,
         ], 200);
     }
 
