@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saveat 🍱 - Food Saving Marketplace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    [x-cloak] { display: none; }
+    .tab-active { border-bottom: 3px solid #16a34a; color: #16a34a; font-weight: 700; }
+    .nav-active { background-color: #16a34a; color: white; }
+    .line-through-price { text-decoration: line-through; color: #9ca3af; }
+    .card-hover { transition: transform 0.15s, box-shadow 0.15s; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .spinner { border: 3px solid #e5e7eb; border-top-color: #16a34a; border-radius: 50%; width: 24px; height: 24px; animation: spin 0.7s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .modal-bg { background: rgba(0,0,0,0.5); }
+    .fade-in { animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #16a34a; box-shadow: 0 0 0 2px rgba(22,163,74,0.2); }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+
+<!-- ===================== AUTH PAGE ===================== -->
+<div id="page-auth" class="hidden min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 fade-in">
+    <div class="text-center mb-8">
+      <div class="text-5xl mb-2">🍱</div>
+      <h1 class="text-3xl font-bold text-green-700">Saveat</h1>
+      <p class="text-gray-500 text-sm mt-1">Food Saving Marketplace</p>
+    </div>
+
+    <!-- Auth Tabs -->
+    <div class="flex border-b mb-6">
+      <button id="tab-login-btn" onclick="switchAuthTab('login')" class="flex-1 py-2 text-center tab-active text-sm transition">🔑 Login</button>
+      <button id="tab-register-btn" onclick="switchAuthTab('register')" class="flex-1 py-2 text-center text-gray-500 text-sm transition">📝 Register</button>
+    </div>
+
+    <!-- Login Form -->
+    <div id="tab-login">
+      <div id="login-error" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm"></div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email / Username</label>
+          <input id="login-identifier" type="text" placeholder="email@contoh.com atau username"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <div class="relative">
+            <input id="login-password" type="password" placeholder="••••••••"
+              class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+            <button type="button" onclick="togglePassword('login-password')" class="absolute right-3 top-2.5 text-gray-400 text-xs">👁</button>
+          </div>
+        </div>
+        <button onclick="doLogin()" id="login-btn"
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
+          <span id="login-btn-text">Masuk</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Register Form -->
+    <div id="tab-register" class="hidden">
+      <div id="register-error" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm"></div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+          <input id="reg-name" type="text" placeholder="John Doe"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <input id="reg-username" type="text" placeholder="johndoe"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input id="reg-email" type="email" placeholder="email@contoh.com"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
+          <input id="reg-phone" type="tel" placeholder="08xxxxxxxxxx"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <div class="relative">
+            <input id="reg-password" type="password" placeholder="Min. 8 karakter"
+              class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+            <button type="button" onclick="togglePassword('reg-password')" class="absolute right-3 top-2.5 text-gray-400 text-xs">👁</button>
+          </div>
+        </div>
+        <button onclick="doRegister()" id="register-btn"
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2">
+          <span id="register-btn-text">Daftar Sekarang</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="page-app" class="hidden">
+
+  <!-- Header / Navbar -->
+  <header class="bg-white shadow-sm sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🍱</span>
+        <span class="font-bold text-green-700 text-xl hidden sm:block">Saveat</span>
+      </div>
+      <!-- Desktop Nav -->
+      <nav class="hidden md:flex items-center gap-1">
+        <button onclick="showPage('browse')" id="nav-browse"
+          class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-green-50 transition">🏠 Beranda</button>
+        <button onclick="showPage('claims')" id="nav-claims"
+          class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-green-50 transition">🛒 Klaim Saya</button>
+        <button onclick="showPage('merchant')" id="nav-merchant"
+          class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-green-50 transition">📦 Dashboard Merchant</button>
+      </nav>
+      <div class="flex items-center gap-2">
+        <span id="user-greeting" class="text-sm text-gray-600 hidden sm:block"></span>
+        <button onclick="doLogout()" class="bg-red-50 hover:bg-red-100 text-red-600 text-sm px-3 py-1.5 rounded-lg transition font-medium">Logout</button>
+      </div>
+    </div>
+    <!-- Mobile Nav -->
+    <div class="md:hidden flex border-t overflow-x-auto">
+      <button onclick="showPage('browse')" id="nav-browse-m"
+        class="flex-1 py-2 text-xs text-center text-gray-500 hover:bg-green-50 whitespace-nowrap px-2">🏠 Beranda</button>
+      <button onclick="showPage('claims')" id="nav-claims-m"
+        class="flex-1 py-2 text-xs text-center text-gray-500 hover:bg-green-50 whitespace-nowrap px-2">🛒 Klaim Saya</button>
+      <button onclick="showPage('merchant')" id="nav-merchant-m"
+        class="flex-1 py-2 text-xs text-center text-gray-500 hover:bg-green-50 whitespace-nowrap px-2">📦 Merchant</button>
+    </div>
+  </header>
+
+  <!-- ===== BROWSE LISTINGS PAGE ===== -->
+  <div id="page-browse" class="hidden max-w-6xl mx-auto px-4 py-6">
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-1">Temukan Makanan Hemat 🔍</h2>
+      <p class="text-gray-500 text-sm">Hemat lebih banyak, buang lebih sedikit</p>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-col sm:flex-row gap-3">
+      <div class="flex-1 relative">
+        <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+        <input id="search-input" type="text" placeholder="Cari makanan..."
+          class="w-full border border-gray-200 rounded-lg pl-9 pr-4 py-2 text-sm transition"
+          oninput="debounceSearch()" />
+      </div>
+      <select id="category-filter" onchange="loadListings()"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 transition min-w-[160px]">
+        <option value="">🏷 Semua Kategori</option>
+      </select>
+      <button onclick="loadListings()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+        Cari
+      </button>
+    </div>
+
+    <!-- Listings Grid -->
+    <div id="listings-loading" class="hidden flex justify-center py-12">
+      <div class="text-center">
+        <div class="spinner mx-auto mb-3"></div>
+        <p class="text-gray-500 text-sm">Memuat listing...</p>
+      </div>
+    </div>
+    <div id="listings-empty" class="hidden text-center py-16">
+      <div class="text-5xl mb-3">🍽</div>
+      <p class="text-gray-500 font-medium">Tidak ada listing ditemukan</p>
+      <p class="text-gray-400 text-sm mt-1">Coba ubah kata kunci atau kategori</p>
+    </div>
+    <div id="listings-error" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm mb-4"></div>
+    <div id="listings-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+  </div>
+
+  <!-- ===== CLAIMS PAGE ===== -->
+  <div id="page-claims" class="hidden max-w-4xl mx-auto px-4 py-6">
+    <div class="mb-6 flex items-center justify-between">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800">Klaim Saya 🛒</h2>
+        <p class="text-gray-500 text-sm mt-1">Riwayat dan status klaim makananmu</p>
+      </div>
+      <button onclick="loadClaims()" class="text-green-600 hover:text-green-700 text-sm font-medium flex items-center gap-1">
+        🔄 Refresh
+      </button>
+    </div>
+    <div id="claims-loading" class="hidden flex justify-center py-12">
+      <div class="text-center"><div class="spinner mx-auto mb-3"></div><p class="text-gray-500 text-sm">Memuat klaim...</p></div>
+    </div>
+    <div id="claims-empty" class="hidden text-center py-16">
+      <div class="text-5xl mb-3">🛒</div>
+      <p class="text-gray-500 font-medium">Belum ada klaim</p>
+      <p class="text-gray-400 text-sm mt-1">Yuk klaim makanan hemat sekarang!</p>
+      <button onclick="showPage('browse')" class="mt-4 bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition">Browse Listing</button>
+    </div>
+    <div id="claims-error" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm mb-4"></div>
+    <div id="claims-list" class="space-y-3"></div>
+  </div>
+
+  <!-- ===== MERCHANT DASHBOARD PAGE ===== -->
+  <div id="page-merchant" class="hidden max-w-5xl mx-auto px-4 py-6">
+    <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800">Dashboard Merchant 📦</h2>
+        <p class="text-gray-500 text-sm mt-1">Kelola listing dan klaim masuk</p>
+      </div>
+      <button onclick="openCreateListingModal()"
+        class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+        ➕ Buat Listing Baru
+      </button>
+    </div>
+
+    <!-- Merchant Tabs -->
+    <div class="flex border-b mb-6 gap-1">
+      <button id="mtab-listings-btn" onclick="switchMerchantTab('listings')"
+        class="px-5 py-2.5 text-sm font-medium tab-active transition">📦 Listing Saya</button>
+      <button id="mtab-klaim-btn" onclick="switchMerchantTab('klaim')"
+        class="px-5 py-2.5 text-sm font-medium text-gray-500 transition">📋 Klaim Masuk</button>
+    </div>
+
+    <!-- Merchant Listings Tab -->
+    <div id="mtab-listings">
+      <div id="merchant-listings-loading" class="hidden flex justify-center py-12">
+        <div class="text-center"><div class="spinner mx-auto mb-3"></div><p class="text-gray-500 text-sm">Memuat listing...</p></div>
+      </div>
+      <div id="merchant-listings-empty" class="hidden text-center py-16">
+        <div class="text-5xl mb-3">📦</div>
+        <p class="text-gray-500 font-medium">Belum ada listing</p>
+        <p class="text-gray-400 text-sm mt-1">Buat listing pertamamu sekarang!</p>
+      </div>
+      <div id="merchant-listings-error" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm mb-4"></div>
+      <div id="merchant-listings-list" class="space-y-3"></div>
+    </div>
+
+    <!-- Klaim Masuk Tab -->
+    <div id="mtab-klaim" class="hidden">
+      <!-- Scan QR Section -->
+      <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-5">
+        <h3 class="font-semibold text-green-800 mb-3 flex items-center gap-2">📷 Scan / Input Kode Klaim</h3>
+        <div class="flex gap-2">
+          <input id="scan-kode-input" type="text" placeholder="Masukkan kode klaim..."
+            class="flex-1 border border-green-300 rounded-lg px-4 py-2 text-sm transition bg-white"
+            onkeydown="if(event.key==='Enter') doScanQR()" />
+          <button onclick="doScanQR()" id="scan-btn"
+            class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition">
+            ✅ Konfirmasi
+          </button>
+        </div>
+        <div id="scan-result" class="hidden mt-3 p-3 rounded-lg text-sm font-medium"></div>
+      </div>
+
+      <div id="klaim-masuk-loading" class="hidden flex justify-center py-12">
+        <div class="text-center"><div class="spinner mx-auto mb-3"></div><p class="text-gray-500 text-sm">Memuat klaim masuk...</p></div>
+      </div>
+      <div id="klaim-masuk-empty" class="hidden text-center py-16">
+        <div class="text-5xl mb-3">📋</div>
+        <p class="text-gray-500 font-medium">Belum ada klaim masuk</p>
+      </div>
+      <div id="klaim-masuk-error" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 text-sm mb-4"></div>
+      <div id="klaim-masuk-list" class="space-y-3"></div>
+    </div>
+  </div>
+
+</div><!-- end page-app -->
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- Claim Success Modal -->
+<div id="modal-claim-success" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center fade-in">
+    <div class="text-6xl mb-4">🎉</div>
+    <h3 class="text-xl font-bold text-gray-800 mb-2">Klaim Berhasil!</h3>
+    <p class="text-gray-500 text-sm mb-4">Tunjukkan kode ini ke merchant</p>
+    <div class="bg-green-50 border-2 border-green-300 rounded-xl p-4 mb-6">
+      <p class="text-xs text-gray-500 mb-1">Kode Klaim</p>
+      <p id="claim-success-code" class="text-2xl font-bold text-green-700 tracking-widest"></p>
+    </div>
+    <button onclick="closeModal('modal-claim-success')"
+      class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg transition">
+      Tutup
+    </button>
+  </div>
+</div>
+
+<!-- Create Listing Modal -->
+<div id="modal-create-listing" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-4 fade-in">
+    <div class="flex items-center justify-between p-6 border-b">
+      <h3 class="text-lg font-bold text-gray-800">➕ Buat Listing Baru</h3>
+      <button onclick="closeModal('modal-create-listing')" class="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+    </div>
+    <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+      <div id="create-listing-error" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm"></div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Listing <span class="text-red-500">*</span></label>
+        <input id="cl-nama" type="text" placeholder="Contoh: Nasi Box Sisa Siang"
+          class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Kategori <span class="text-red-500">*</span></label>
+        <select id="cl-kategori" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition">
+          <option value="">Pilih kategori...</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Harga Normal (Rp) <span class="text-red-500">*</span></label>
+          <input id="cl-harga-normal" type="number" placeholder="50000"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Harga Diskon (Rp) <span class="text-red-500">*</span></label>
+          <input id="cl-harga-diskon" type="number" placeholder="25000"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Stok Total <span class="text-red-500">*</span></label>
+        <input id="cl-stok" type="number" placeholder="10" min="1"
+          class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Batas Waktu <span class="text-red-500">*</span></label>
+        <input id="cl-batas-waktu" type="datetime-local"
+          class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm transition" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Foto Makanan</label>
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-green-400 transition cursor-pointer"
+          onclick="document.getElementById('cl-foto').click()">
+          <div id="foto-preview-wrap" class="hidden mb-2">
+            <img id="foto-preview" class="mx-auto max-h-32 rounded-lg object-cover" />
+          </div>
+          <div id="foto-placeholder">
+            <div class="text-3xl mb-1">📷</div>
+            <p class="text-sm text-gray-500">Klik untuk upload foto</p>
+            <p class="text-xs text-gray-400 mt-1">JPG, PNG, max 5MB</p>
+          </div>
+          <input id="cl-foto" type="file" accept="image/*" class="hidden" onchange="previewFoto(this)" />
+        </div>
+      </div>
+    </div>
+    <div class="p-6 border-t flex gap-3">
+      <button onclick="closeModal('modal-create-listing')"
+        class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+        Batal
+      </button>
+      <button onclick="doCreateListing()" id="create-listing-btn"
+        class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2">
+        <span id="create-listing-btn-text">Buat Listing</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Confirm Modal -->
+<div id="modal-confirm" class="hidden fixed inset-0 modal-bg z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 fade-in">
+    <div class="text-4xl text-center mb-3" id="confirm-icon">⚠️</div>
+    <h3 class="text-lg font-bold text-gray-800 text-center mb-2" id="confirm-title">Konfirmasi</h3>
+    <p class="text-gray-500 text-sm text-center mb-6" id="confirm-message"></p>
+    <div class="flex gap-3">
+      <button onclick="closeModal('modal-confirm')"
+        class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+        Batal
+      </button>
+      <button id="confirm-ok-btn"
+        class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-lg text-sm font-semibold transition">
+        Ya, Lanjutkan
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="hidden fixed bottom-6 right-6 z-50 max-w-xs">
+  <div id="toast-inner" class="rounded-xl shadow-lg px-5 py-3.5 text-sm font-medium flex items-center gap-3 fade-in">
+    <span id="toast-icon"></span>
+    <span id="toast-msg"></span>
+  </div>
+</div>
+
+<script>
+// ===================== CONFIG =====================
+const BASE_URL = 'http://localhost/api';
+const TOKEN_KEY = 'saveat_token';
+const USER_KEY = 'saveat_user';
+
+// ===================== UTILS =====================
+function getToken() { return localStorage.getItem(TOKEN_KEY); }
+function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+function clearToken() { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); }
+
+function authHeaders(extra = {}) {
+  return { 'Authorization': `Bearer ${getToken()}`, 'Accept': 'application/json', ...extra };
+}
+
+function formatRupiah(n) {
+  return 'Rp ' + Number(n).toLocaleString('id-ID');
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  return new Date(d).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function showToast(msg, type = 'success') {
+  const toast = document.getElementById('toast');
+  const inner = document.getElementById('toast-inner');
+  const icon = document.getElementById('toast-icon');
+  const msgEl = document.getElementById('toast-msg');
+  icon.textContent = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+  msgEl.textContent = msg;
+  inner.className = `rounded-xl shadow-lg px-5 py-3.5 text-sm font-medium flex items-center gap-3 fade-in ${
+    type === 'success' ? 'bg-green-600 text-white' : type === 'error' ? 'bg-red-500 text-white' : 'bg-gray-800 text-white'
+  }`;
+  toast.classList.remove('hidden');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
+}
+
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function setLoading(btnId, textId, loading, text = '') {
+  const btn = document.getElementById(btnId);
+  const txtEl = document.getElementById(textId);
+  if (loading) {
+    btn.disabled = true;
+    txtEl.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;"></span>';
+  } else {
+    btn.disabled = false;
+    txtEl.textContent = text;
+  }
+}
+
+function showError(elId, msg) {
+  const el = document.getElementById(elId);
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+function hideError(elId) { document.getElementById(elId).classList.add('hidden'); }
+
+function togglePassword(id) {
+  const el = document.getElementById(id);
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+function getStatusBadge(status) {
+  const map = {
+    'pending': 'bg-yellow-100 text-yellow-700',
+    'dibayar': 'bg-blue-100 text-blue-700',
+    'selesai': 'bg-green-100 text-green-700',
+    'dibatalkan': 'bg-red-100 text-red-700',
+    'aktif': 'bg-green-100 text-green-700',
+    'tutup': 'bg-gray-100 text-gray-600',
+    'habis': 'bg-orange-100 text-orange-700',
+  };
+  return `<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${map[status] || 'bg-gray-100 text-gray-600'}">${status}</span>`;
+}
+
+// ===================== AUTH =====================
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('tab-login').classList.toggle('hidden', !isLogin);
+  document.getElementById('tab-register').classList.toggle('hidden', isLogin);
+  document.getElementById('tab-login-btn').className = `flex-1 py-2 text-center text-sm transition ${isLogin ? 'tab-active' : 'text-gray-500'}`;
+  document.getElementById('tab-register-btn').className = `flex-1 py-2 text-center text-sm transition ${!isLogin ? 'tab-active' : 'text-gray-500'}`;
+}
+
+async function doLogin() {
+  hideError('login-error');
+  const identifier = document.getElementById('login-identifier').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!identifier || !password) { showError('login-error', 'Email/username dan password wajib diisi.'); return; }
+  setLoading('login-btn', 'login-btn-text', true);
+  try {
+    const res = await fetch(`${BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ login_identifier: identifier, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || 'Login gagal');
+    const token = data.access_token || data.token || (data.data && (data.data.access_token || data.data.token));
+    if (!token) throw new Error('Token tidak ditemukan dalam respons');
+    setToken(token);
+    if (data.user || (data.data && data.data.user)) {
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user || data.data.user));
+    }
+    await initApp();
+  } catch (e) {
+    showError('login-error', e.message);
+  } finally {
+    setLoading('login-btn', 'login-btn-text', false, 'Masuk');
+  }
+}
+
+async function doRegister() {
+  hideError('register-error');
+  const name = document.getElementById('reg-name').value.trim();
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const password = document.getElementById('reg-password').value;
+  if (!name || !username || !email || !phone || !password) {
+    showError('register-error', 'Semua field wajib diisi.'); return;
+  }
+  setLoading('register-btn', 'register-btn-text', true);
+  try {
+    const res = await fetch(`${BASE_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ name, username, email, password, no_telphone: phone })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      let errMsg = data.message || 'Registrasi gagal';
+      if (data.errors) errMsg = Object.values(data.errors).flat().join(' ');
+      throw new Error(errMsg);
+    }
+    showToast('Registrasi berhasil! Silakan login.', 'success');
+    switchAuthTab('login');
+    document.getElementById('login-identifier').value = email;
+  } catch (e) {
+    showError('register-error', e.message);
+  } finally {
+    setLoading('register-btn', 'register-btn-text', false, 'Daftar Sekarang');
+  }
+}
+
+async function doLogout() {
+  try {
+    await fetch(`${BASE_URL}/logout`, { method: 'POST', headers: authHeaders() });
+  } catch (_) {}
+  clearToken();
+  showAuthPage();
+}
+
+// ===================== APP INIT =====================
+async function initApp() {
+  document.getElementById('page-auth').classList.add('hidden');
+  document.getElementById('page-app').classList.remove('hidden');
+  await loadUserInfo();
+  await loadCategories();
+  showPage('browse');
+}
+
+async function loadUserInfo() {
+  try {
+    let user = JSON.parse(localStorage.getItem(USER_KEY) || 'null');
+    if (!user) {
+      const res = await fetch(`${BASE_URL}/user`, { headers: authHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        user = data.user || data.data || data;
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+      }
+    }
+    if (user) {
+      document.getElementById('user-greeting').textContent = `👋 ${user.name || user.username || 'User'}`;
+    }
+  } catch (_) {}
+}
+
+function showAuthPage() {
+  document.getElementById('page-app').classList.add('hidden');
+  document.getElementById('page-auth').classList.remove('hidden');
+}
+
+// ===================== NAVIGATION =====================
+const pages = ['browse', 'claims', 'merchant'];
+function showPage(page) {
+  pages.forEach(p => {
+    document.getElementById(`page-${p}`).classList.add('hidden');
+    const navEl = document.getElementById(`nav-${p}`);
+    const navMEl = document.getElementById(`nav-${p}-m`);
+    if (navEl) navEl.className = 'px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-green-50 transition';
+    if (navMEl) navMEl.className = 'flex-1 py-2 text-xs text-center text-gray-500 hover:bg-green-50 whitespace-nowrap px-2';
+  });
+  document.getElementById(`page-${page}`).classList.remove('hidden');
+  const navEl = document.getElementById(`nav-${page}`);
+  const navMEl = document.getElementById(`nav-${page}-m`);
+  if (navEl) navEl.className = 'px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white transition';
+  if (navMEl) navMEl.className = 'flex-1 py-2 text-xs text-center bg-green-600 text-white whitespace-nowrap px-2';
+
+  if (page === 'browse') loadListings();
+  if (page === 'claims') loadClaims();
+  if (page === 'merchant') { loadMerchantListings(); }
+}
+
+// ===================== CATEGORIES =====================
+let categoriesCache = [];
+async function loadCategories() {
+  try {
+    const res = await fetch(`${BASE_URL}/categories`, { headers: { 'Accept': 'application/json' } });
+    const data = await res.json();
+    categoriesCache = data.data || data.categories || data || [];
+    const sel = document.getElementById('category-filter');
+    const clSel = document.getElementById('cl-kategori');
+    categoriesCache.forEach(cat => {
+      const opt1 = new Option(`${cat.nama || cat.name}`, cat.id);
+      const opt2 = new Option(`${cat.nama || cat.name}`, cat.id);
+      sel.appendChild(opt1);
+      clSel.appendChild(opt2);
+    });
+  } catch (_) {}
+}
+
+// ===================== BROWSE LISTINGS =====================
+let searchDebounce;
+function debounceSearch() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(loadListings, 400);
+}
+
+async function loadListings() {
+  const search = document.getElementById('search-input').value.trim();
+  const kategoriId = document.getElementById('category-filter').value;
+  const grid = document.getElementById('listings-grid');
+  const loading = document.getElementById('listings-loading');
+  const empty = document.getElementById('listings-empty');
+  const errEl = document.getElementById('listings-error');
+
+  grid.innerHTML = '';
+  loading.classList.remove('hidden');
+  empty.classList.add('hidden');
+  errEl.classList.add('hidden');
+
+  try {
+    let url = `${BASE_URL}/listings?`;
+    if (search) url += `search=${encodeURIComponent(search)}&`;
+    if (kategoriId) url += `kategori_id=${kategoriId}&`;
+
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Gagal memuat listing');
+
+    const listings = data.data || data.listings || data || [];
+    loading.classList.add('hidden');
+
+    if (!listings.length) { empty.classList.remove('hidden'); return; }
+
+    listings.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-xl shadow-sm overflow-hidden card-hover border border-gray-100';
+      const imgSrc = item.foto ? item.foto : null;
+      const discount = item.harga_normal && item.harga_diskon
+        ? Math.round((1 - item.harga_diskon / item.harga_normal) * 100) : 0;
+      const isExpired = item.batas_waktu && new Date(item.batas_waktu) < new Date();
+      const isHabis = item.stok_tersisa !== undefined ? item.stok_tersisa <= 0 : false;
+
+      card.innerHTML = `
+        <div class="relative">
+          ${imgSrc
+            ? `<img src="${imgSrc}" alt="${item.nama}" class="w-full h-40 object-cover" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-40 bg-gradient-to-br from-green-100 to-emerald-200 flex items-center justify-center text-4xl\\'>🍱</div>'" />`
+            : `<div class="w-full h-40 bg-gradient-to-br from-green-100 to-emerald-200 flex items-center justify-center text-4xl">🍱</div>`
+          }
+          ${discount > 0 ? `<span class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">-${discount}%</span>` : ''}
+          ${isExpired ? `<span class="absolute top-2 right-2 bg-gray-700 text-white text-xs px-2 py-0.5 rounded-full">Kadaluarsa</span>` : ''}
+        </div>
+        <div class="p-4">
+          <h3 class="font-semibold text-gray-800 text-sm mb-1 line-clamp-2">${item.nama}</h3>
+          <p class="text-xs text-gray-400 mb-2">${item.kategori?.nama || item.kategori_nama || ''}</p>
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-green-700 font-bold text-base">${formatRupiah(item.harga_diskon)}</span>
+            ${item.harga_normal ? `<span class="line-through-price text-xs">${formatRupiah(item.harga_normal)}</span>` : ''}
+          </div>
+          <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
+            <span>📦 Stok: ${item.stok_tersisa ?? item.stok_total ?? '-'}</span>
+            <span>⏰ ${formatDate(item.batas_waktu)}</span>
+          </div>
+          <button onclick="doClaim(${item.id}, '${(item.nama || '').replace(/'/g, "\\'")}')"
+            ${isExpired || isHabis ? 'disabled' : ''}
+            class="w-full py-2 rounded-lg text-sm font-semibold transition ${
+              isExpired || isHabis
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700 text-white'
+            }">
+            ${isHabis ? '❌ Stok Habis' : isExpired ? '⏰ Kadaluarsa' : '🛒 Klaim Sekarang'}
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (e) {
+    loading.classList.add('hidden');
+    showError('listings-error', '❌ ' + e.message);
+  }
+}
+
+// ===================== CLAIM =====================
+async function doClaim(listingId, listingName) {
+  if (!getToken()) { showToast('Silakan login terlebih dahulu', 'error'); return; }
+  const confirmed = await showConfirm(`Klaim "${listingName}"?`, `Kamu akan mengklaim 1 porsi makanan ini.`, '🛒');
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch(`${BASE_URL}/claims`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listing_id: listingId, jumlah: 1 })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Gagal melakukan klaim');
+    const kode = data.kode_klaim || data.data?.kode_klaim || data.claim?.kode_klaim || '-';
+    document.getElementById('claim-success-code').textContent = kode;
+    openModal('modal-claim-success');
+    loadListings();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+// ===================== MY CLAIMS =====================
+async function loadClaims() {
+  const list = document.getElementById('claims-list');
+  const loading = document.getElementById('claims-loading');
+  const empty = document.getElementById('claims-empty');
+  const errEl = document.getElementById('claims-error');
+
+  list.innerHTML = '';
+  loading.classList.remove('hidden');
+  empty.classList.add('hidden');
+  errEl.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${BASE_URL}/claims`, { headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Gagal memuat klaim');
+
+    const claims = data.data || data.claims || data || [];
+    loading.classList.add('hidden');
+
+    if (!claims.length) { empty.classList.remove('hidden'); return; }
+
+    claims.forEach(claim => {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col sm:flex-row sm:items-center gap-4';
+      const isPending = claim.status === 'pending';
+      card.innerHTML = `
+        <div class="flex-1">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <h3 class="font-semibold text-gray-800 text-sm">${claim.listing?.nama || claim.nama_listing || 'Listing'}</h3>
+            ${getStatusBadge(claim.status)}
+          </div>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500">
+            <span>📦 Jumlah: ${claim.jumlah}</span>
+            <span>💰 ${formatRupiah(claim.total_harga || claim.harga || 0)}</span>
+            <span>🔑 Kode: <span class="font-mono font-bold text-green-700">${claim.kode_klaim || '-'}</span></span>
+            <span>📅 ${formatDate(claim.created_at)}</span>
+          </div>
+        </div>
+        <div class="flex gap-2 sm:flex-col">
+          ${isPending ? `<button onclick="doBayar(${claim.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition">💳 Bayar</button>` : ''}
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  } catch (e) {
+    loading.classList.add('hidden');
+    showError('claims-error', '❌ ' + e.message);
+  }
+}
+
+async function doBayar(claimId) {
+  const confirmed = await showConfirm('Konfirmasi Pembayaran', 'Lanjutkan pembayaran untuk klaim ini?', '💳');
+  if (!confirmed) return;
+  try {
+    const res = await fetch(`${BASE_URL}/claims/${claimId}/bayar`, {
+      method: 'POST', headers: authHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Gagal melakukan pembayaran');
+    showToast('Pembayaran berhasil! ✅', 'success');
+    loadClaims();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+// ===================== MERCHANT =====================
+function switchMerchantTab(tab) {
+  const isListings = tab === 'listings';
+  document.getElementById('mtab-listings').classList.toggle('hidden', !isListings);
+  document.getElementById('mtab-klaim').classList.toggle('hidden', isListings);
+  document.getElementById('mtab-listings-btn').className = `px-5 py-2.5 text-sm font-medium transition ${isListings ? 'tab-active' : 'text-gray-500'}`;
+  document.getElementById('mtab-klaim-btn').className = `px-5 py-2.5 text-sm font-medium transition ${!isListings ? 'tab-active' : 'text-gray-500'}`;
+  if (!isListings) loadKlaimMasuk();
+}
+
+async function loadMerchantListings() {
+  const list = document.getElementById('merchant-listings-list');
+  const loading = document.getElementById('merchant-listings-loading');
+  const empty = document.getElementById('merchant-listings-empty');
+  const errEl = document.getElementById('merchant-listings-error');
+
+  list.innerHTML = '';
+  loading.classList.remove('hidden');
+  empty.classList.add('hidden');
+  errEl.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${BASE_URL}/merchant/listings`, { headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Gagal memuat listing merchant');
+
+    const listings = data.data || data.listings || data || [];
+    loading.classList.add('hidden');
+
+    if (!listings.length) { empty.classList.remove('hidden'); return; }
+
+    listings.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col sm:flex-row sm:items-center gap-4';
+      card.innerHTML = `
+        <div class="flex-1">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <h3 class="font-semibold text-gray-800">${item.nama}</h3>
+            ${getStatusBadge(item.status)}
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-xs text-gray-500">
+            <span>💰 ${formatRupiah(item.harga_diskon)}</span>
+            <span>📦 Stok: ${item.stok_tersisa ?? item.stok_total ?? '-'}</span>
+            <span>🏷 ${item.kategori?.nama || item.kategori_nama || '-'}</span>
+            <span>⏰ ${formatDate(item.batas_waktu)}</span>
+          </div>
+        </div>
+        <div>
+          ${item.status === 'aktif'
+            ? `<button onclick="doTutupListing(${item.id})" class="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg text-xs font-semibold transition border border-red-200">🔒 Tutup</button>`
+            : `<span class="text-xs text-gray-400 italic">Tidak aktif</span>`
+          }
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  } catch (e) {
+    loading.classList.add('hidden');
+    showError('merchant-listings-error', '❌ ' + e.message);
+  }
+}
+
+async function doTutupListing(id) {
+  const confirmed = await showConfirm('Tutup Listing?', 'Listing ini tidak akan bisa diklaim lagi.', '🔒');
+  if (!confirmed) return;
+  try {
+    const res = await fetch(`${BASE_URL}/merchant/listings/${id}/tutup`, {
+      method: 'POST', headers: authHeaders()
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Gagal menutup listing');
+    showToast('Listing berhasil ditutup', 'success');
+    loadMerchantListings();
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function loadKlaimMasuk() {
+  const list = document.getElementById('klaim-masuk-list');
+  const loading = document.getElementById('klaim-masuk-loading');
+  const empty = document.getElementById('klaim-masuk-empty');
+  const errEl = document.getElementById('klaim-masuk-error');
+
+  list.innerHTML = '';
+  loading.classList.remove('hidden');
+  empty.classList.add('hidden');
+  errEl.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${BASE_URL}/merchant/dashboard/klaim-masuk`, { headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Gagal memuat klaim masuk');
+
+    const claims = data.data || data.claims || data || [];
+    loading.classList.add('hidden');
+
+    if (!claims.length) { empty.classList.remove('hidden'); return; }
+
+    claims.forEach(claim => {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col sm:flex-row sm:items-center gap-4';
+      card.innerHTML = `
+        <div class="flex-1">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <h3 class="font-semibold text-gray-800 text-sm">${claim.listing?.nama || claim.nama_listing || 'Listing'}</h3>
+            ${getStatusBadge(claim.status)}
+          </div>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500">
+            <span>👤 ${claim.user?.name || claim.nama_pembeli || '-'}</span>
+            <span>📦 Jumlah: ${claim.jumlah}</span>
+            <span>🔑 Kode: <span class="font-mono font-bold text-green-700">${claim.kode_klaim || '-'}</span></span>
+            <span>💰 ${formatRupiah(claim.total_harga || 0)}</span>
+          </div>
+        </div>
+        <button onclick="fillScanCode('${claim.kode_klaim || ''}')"
+          class="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg text-xs font-semibold transition border border-green-200 whitespace-nowrap">
+          📷 Scan QR
+        </button>
+      `;
+      list.appendChild(card);
+    });
+  } catch (e) {
+    loading.classList.add('hidden');
+    showError('klaim-masuk-error', '❌ ' + e.message);
+  }
+}
+
+function fillScanCode(kode) {
+  document.getElementById('scan-kode-input').value = kode;
+  document.getElementById('scan-kode-input').focus();
+  document.getElementById('scan-result').classList.add('hidden');
+}
+
+async function doScanQR() {
+  const kode = document.getElementById('scan-kode-input').value.trim();
+  const resultEl = document.getElementById('scan-result');
+  if (!kode) { showToast('Masukkan kode klaim terlebih dahulu', 'error'); return; }
+
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  resultEl.classList.add('hidden');
+
+  try {
+    const res = await fetch(`${BASE_URL}/merchant/scan-qr`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kode_klaim: kode })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Kode tidak valid');
+    resultEl.className = 'mt-3 p-3 rounded-lg text-sm font-medium bg-green-100 text-green-800 border border-green-300';
+    resultEl.textContent = `✅ ${data.message || 'Klaim berhasil dikonfirmasi!'}`;
+    resultEl.classList.remove('hidden');
+    document.getElementById('scan-kode-input').value = '';
+    loadKlaimMasuk();
+  } catch (e) {
+    resultEl.className = 'mt-3 p-3 rounded-lg text-sm font-medium bg-red-100 text-red-700 border border-red-300';
+    resultEl.textContent = `❌ ${e.message}`;
+    resultEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✅ Konfirmasi';
+  }
+}
+
+// ===================== CREATE LISTING =====================
+function openCreateListingModal() {
+  document.getElementById('cl-nama').value = '';
+  document.getElementById('cl-kategori').value = '';
+  document.getElementById('cl-harga-normal').value = '';
+  document.getElementById('cl-harga-diskon').value = '';
+  document.getElementById('cl-stok').value = '';
+  document.getElementById('cl-batas-waktu').value = '';
+  document.getElementById('cl-foto').value = '';
+  document.getElementById('foto-preview-wrap').classList.add('hidden');
+  document.getElementById('foto-placeholder').classList.remove('hidden');
+  hideError('create-listing-error');
+  openModal('modal-create-listing');
+}
+
+function previewFoto(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('foto-preview').src = e.target.result;
+      document.getElementById('foto-preview-wrap').classList.remove('hidden');
+      document.getElementById('foto-placeholder').classList.add('hidden');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+async function doCreateListing() {
+  hideError('create-listing-error');
+  const nama = document.getElementById('cl-nama').value.trim();
+  const kategoriId = document.getElementById('cl-kategori').value;
+  const hargaNormal = document.getElementById('cl-harga-normal').value;
+  const hargaDiskon = document.getElementById('cl-harga-diskon').value;
+  const stok = document.getElementById('cl-stok').value;
+  const batasWaktu = document.getElementById('cl-batas-waktu').value;
+  const fotoFile = document.getElementById('cl-foto').files[0];
+
+  if (!nama || !kategoriId || !hargaNormal || !hargaDiskon || !stok || !batasWaktu) {
+    showError('create-listing-error', 'Semua field wajib diisi kecuali foto.'); return;
+  }
+  if (Number(hargaDiskon) >= Number(hargaNormal)) {
+    showError('create-listing-error', 'Harga diskon harus lebih kecil dari harga normal.'); return;
+  }
+
+  setLoading('create-listing-btn', 'create-listing-btn-text', true);
+
+  try {
+    const formData = new FormData();
+    formData.append('nama', nama);
+    formData.append('kategori_id', kategoriId);
+    formData.append('harga_normal', hargaNormal);
+    formData.append('harga_diskon', hargaDiskon);
+    formData.append('stok_total', stok);
+    formData.append('batas_waktu', batasWaktu.replace('T', ' ') + ':00');
+    if (fotoFile) formData.append('foto', fotoFile);
+
+    const res = await fetch(`${BASE_URL}/merchant/listings`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${getToken()}`, 'Accept': 'application/json' },
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      let errMsg = data.message || 'Gagal membuat listing';
+      if (data.errors) errMsg = Object.values(data.errors).flat().join(' ');
+      throw new Error(errMsg);
+    }
+    closeModal('modal-create-listing');
+    showToast('Listing berhasil dibuat! 🎉', 'success');
+    loadMerchantListings();
+  } catch (e) {
+    showError('create-listing-error', e.message);
+  } finally {
+    setLoading('create-listing-btn', 'create-listing-btn-text', false, 'Buat Listing');
+  }
+}
+
+// ===================== CONFIRM DIALOG =====================
+function showConfirm(title, message, icon = '⚠️') {
+  return new Promise(resolve => {
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-message').textContent = message;
+    document.getElementById('confirm-icon').textContent = icon;
+    openModal('modal-confirm');
+    const okBtn = document.getElementById('confirm-ok-btn');
+    const newOkBtn = okBtn.cloneNode(true);
+    okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+    newOkBtn.addEventListener('click', () => { closeModal('modal-confirm'); resolve(true); });
+    // Cancel button
+    const cancelBtn = newOkBtn.previousElementSibling;
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    newCancelBtn.addEventListener('click', () => { closeModal('modal-confirm'); resolve(false); });
+  });
+}
+
+// Close modals on backdrop click
+['modal-claim-success', 'modal-create-listing', 'modal-confirm'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) closeModal(id);
+  });
+});
+
+// ===================== BOOT =====================
+(function boot() {
+  const token = getToken();
+  if (token) {
+    initApp();
+  } else {
+    document.getElementById('page-auth').classList.remove('hidden');
+  }
+})();
+</script>
+</body>
+</html>
