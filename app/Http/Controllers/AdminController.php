@@ -95,4 +95,51 @@ class AdminController extends Controller
             'data' => $user,
         ], 200);
     }
+
+    public function moderasiListing(Request $request, $id)
+    {
+        $listing = \App\Models\Listing::find($id);
+
+        if (! $listing) {
+            return response()->json([
+                'status'    => 'error',
+                'message'   => 'Listing tidak ditemukan.'
+            ], 404);
+        }
+
+        $request->validate([
+            'aksi'      => 'required|in:arsipkan,aktifkan',
+            'alasan'    => 'required_if:aksi,arsipkan|nullable|string|max:500',
+        ]);
+
+        $statusBaru = $request->aksi === 'arsipkan' ? 'diarsipkan' : 'aktif';
+        $listing->update(['status' => $statusBaru]);
+
+        // Jika listing diarsipkan karena laporan, tandai laporan terkait sebagai selesai
+        if ($request->aksi === 'arsipkan') {
+            \App\Models\AbuseReport::where('listing_id', $id)
+                ->where('status', 'menunggu')
+                ->update(['status' => 'selesai']);
+        }
+
+        return response()->json([
+            'status'    => 'success',
+            'message'   => 'Status listing berhasil diperbarui.',
+            'data'      => $listing
+        ], 200);
+    }
+
+    public function merchantMenunggu()
+    {
+        $merchant = \App\Models\Profil::with('user:id,name,email,no_telphone')
+            ->where('tipe_profil', 'merchant')
+            ->where('status_verifikasi', 'menunggu')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $merchant
+        ], 200);
+    }
 }

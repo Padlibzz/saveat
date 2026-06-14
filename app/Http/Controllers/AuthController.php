@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -11,8 +12,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'login_identifier' => 'required',
-            'password' => 'required',
+            'login_identifier'  => 'required',
+            'password'          => 'required',
         ]);
 
         $user = User::where('email', $request->login_identifier)
@@ -20,40 +21,57 @@ class AuthController extends Controller
             ->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json(['pesan' => 'Email/Username atau password salah'], 401);
+            return response()->json(['pesan' => 'Email/Username atau password salah.'], 401);
+        }
+
+        if ($user->status !== 'aktif') {
+            return response()->json(['pesan' => 'Akun Anda telah dinonaktifkan. Hubungi admin.'], 403);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        ActivityLog::catat($user->id, 'login', 'User login berhasil.');
+
         return response()->json([
-            'pesan' => 'Login berhasil',
-            'access_token' => $token,
+            'pesan'         => 'Login berhasil',
+            'access_token'  => $token,
+            'peran'         => $user->peran,
         ], 200);
     }
 
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required', // UBAH: dari 'nama' menjadi 'name'
-            'username' => 'required|unique:users,username',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
-            'no_telphone' => 'required',
+            'name'          => 'required|string|max:255',
+            'username'      => 'required|unique:users,username|max:50',
+            'email'         => 'required|email|unique:users,email',
+            'password'      => 'required|min:6',
+            'no_telphone'   => 'required|string|max:20',
         ]);
 
         $user = User::create([
-            'name' => $request->name, // UBAH: menangkap request 'name'
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'peran' => 'konsumen',
-            'status' => 'aktif',
-            'no_telphone' => $request->no_telphone,
+            'name'          => $request->name,
+            'username'      => $request->username,
+            'email'         => $request->email,
+            'password'      => Hash::make($request->password),
+            'peran'         => 'konsumen',
+            'status'        => 'aktif',
         ]);
+
+        ActivityLog::catat($user->id, 'register', 'User baru mendaftar.');
 
         return response()->json([
             'pesan' => 'Registrasi berhasil',
-            'data' => $user,
+            'data'  => $user,
         ], 201);
+    }
+
+    public function logout(Request $request)
+    {
+        ActivityLog::catat($request->user()->id, 'logout', 'User logout.');
+
+        $request->user()->currentAccessToken()->delete();
+        
+        return response()->json(['pesan' => 'Logout berhasil.'], 200);
     }
 }
