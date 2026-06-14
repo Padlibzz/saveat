@@ -21,6 +21,7 @@ Route::get('/categories', [CategoryController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $r) => $r->user());
+    Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/profil', [ProfilController::class, 'index']);

@@ -66,6 +66,22 @@ class AuthController extends Controller
         ], 201);
     }
 
+public function refreshToken(Request $request)
+    {
+        $user = $request->user();
+
+        // 1. Hapus token lama yang sedang digunakan untuk request ini
+        $user->currentAccessToken()->delete();
+
+        // 2. Buatkan token baru
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'pesan' => 'Token berhasil diperbarui',
+            'access_token' => $token,
+        ], 200);
+    }
+
     public function logout(Request $request)
     {
         ActivityLog::catat($request->user()->id, 'logout', 'User logout.');
@@ -74,4 +90,6 @@ class AuthController extends Controller
         
         return response()->json(['pesan' => 'Logout berhasil.'], 200);
     }
+
+    
 }
