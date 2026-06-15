@@ -21,7 +21,6 @@ Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/payment-methods', [ClaimController::class, 'paymentMethods']);
 Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
- Route::post('/payments/notification', [ClaimController::class, 'notification']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $r) => $r->user());
