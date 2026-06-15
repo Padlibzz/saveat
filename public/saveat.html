@@ -820,9 +820,9 @@ async function doBayar(claimId) {
     // Panggil Midtrans Snap menggunakan token dari backend
     window.snap.pay(data.snap_token, {
       onSuccess: function(result) {
-        /* Dijalankan jika user berhasil bayar (misal masukin PIN GoPay dengan benar) */
         showToast('Pembayaran berhasil! ✅', 'success');
-        loadClaims(); 
+        // Beri jeda 1.5 detik agar Webhook selesai mengubah database sebelum memuat ulang layar
+        setTimeout(() => loadClaims(), 1500); 
       },
       onPending: function(result) {
         /* Dijalankan jika user pilih metode yang butuh waktu (misal Transfer Bank / VA) */

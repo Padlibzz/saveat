@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Midtrans\Config;
 use Midtrans\Snap;
+use Illuminate\Support\Facades\Log;
 
 class ClaimController extends Controller
 {
@@ -303,40 +304,41 @@ class ClaimController extends Controller
         return 'aktif';
     }
 
-    use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-// Pastikan model Claim sudah di-import
+// ... kode di atasnya (fungsi resolveStatusRiwayat) ...
 
-public function notification(Request $request)
-{
-    // 1. Ambil data yang dikirim Midtrans
-    $payload = $request->all();
+    public function notification(Request $request)
+    {
+        $payload = $request->all();
+        Log::info('Midtrans Webhook Payload: ', $payload);
 
-    // Catat di log Laravel untuk keperluan *debugging* (bisa dilihat di storage/logs/laravel.log)
-    Log::info('Midtrans Webhook Payload: ', $payload);
+        $orderId = $payload['order_id'];
+        $transactionStatus = $payload['transaction_status'];
 
-    $orderId = $payload['order_id'];
-    $transactionStatus = $payload['transaction_status'];
+        // 1. Ekstrak kode_klaim dari order_id (Contoh: memisahkan 'CLM-ABCDEFGH' dari '-1718000000')
+        $parts = explode('-', $orderId);
+        if (count($parts) >= 2) {
+            $kodeKlaim = $parts[0] . '-' . $parts[1]; // Menghasilkan "CLM-ABCDEFGH"
+        } else {
+            return response()->json(['message' => 'Format Order ID tidak valid'], 400);
+        }
 
-    // 2. Cari pesanan di database Anda (sesuaikan dengan cara Anda menyimpan order_id)
-    // Contoh jika order_id formatnya "CLM-1", kita ambil angka 1-nya saja:
-    $claimId = str_replace('CLM-', '', $orderId); 
-    $claim = Claim::find($claimId);
+        // 2. Cari pesanan menggunakan kolom kode_klaim, BUKAN menggunakan find()
+        $claim = Claim::where('kode_klaim', $kodeKlaim)->first();
 
-    if (!$claim) {
-        return response()->json(['message' => 'Pesanan tidak ditemukan'], 404);
+        if (!$claim) {
+            Log::error('Pesanan tidak ditemukan untuk Order ID: ' . $orderId);
+            return response()->json(['message' => 'Pesanan tidak ditemukan'], 404);
+        }
+
+        // 3. Ubah kolom status_pembayaran (bukan status pesanan)
+        if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
+            $claim->status_pembayaran = 'sudah_dibayar'; 
+            $claim->save();
+        } else if ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
+            $claim->status_pembayaran = 'gagal';
+            $claim->save();
+        }
+
+        return response()->json(['message' => 'Status berhasil diupdate']);
     }
-
-    // 3. Ubah status berdasarkan informasi dari Midtrans
-    if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
-        $claim->status = 'sudah_dibayar'; // Sesuaikan dengan nama kolom status Anda
-        $claim->save();
-    } else if ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
-        $claim->status = 'dibatalkan';
-        $claim->save();
-    }
-
-    // 4. Beri tahu Midtrans bahwa pesan sudah diterima dengan baik (Wajib return 200 OK)
-    return response()->json(['message' => 'Status berhasil diupdate']);
-}
-}
+} // <-- Pastikan tutup kurung kurawal class ada di sini
