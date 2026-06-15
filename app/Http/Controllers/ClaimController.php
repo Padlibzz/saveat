@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Midtrans\Config;
+use Midtrans\Snap;
+use Illuminate\Support\Facades\Log;
 
 class ClaimController extends Controller
 {
@@ -115,7 +118,8 @@ class ClaimController extends Controller
 
     public function bayar(Request $request, $id)
     {
-        $claim = Claim::find($id);
+        // Load relasi listing agar namanya bisa dikirim ke item_details Midtrans
+        $claim = Claim::with('listing')->find($id);
 
         if (! $claim || $claim->user_id !== $request->user()->id) {
             return response()->json([
@@ -137,54 +141,51 @@ class ClaimController extends Controller
                 'message'   => 'Pesanan ini sudah dibayar.'
             ], 400);
         }
-
-        // =================================================================
-        // 1. MODE SIMULASI (SEDANG AKTIF)
-        // Bypass langsung menjadi lunas tanpa lewat payment gateway
-        // =================================================================
-        $metode = $request->input('metode_pembayaran', 'qris');
-
-        $claim->update([
-            'metode_pembayaran' => $metode,
-            'status_pembayaran' => 'sudah_dibayar',
-        ]);
-
-        return response()->json([
-            'status'   => 'success',
-            'message'  => 'Simulasi pembayaran berhasil! Pesanan telah lunas.',
-            'claim_id' => $claim->id,
-            'metode'   => $metode,
-            'data'     => $claim
-        ], 200);
-
-
-        /*
-        // =================================================================
-        // 2. MODE MIDTRANS NYATA (NON-AKTIF)
-        // Hapus tanda komentar (/* ... * /) di bawah ini jika Midtrans sudah di-acc.
-        // PENTING: Jangan lupa jadikan komentar pada blok "MODE SIMULASI" di atas!
-        // =================================================================
         
-        $metodeTersedia = [
-            'qris', 'dana', 'gopay', 'ovo', 'shopeepay',
-            'linkaja', 'transfer_bank', 'tunai',
+        // Konfigurasi Midtrans
+        // Pastikan variabel env ini sudah disiapkan di file .env Anda
+        Config::$serverKey = env('MIDTRANS_SERVER_KEY'); 
+        Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false); 
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+        // Data transaksi untuk Midtrans
+        $params = [
+            'transaction_details' => [
+                'order_id' => $claim->kode_klaim . '-' . time(), // Kombinasi dengan time() agar order_id unik jika diulang
+                'gross_amount' => (int) $claim->total_harga,
+            ],
+            'customer_details' => [
+                'first_name' => $request->user()->name ?? 'Pengguna',
+                'email' => $request->user()->email ?? 'user@example.com',
+            ],
+            'item_details' => [
+                [
+                    'id'       => $claim->listing_id,
+                    'price'    => (int) ($claim->listing->harga_diskon ?? 0),
+                    'quantity' => $claim->jumlah,
+                    'name'     => substr($claim->listing->nama ?? 'Paket Makanan', 0, 50), // Midtrans membatasi nama maks 50 karakter
+                ]
+            ]
         ];
 
-        $request->validate([
-            'metode_pembayaran' => 'required|string|in:' . implode(',', $metodeTersedia),
-        ]);
+        try {
+            // Dapatkan Snap Token dari Midtrans
+            $snapToken = Snap::getSnapToken($params);
 
-        $claim->update([
-            'metode_pembayaran' => $request->metode_pembayaran,
-        ]);
+            return response()->json([
+                'status'     => 'success',
+                'message'    => 'Token pembayaran berhasil dibuat. Silakan buka popup Midtrans.',
+                'claim_id'   => $claim->id,
+                'snap_token' => $snapToken,
+            ], 200);
 
-        return response()->json([
-            'status'   => 'success',
-            'message'  => 'Metode pembayaran dipilih. Lanjutkan ke endpoint POST /payments/{id}/create untuk membuat transaksi.',
-            'claim_id' => $claim->id,
-            'metode'   => $request->metode_pembayaran,
-        ], 200);
-        */
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal membuat token Midtrans: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function scanQr(Request $request)
@@ -302,4 +303,42 @@ class ClaimController extends Controller
         if ($klaim->listing && $klaim->listing->status === 'tutup') return 'kadaluarsa';
         return 'aktif';
     }
-}
+
+// ... kode di atasnya (fungsi resolveStatusRiwayat) ...
+
+    public function notification(Request $request)
+    {
+        $payload = $request->all();
+        Log::info('Midtrans Webhook Payload: ', $payload);
+
+        $orderId = $payload['order_id'];
+        $transactionStatus = $payload['transaction_status'];
+
+        // 1. Ekstrak kode_klaim dari order_id (Contoh: memisahkan 'CLM-ABCDEFGH' dari '-1718000000')
+        $parts = explode('-', $orderId);
+        if (count($parts) >= 2) {
+            $kodeKlaim = $parts[0] . '-' . $parts[1]; // Menghasilkan "CLM-ABCDEFGH"
+        } else {
+            return response()->json(['message' => 'Format Order ID tidak valid'], 400);
+        }
+
+        // 2. Cari pesanan menggunakan kolom kode_klaim, BUKAN menggunakan find()
+        $claim = Claim::where('kode_klaim', $kodeKlaim)->first();
+
+        if (!$claim) {
+            Log::error('Pesanan tidak ditemukan untuk Order ID: ' . $orderId);
+            return response()->json(['message' => 'Pesanan tidak ditemukan'], 404);
+        }
+
+        // 3. Ubah kolom status_pembayaran (bukan status pesanan)
+        if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
+            $claim->status_pembayaran = 'sudah_dibayar'; 
+            $claim->save();
+        } else if ($transactionStatus == 'cancel' || $transactionStatus == 'deny' || $transactionStatus == 'expire') {
+            $claim->status_pembayaran = 'gagal';
+            $claim->save();
+        }
+
+        return response()->json(['message' => 'Status berhasil diupdate']);
+    }
+} // <-- Pastikan tutup kurung kurawal class ada di sini
