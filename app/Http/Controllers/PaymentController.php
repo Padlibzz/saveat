@@ -242,7 +242,7 @@ class PaymentController extends Controller
                 'midtrans_payment_type'       => $claim->midtrans_payment_type,
                 'midtrans_transaction_status' => $claim->midtrans_transaction_status,
                 'snap_token'                  => $claim->midtrans_snap_token,
-                'redirect_url'               => $claim->midtrans_redirect_url,
+                'redirect_url'                => $claim->midtrans_redirect_url,
                 'waktu_pembayaran'            => $claim->waktu_pembayaran,
             ],
         ], 200);

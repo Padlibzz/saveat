@@ -15,6 +15,12 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\CategoryController;
 
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
+
 // Route Publik (Tanpa Autentikasi)
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -22,11 +28,12 @@ Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/payment-methods', [ClaimController::class, 'paymentMethods']);
 
-// Webhook Midtrans (Harus publik karena dipanggil oleh server Midtrans)
+// Webhook Midtrans (HARUS publik karena dipanggil oleh server Midtrans)
 Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
 
 // Route Terproteksi (Memerlukan Autentikasi Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
+    
     // Auth & User
     Route::get('/user', fn(Request $r) => $r->user());
     Route::post('/refresh-token', [AuthController::class, 'refreshToken']);

@@ -27,10 +27,7 @@ class ClaimController extends Controller
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($klaim) {
-                // Pastikan fungsi helperresolveStatusRiwayat didefinisikan jika dipanggil
-                $klaim->status_riwayat = method_exists($this, 'resolveStatusRiwayat') 
-                    ? $this->resolveStatusRiwayat($klaim) 
-                    : $klaim->status;
+                $klaim->status_riwayat = $this->resolveStatusRiwayat($klaim);
                 return $klaim;
             });
 
@@ -38,21 +35,32 @@ class ClaimController extends Controller
     }
 
     /**
-     * Mendapatkan daftar metode pembayaran yang didukung sistem (Sinkron dengan PaymentController).
+     * Helper untuk menentukan status riwayat agar seragam.
+     */
+    private function resolveStatusRiwayat(Claim $klaim): string
+    {
+        if ($klaim->status === 'diambil') return 'sudah_diambil';
+        if ($klaim->status === 'batal') return 'kadaluarsa';
+        if ($klaim->listing && $klaim->listing->status === 'tutup') return 'kadaluarsa';
+        return 'aktif';
+    }
+
+    /**
+     * Mendapatkan daftar metode pembayaran yang didukung sistem (Sinkron dengan frontend).
      */
     public function paymentMethods()
     {
         return response()->json([
             'status' => 'success',
             'data' => [
-                ['id' => 'qris', 'nama' => 'QRIS'],
-                ['id' => 'gopay', 'nama' => 'GoPay'],
-                ['id' => 'dana', 'nama' => 'DANA'],
-                ['id' => 'ovo', 'nama' => 'OVO'],
-                ['id' => 'shopeepay', 'nama' => 'ShopeePay'],
-                ['id' => 'linkaja', 'nama' => 'LinkAja'],
-                ['id' => 'transfer_bank', 'nama' => 'Transfer Bank (VA)'],
-                ['id' => 'tunai', 'nama' => 'Tunai di Gerai Retail (Indomaret/Alfamart)'],
+                ['id' => 'qris',          'nama' => 'QRIS',               'kategori' => 'qr_code'],
+                ['id' => 'gopay',         'nama' => 'GoPay',              'kategori' => 'e_wallet'],
+                ['id' => 'dana',          'nama' => 'DANA',               'kategori' => 'e_wallet'],
+                ['id' => 'ovo',           'nama' => 'OVO',                'kategori' => 'e_wallet'],
+                ['id' => 'shopeepay',     'nama' => 'ShopeePay',          'kategori' => 'e_wallet'],
+                ['id' => 'linkaja',       'nama' => 'LinkAja',            'kategori' => 'e_wallet'],
+                ['id' => 'transfer_bank', 'nama' => 'Transfer Bank (VA)', 'kategori' => 'bank'],
+                ['id' => 'tunai',         'nama' => 'Tunai di Gerai',     'kategori' => 'cash'],
             ]
         ], 200);
     }
@@ -108,7 +116,7 @@ class ClaimController extends Controller
 
             $listing->decrement('stok_sisa', $request->jumlah);
 
-            // Perbarui status keter sediaan listing secara berkala
+            // Perbarui status ketersediaan listing secara berkala
             $persenSisa = $listing->stok_sisa / max($listing->stok_total, 1);
             if ($listing->stok_sisa <= 0) {
                 $listing->update(['status' => 'tutup']);
