@@ -125,21 +125,14 @@ class ClaimController extends Controller
             }
 
             // Kirim Notifikasi Transaksi Berhasil Dibuat ke Konsumen
-            NotificationService::klaimBerhasil(
+           NotificationService::menungguPembayaran(
                 $request->user()->id,
                 $claim->id,
-                $listing->nama,
-                Carbon::parse($listing->batas_waktu)->format('H:i, d M Y')
+                $listing->nama
             );
 
-            // Kirim Notifikasi Klaim Masuk ke Pihak Merchant
-            if ($listing->merchant && $listing->merchant->user_id) {
-                NotificationService::klaimMasuk(
-                    $listing->merchant->user_id,    
-                    $claim->id,
-                    $listing->nama,
-                );
-            }
+            // HAPUS blok NotificationService::klaimMasuk dari sini.
+            // Merchant baru akan dinotifikasi setelah pembayaran lunas oleh Midtrans Webhook.
 
             return response()->json([
                 'status'  => 'success',

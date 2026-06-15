@@ -90,7 +90,7 @@ class PaymentController extends Controller
             'item_details' => [
                 [
                     'id'       => (string) $claim->listing_id,
-                    'price'    => $amount / max($claim->jumlah, 1),
+                    'price'    => (int)($amount / max($claim->jumlah, 1)),
                     'quantity' => $claim->jumlah,
                     'name'     => $claim->listing ? substr($claim->listing->nama, 0, 50) : 'Makanan Saveat',
                 ],
@@ -193,19 +193,27 @@ class PaymentController extends Controller
 
             // Kirim notifikasi pembayaran lunas ke konsumen jika status transaksi aman/sukses
             if ($updateData['status_pembayaran'] === 'sudah_dibayar') {
+                
+                // Notifikasi ke Konsumen (Klaim berhasil karena sudah bayar)
                 NotificationService::klaimBerhasil(
                     $claim->user_id,
                     $claim->id,
                     $claim->listing ? $claim->listing->nama : 'Pesanan',
                     $claim->listing ? \Carbon\Carbon::parse($claim->listing->batas_waktu)->format('H:i, d M Y') : '-'
                 );
-            }
 
-            Log::info('Midtrans webhook processed successfully.', [
-                'order_id'   => $orderId,
-                'status'     => $transactionStatus,
-                'claim_id'   => $claim->id,
-            ]);
+                // Load relasi merchant jika belum ada (opsional tapi disarankan agar tidak error)
+                $claim->loadMissing('listing.merchant');
+
+                // Notifikasi ke Merchant (Ada klaim valid yang sudah dibayar masuk ke sistem)
+                if ($claim->listing && $claim->listing->merchant && $claim->listing->merchant->user_id) {
+                    NotificationService::klaimMasuk(
+                        $claim->listing->merchant->user_id,
+                        $claim->id,
+                        $claim->listing->nama
+                    );
+                }
+            }
 
             return response()->json(['status' => 'success', 'message' => 'Webhook callback verified and processed.'], 200);
 
