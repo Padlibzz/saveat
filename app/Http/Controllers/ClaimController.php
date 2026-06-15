@@ -10,13 +10,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
-use Midtrans\Config;
-use Midtrans\Snap;
-use Illuminate\Support\Facades\Log;
 
 class ClaimController extends Controller
 {
-    // riwayat klaim konsumen
+    /**
+     * Menampilkan riwayat klaim makanan milik konsumen yang sedang login.
+     */
     public function index(Request $request)
     {
         $claims = Claim::with([
@@ -28,14 +27,40 @@ class ClaimController extends Controller
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($klaim) {
-                $klaim->status_riwayat = $this->resolveStatusRiwayat($klaim);
+                // Pastikan fungsi helperresolveStatusRiwayat didefinisikan jika dipanggil
+                $klaim->status_riwayat = method_exists($this, 'resolveStatusRiwayat') 
+                    ? $this->resolveStatusRiwayat($klaim) 
+                    : $klaim->status;
                 return $klaim;
             });
 
         return response()->json(['status' => 'success', 'data' => $claims], 200);
     }
 
-    // klaim makanan + notifikasi
+    /**
+     * Mendapatkan daftar metode pembayaran yang didukung sistem (Sinkron dengan PaymentController).
+     */
+    public function paymentMethods()
+    {
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                ['id' => 'qris', 'nama' => 'QRIS'],
+                ['id' => 'gopay', 'nama' => 'GoPay'],
+                ['id' => 'dana', 'nama' => 'DANA'],
+                ['id' => 'ovo', 'nama' => 'OVO'],
+                ['id' => 'shopeepay', 'nama' => 'ShopeePay'],
+                ['id' => 'linkaja', 'nama' => 'LinkAja'],
+                ['id' => 'transfer_bank', 'nama' => 'Transfer Bank (VA)'],
+                ['id' => 'tunai', 'nama' => 'Tunai di Gerai Retail (Indomaret/Alfamart)'],
+            ]
+        ], 200);
+    }
+
+    /**
+     * Membuat klaim makanan baru (Pesanan baru).
+     * Menggunakan Pessimistic Locking (lockForUpdate) untuk menghindari race condition stok sisa.
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -57,7 +82,7 @@ class ClaimController extends Controller
                 ], 400);
             }
 
-            if (! in_array($listing->status, ['aktif', 'hampir_habis'])) {
+            if (!in_array($listing->status, ['aktif', 'hampir_habis'])) {
                 return response()->json([
                     'status'  => 'error',
                     'message' => 'Gagal klaim: Listing ini sudah tidak tersedia.'
@@ -83,7 +108,7 @@ class ClaimController extends Controller
 
             $listing->decrement('stok_sisa', $request->jumlah);
 
-            // Update status listing secara sinkron
+            // Perbarui status keter sediaan listing secara berkala
             $persenSisa = $listing->stok_sisa / max($listing->stok_total, 1);
             if ($listing->stok_sisa <= 0) {
                 $listing->update(['status' => 'tutup']);
@@ -91,7 +116,7 @@ class ClaimController extends Controller
                 $listing->update(['status' => 'hampir_habis']);
             }
 
-            // Notifikasi ke Konsumen
+            // Kirim Notifikasi Transaksi Berhasil Dibuat ke Konsumen
             NotificationService::klaimBerhasil(
                 $request->user()->id,
                 $claim->id,
@@ -99,7 +124,7 @@ class ClaimController extends Controller
                 Carbon::parse($listing->batas_waktu)->format('H:i, d M Y')
             );
 
-            // Notifikasi ke Merchant
+            // Kirim Notifikasi Klaim Masuk ke Pihak Merchant
             if ($listing->merchant && $listing->merchant->user_id) {
                 NotificationService::klaimMasuk(
                     $listing->merchant->user_id,    
@@ -116,11 +141,14 @@ class ClaimController extends Controller
         });
     }
 
+    /**
+     * Fitur Scan QR Code oleh Merchant untuk menyelesaikan pesanan konsumen di tempat (In-store settlement).
+     */
     public function scanQr(Request $request)
     {
         $merchant = $request->user()->merchant;
 
-        if (! $merchant || $merchant->status_verifikasi !== 'disetujui') {
+        if (!$merchant || $merchant->status_verifikasi !== 'disetujui') {
             return response()->json([
                 'status'    => 'error',
                 'message'   => 'Aksi ditolak. Akun Merchant tidak valid.'
@@ -131,7 +159,7 @@ class ClaimController extends Controller
 
         $claim = Claim::with('listing')->where('kode_klaim', $request->kode_klaim)->first();
 
-        if (! $claim) {
+        if (!$claim) {
             return response()->json([
                 'status'    => 'error',
                 'message'   => 'QR Code tidak valid atau pesanan tidak ditemukan.'
@@ -161,7 +189,7 @@ class ClaimController extends Controller
 
         $claim->update(['status' => 'diambil']);
 
-        // Notifikasi pesanan selesai ke Konsumen
+        // Kirim Notifikasi kepada Konsumen bahwa Makanan telah Berhasil Diambil
         NotificationService::pesananSelesai($claim->user_id, $claim->id, $claim->listing->nama);
 
         return response()->json([
@@ -171,11 +199,14 @@ class ClaimController extends Controller
         ], 200);
     }
 
+    /**
+     * Konfirmasi manual pesanan selesai oleh pengguna aplikasi.
+     */
     public function selesai(Request $request, $id)
     {
         $claim = Claim::find($id);
 
-        if (! $claim || $claim->user_id !== $request->user()->id) {
+        if (!$claim || $claim->user_id !== $request->user()->id) {
             return response()->json([
                 'status'    => 'error',
                 'message'   => 'Pesanan tidak valid.'
@@ -204,5 +235,4 @@ class ClaimController extends Controller
             'data'    => $claim,
         ], 200);
     }
-
-} 
+}
