@@ -21,6 +21,12 @@
     ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
   </style>
 </head>
+
+<script type="text/javascript"
+        src="https://app.sandbox.midtrans.com/snap/snap.js"
+        data-client-key="Mid-client-zyP-wCWNF-LI_Fkn">
+</script>
+
 <body class="bg-gray-50 min-h-screen font-sans">
 
 <!-- ===================== AUTH PAGE ===================== -->
@@ -390,7 +396,7 @@
 
 <script>
 // ===================== CONFIG =====================
-const BASE_URL = 'http://127.0.0.1:8000/api';
+const BASE_URL = 'https://maximum-confetti-idly.ngrok-free.dev/api';
 const TOKEN_KEY = 'saveat_token';
 const USER_KEY = 'saveat_user';
 
@@ -798,14 +804,41 @@ async function loadClaims() {
 async function doBayar(claimId) {
   const confirmed = await showConfirm('Konfirmasi Pembayaran', 'Lanjutkan pembayaran untuk klaim ini?', '💳');
   if (!confirmed) return;
+  
   try {
     const res = await fetch(`${BASE_URL}/claims/${claimId}/bayar`, {
-      method: 'PATCH', headers: authHeaders()
+      method: 'POST', 
+      headers: authHeaders()
     });
+    
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Gagal melakukan pembayaran');
-    showToast('Pembayaran berhasil! ✅', 'success');
-    loadClaims();
+    
+    if (!res.ok) {
+        throw new Error(data.message || 'Gagal meminta token pembayaran');
+    }
+
+    // Panggil Midtrans Snap menggunakan token dari backend
+    window.snap.pay(data.snap_token, {
+      onSuccess: function(result) {
+        /* Dijalankan jika user berhasil bayar (misal masukin PIN GoPay dengan benar) */
+        showToast('Pembayaran berhasil! ✅', 'success');
+        loadClaims(); 
+      },
+      onPending: function(result) {
+        /* Dijalankan jika user pilih metode yang butuh waktu (misal Transfer Bank / VA) */
+        showToast('Menunggu pembayaran diselesaikan ⏳', 'warning');
+        loadClaims();
+      },
+      onError: function(result) {
+        /* Dijalankan jika pembayaran gagal atau ditolak bank */
+        showToast('Pembayaran gagal ❌', 'error');
+      },
+      onClose: function() {
+        /* Dijalankan jika user menekan tombol 'X' di popup sebelum bayar */
+        showToast('Anda menutup popup sebelum membayar ⚠️', 'warning');
+      }
+    });
+
   } catch (e) {
     showToast(e.message, 'error');
   }

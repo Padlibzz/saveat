@@ -21,6 +21,7 @@ Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/payment-methods', [ClaimController::class, 'paymentMethods']);
 Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
+ Route::post('/payments/notification', [ClaimController::class, 'notification']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $r) => $r->user());
@@ -34,11 +35,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/claims', [ClaimController::class, 'index']); 
     Route::post('/claims', [ClaimController::class, 'store']); 
-    Route::patch('/claims/{id}/bayar', [ClaimController::class, 'bayar']);
+    Route::post('/claims/{id}/bayar', [ClaimController::class, 'bayar']);
     Route::patch('/claims/{id}/selesai', [ClaimController::class, 'selesai']); 
 
     Route::post('/payments/{claimId}/create', [PaymentController::class, 'createTransaction']);
     Route::get('/payments/{claimId}/status', [PaymentController::class, 'checkStatus']);
+   
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'readAll']);
