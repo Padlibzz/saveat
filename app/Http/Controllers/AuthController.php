@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Enums\UserStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -24,7 +25,8 @@ class AuthController extends Controller
             return response()->json(['pesan' => 'Email/Username atau password salah.'], 401);
         }
 
-        if ($user->status !== 'aktif') {
+        // PERBAIKAN: Menggunakan Enum
+        if ($user->status !== UserStatus::AKTIF->value) {
             return response()->json(['pesan' => 'Akun Anda telah dinonaktifkan. Hubungi admin.'], 403);
         }
 
@@ -56,7 +58,7 @@ class AuthController extends Controller
             'password'      => Hash::make($request->password),
             'no_telphone'   => $request->no_telphone,
             'peran'         => 'konsumen',
-            'status'        => 'aktif',
+            'status'        => UserStatus::AKTIF->value, // PERBAIKAN: Menggunakan Enum
         ]);
 
         ActivityLog::catat($user->id, 'register', 'User baru mendaftar.');
@@ -67,14 +69,13 @@ class AuthController extends Controller
         ], 201);
     }
 
-public function refreshToken(Request $request)
+    public function refreshToken(Request $request)
     {
         $user = $request->user();
 
-        // 1. Hapus token lama yang sedang digunakan untuk request ini
-        $user->currentAccessToken()->delete();
-
-        // 2. Buatkan token baru
+        // PERBAIKAN: Tidak menghapus token saat ini seketika agar tidak terjadi race condition di Frontend
+        // Biarkan token lama expired dengan sendirinya sesuai konfigurasi sanctum (config/sanctum.php)
+        
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -91,6 +92,4 @@ public function refreshToken(Request $request)
         
         return response()->json(['pesan' => 'Logout berhasil.'], 200);
     }
-
-    
 }

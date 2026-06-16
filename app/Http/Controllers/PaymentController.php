@@ -3,18 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Claim;
+use App\Enums\ClaimStatus;
+use App\Enums\PaymentStatus;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Midtrans\Config;
 use Midtrans\Snap;
-use Midtrans\Notification;
 
 class PaymentController extends Controller
 {
-    /**
-     * Menginisialisasi Konfigurasi SDK Midtrans dari Environment File (.env).
-     */
     public function __construct()
     {
         Config::$serverKey    = config('midtrans.server_key');
@@ -24,10 +22,6 @@ class PaymentController extends Controller
         Config::$is3ds        = config('midtrans.is_3ds');
     }
 
-    /**
-     * Membuat Transaksi Midtrans Snap Baru dan Mengembalikan Snap Token & Redirect URL.
-     * Endpoint: POST /api/payments/{claimId}/create
-     */
     public function createTransaction(Request $request, $claimId)
     {
         $claim = Claim::with(['user.profil', 'listing'])->find($claimId);
@@ -39,21 +33,21 @@ class PaymentController extends Controller
             ], 404);
         }
 
-        if ($claim->status === 'batal') {
+        // PERBAIKAN: Menggunakan Enum
+        if ($claim->status === ClaimStatus::BATAL->value) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Pesanan sudah dibatalkan.',
             ], 400);
         }
 
-        if ($claim->status_pembayaran === 'sudah_dibayar') {
+        if ($claim->status_pembayaran === PaymentStatus::SUDAH_DIBAYAR->value) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Pesanan ini sudah dibayar.',
             ], 400);
         }
 
-        // Jika data token masih aktif dan berstatus pending, kembalikan data yang ada langsung (efisiensi kuota limit API)
         if ($claim->midtrans_snap_token && $claim->midtrans_transaction_status === 'pending') {
             return response()->json([
                 'status'       => 'success',
@@ -71,7 +65,6 @@ class PaymentController extends Controller
         $orderId = 'SAVEAT-' . $claim->id . '-' . time();
         $amount  = (int) $claim->total_harga;
 
-        // Pemetaan metode pembayaran internal ke tipe payment Midtrans
         $enabledPayments = $this->mapPaymentMethod($request->metode_pembayaran);
 
         $user   = $claim->user;
@@ -89,13 +82,16 @@ class PaymentController extends Controller
             ],
             'item_details' => [
                 [
+                    // PERBAIKAN: Quantity diatur ke 1 dan price disamakan dengan $amount
+                    // Agar Midtrans tidak menolak pembayaran akibat perhitungan desimal/pecahan
                     'id'       => (string) $claim->listing_id,
-                    'price'    => (int)($amount / max($claim->jumlah, 1)),
-                    'quantity' => $claim->jumlah,
-                    'name'     => $claim->listing ? substr($claim->listing->nama, 0, 50) : 'Makanan Saveat',
+                    'price'    => $amount,
+                    'quantity' => 1,
+                    'name'     => $claim->listing ? substr($claim->listing->nama . ' (x'.$claim->jumlah.')', 0, 50) : 'Makanan Saveat',
                 ],
             ],
-            // 'enabled_payments' => $enabledPayments,
+            // PERBAIKAN: Uncomment kode ini agar Snap Midtrans ter-filter berdasarkan metode bayar yang dipilih di aplikasi
+            'enabled_payments' => $enabledPayments,
         ];
 
         try {
@@ -131,16 +127,9 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * Webhook Endpoint Otomatis dari Server Midtrans (Aman & Ter-validasi Signature).
-     * Endpoint: POST /api/payments/webhook
-     */
-   public function webhook(Request $request)
+    public function webhook(Request $request)
     {
         try {
-            // Hapus / jangan gunakan: $notification = new Notification();
-            // Ambil data langsung dari Payload Request Laravel untuk menghindari error "Dummy ID" dari Simulator Midtrans
-
             $orderId           = $request->input('order_id');
             $transactionStatus = $request->input('transaction_status');
             $fraudStatus       = $request->input('fraud_status');
@@ -150,7 +139,6 @@ class PaymentController extends Controller
             $statusCode        = $request->input('status_code');
             $grossAmount       = $request->input('gross_amount');
 
-            // Memvalidasi Validitas Signature Key untuk menghentikan serangan Man-in-the-Middle (MitM)
             $serverKey         = config('midtrans.server_key');
             $expectedSignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
 
@@ -163,7 +151,6 @@ class PaymentController extends Controller
 
             if (!$claim) {
                 Log::warning('Midtrans webhook: claim record data not found.', ['order_id' => $orderId]);
-                // KEMBALIKAN 404 JIKA PESANAN TIDAK ADA DI DATABASE KITA
                 return response()->json(['status' => 'error', 'message' => 'Order data matching record not found.'], 404);
             }
 
@@ -174,27 +161,29 @@ class PaymentController extends Controller
                 'midtrans_raw_response'       => $request->all(),
             ];
 
-            // Penentuan status pembayaran berdasarkan parameter response resmi Midtrans
+            // PERBAIKAN: Menggunakan Enum
             if ($transactionStatus === 'capture') {
                 if ($fraudStatus === 'accept') {
-                    $updateData['status_pembayaran'] = 'sudah_dibayar';
+                    $updateData['status_pembayaran'] = PaymentStatus::SUDAH_DIBAYAR->value;
                     $updateData['waktu_pembayaran']  = now();
                 } else {
-                    $updateData['status_pembayaran'] = 'gagal';
+                    $updateData['status_pembayaran'] = PaymentStatus::GAGAL->value;
                 }
             } elseif ($transactionStatus === 'settlement') {
-                $updateData['status_pembayaran'] = 'sudah_dibayar';
+                $updateData['status_pembayaran'] = PaymentStatus::SUDAH_DIBAYAR->value;
                 $updateData['waktu_pembayaran']  = now();
             } elseif (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
-                $updateData['status_pembayaran'] = 'gagal';
+                $updateData['status_pembayaran'] = PaymentStatus::GAGAL->value;
             } elseif ($transactionStatus === 'pending') {
-                $updateData['status_pembayaran'] = 'belum_dibayar';
+                $updateData['status_pembayaran'] = PaymentStatus::BELUM_DIBAYAR->value;
             }
+
+            // PERBAIKAN: Cek status sebelum update untuk menghindari notifikasi ganda / spam
+            $sudahLunasSebelumnya = $claim->status_pembayaran === PaymentStatus::SUDAH_DIBAYAR->value;
 
             $claim->update($updateData);
 
-            // Kirim notifikasi pembayaran lunas ke konsumen jika status transaksi aman/sukses
-            if ($updateData['status_pembayaran'] === 'sudah_dibayar') {
+            if ($updateData['status_pembayaran'] === PaymentStatus::SUDAH_DIBAYAR->value && !$sudahLunasSebelumnya) {
                 
                 NotificationService::klaimBerhasil(
                     $claim->user_id,
@@ -222,10 +211,6 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * Memeriksa Status Pembayaran dari Sisi Konsumen Aplikasi Mobile/Web.
-     * Endpoint: GET /api/payments/{claimId}/status
-     */
     public function checkStatus(Request $request, $claimId)
     {
         $claim = Claim::find($claimId);
@@ -255,9 +240,6 @@ class PaymentController extends Controller
         ], 200);
     }
 
-    /**
-     * Melakukan Pemetaan Metode Pembayaran Lokal Aplikasi ke Fitur Enabled Payments Midtrans.
-     */
     private function mapPaymentMethod(string $metode): array
     {
         $map = [

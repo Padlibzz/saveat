@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Enums\ListingStatus;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -10,14 +11,17 @@ class ListingController extends Controller
 {
     public function index(Request $request)
     {
+        // PERBAIKAN: Menggunakan Enum
         $query = Listing::where('stok_sisa', '>', 0)
-            ->whereIn('status', ['aktif', 'hampir_habis'])
+            ->whereIn('status', [ListingStatus::AKTIF->value, ListingStatus::HAMPIR_HABIS->value])
             ->where('batas_waktu', '>', Carbon::now())
             ->with('merchant', 'kategori');
 
         // Pencarian nama makanan
         if ($request->filled('search')) {
-            $query->where('nama', 'like', '%' . $request->search . '%');
+            // PERBAIKAN: Mencegah error/wildcard injection
+            $search = str_replace(['%', '_'], ['\%', '\_'], $request->search);
+            $query->where('nama', 'like', '%' . $search . '%');
         }
 
         // Filter kategori
@@ -32,6 +36,7 @@ class ListingController extends Controller
             default => $query->orderBy('created_at', 'desc'),
         };
 
+        // SARAN KEDEPAN: Ubah jadi ->paginate(20) jika data sudah banyak
         $listings = $query->get();
 
         return response()->json([

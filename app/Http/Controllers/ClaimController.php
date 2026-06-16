@@ -4,18 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Claim;
 use App\Models\Listing;
+use App\Enums\ClaimStatus;
+use App\Enums\ListingStatus;
+use App\Enums\PaymentStatus;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class ClaimController extends Controller
 {
-    /**
-     * Menampilkan riwayat klaim makanan milik konsumen yang sedang login.
-     */
     public function index(Request $request)
     {
         $claims = Claim::with([
@@ -34,20 +33,15 @@ class ClaimController extends Controller
         return response()->json(['status' => 'success', 'data' => $claims], 200);
     }
 
-    /**
-     * Helper untuk menentukan status riwayat agar seragam.
-     */
     private function resolveStatusRiwayat(Claim $klaim): string
     {
-        if ($klaim->status === 'diambil') return 'sudah_diambil';
-        if ($klaim->status === 'batal') return 'kadaluarsa';
-        if ($klaim->listing && $klaim->listing->status === 'tutup') return 'kadaluarsa';
+        // PERBAIKAN: Menggunakan Enum
+        if ($klaim->status === ClaimStatus::DIAMBIL->value) return 'sudah_diambil';
+        if ($klaim->status === ClaimStatus::BATAL->value) return 'kadaluarsa';
+        if ($klaim->listing && $klaim->listing->status === ListingStatus::TUTUP->value) return 'kadaluarsa';
         return 'aktif';
     }
 
-    /**
-     * Mendapatkan daftar metode pembayaran yang didukung sistem (Sinkron dengan frontend).
-     */
     public function paymentMethods()
     {
         return response()->json([
@@ -65,10 +59,6 @@ class ClaimController extends Controller
         ], 200);
     }
 
-    /**
-     * Membuat klaim makanan baru (Pesanan baru).
-     * Menggunakan Pessimistic Locking (lockForUpdate) untuk menghindari race condition stok sisa.
-     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -90,7 +80,8 @@ class ClaimController extends Controller
                 ], 400);
             }
 
-            if (!in_array($listing->status, ['aktif', 'hampir_habis'])) {
+            // PERBAIKAN: Menggunakan Enum
+            if (!in_array($listing->status, [ListingStatus::AKTIF->value, ListingStatus::HAMPIR_HABIS->value])) {
                 return response()->json([
                     'status'  => 'error',
                     'message' => 'Gagal klaim: Listing ini sudah tidak tersedia.'
@@ -104,35 +95,31 @@ class ClaimController extends Controller
                 ], 400);
             }
 
+            // PERBAIKAN: Menggunakan Enum
             $claim = Claim::create([
                 'user_id'           => $request->user()->id,
                 'listing_id'        => $request->listing_id,
                 'jumlah'            => $request->jumlah,
                 'total_harga'       => ($listing->harga_diskon ?? 0) * $request->jumlah,
                 'kode_klaim'        => 'CLM-' . strtoupper(Str::random(8)),
-                'status_pembayaran' => 'belum_dibayar',
-                'status'            => 'pending',
+                'status_pembayaran' => PaymentStatus::BELUM_DIBAYAR->value,
+                'status'            => ClaimStatus::PENDING->value,
             ]);
 
             $listing->decrement('stok_sisa', $request->jumlah);
 
-            // Perbarui status ketersediaan listing secara berkala
             $persenSisa = $listing->stok_sisa / max($listing->stok_total, 1);
             if ($listing->stok_sisa <= 0) {
-                $listing->update(['status' => 'tutup']);
-            } elseif ($listing->status === 'aktif' && $persenSisa < 0.2) {
-                $listing->update(['status' => 'hampir_habis']);
+                $listing->update(['status' => ListingStatus::TUTUP->value]);
+            } elseif ($listing->status === ListingStatus::AKTIF->value && $persenSisa < 0.2) {
+                $listing->update(['status' => ListingStatus::HAMPIR_HABIS->value]);
             }
 
-            // Kirim Notifikasi Transaksi Berhasil Dibuat ke Konsumen
-           NotificationService::menungguPembayaran(
+            NotificationService::menungguPembayaran(
                 $request->user()->id,
                 $claim->id,
                 $listing->nama
             );
-
-            // HAPUS blok NotificationService::klaimMasuk dari sini.
-            // Merchant baru akan dinotifikasi setelah pembayaran lunas oleh Midtrans Webhook.
 
             return response()->json([
                 'status'  => 'success',
@@ -142,9 +129,6 @@ class ClaimController extends Controller
         });
     }
 
-    /**
-     * Fitur Scan QR Code oleh Merchant untuk menyelesaikan pesanan konsumen di tempat (In-store settlement).
-     */
     public function scanQr(Request $request)
     {
         $merchant = $request->user()->merchant;
@@ -174,23 +158,23 @@ class ClaimController extends Controller
             ], 403);
         }
 
-        if ($claim->status_pembayaran !== 'sudah_dibayar') {
+        // PERBAIKAN: Menggunakan Enum
+        if ($claim->status_pembayaran !== PaymentStatus::SUDAH_DIBAYAR->value) {
             return response()->json([
                 'status'    => 'error',
                 'message'   => 'Konsumen belum menyelesaikan pembayaran.'
             ], 400);
         }
 
-        if ($claim->status === 'diambil') {
+        if ($claim->status === ClaimStatus::DIAMBIL->value) {
             return response()->json([
                 'status'    => 'error', 
                 'message'   => 'QR Code ini sudah pernah digunakan.'
             ], 400);
         }
 
-        $claim->update(['status' => 'diambil']);
+        $claim->update(['status' => ClaimStatus::DIAMBIL->value]);
 
-        // Kirim Notifikasi kepada Konsumen bahwa Makanan telah Berhasil Diambil
         NotificationService::pesananSelesai($claim->user_id, $claim->id, $claim->listing->nama);
 
         return response()->json([
@@ -200,9 +184,6 @@ class ClaimController extends Controller
         ], 200);
     }
 
-    /**
-     * Konfirmasi manual pesanan selesai oleh pengguna aplikasi.
-     */
     public function selesai(Request $request, $id)
     {
         $claim = Claim::find($id);
@@ -214,21 +195,22 @@ class ClaimController extends Controller
             ], 404);
         }
 
-        if ($claim->status === 'batal') {
+        // PERBAIKAN: Menggunakan Enum
+        if ($claim->status === ClaimStatus::BATAL->value) {
             return response()->json([
                 'status'    => 'error',
                 'message'   => 'Pesanan sudah dibatalkan.'
             ], 400);
         }
 
-        if ($claim->status === 'diambil') {
+        if ($claim->status === ClaimStatus::DIAMBIL->value) {
             return response()->json([
                 'status'    => 'error',
                 'message'   => 'Pesanan sudah diselesaikan sebelumnya.'
             ], 400);
         }
 
-        $claim->update(['status' => 'diambil']);
+        $claim->update(['status' => ClaimStatus::DIAMBIL->value]);
 
         return response()->json([
             'status'  => 'success',
