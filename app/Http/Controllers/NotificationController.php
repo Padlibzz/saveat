@@ -14,8 +14,8 @@ class NotificationController extends Controller
             ->get();
 
         return response()->json([
-            'status'    => 'success',
-            'data'      => $notifications,
+            'status' => 'success',
+            'data' => $notifications,
         ], 200);
     }
 
@@ -24,11 +24,11 @@ class NotificationController extends Controller
         $notification = Notification::where('id', $id)
             ->where('user_id', $request->user()->id)
             ->first();
-        
+
         if (! $notification) {
             return response()->json([
-                'status'    => 'error',
-                'message'   => 'Notifikasi tidak ditemukan.'
+                'status' => 'error',
+                'message' => 'Notifikasi tidak ditemukan.',
             ], 404);
         }
 
@@ -36,7 +36,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Notifikasi ditandai sudah dibaca.'
+            'message' => 'Notifikasi ditandai sudah dibaca.',
         ], 200);
     }
 
@@ -47,8 +47,8 @@ class NotificationController extends Controller
             ->update(['is_read' => true]);
 
         return response()->json([
-            'status'    => 'success',
-            'message'   => 'Semua notifikasi ditandai sudah dibaca.'
+            'status' => 'success',
+            'message' => 'Semua notifikasi ditandai sudah dibaca.',
         ], 200);
     }
 }

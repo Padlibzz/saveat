@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('profils', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('user_id')->unique(); 
+            $table->unsignedBigInteger('user_id')->unique();
 
             $table->enum('tipe_profil', ['konsumen', 'merchant', 'admin']);
 
@@ -28,7 +28,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('diverifikasi_oleh')->references('id')->on('users')->onDelete('set null'); 
+            $table->foreign('diverifikasi_oleh')->references('id')->on('users')->onDelete('set null');
         });
     }
 

@@ -1,11 +1,10 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AbuseReportController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AbuseReportController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClaimController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\MerchantDashboardController;
@@ -13,7 +12,8 @@ use App\Http\Controllers\MerchantListingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfilController;
-use App\Http\Controllers\CategoryController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,9 +33,9 @@ Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
 
 // Route Terproteksi (Memerlukan Autentikasi Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // Auth & User
-    Route::get('/user', fn(Request $r) => $r->user());
+    Route::get('/user', fn (Request $r) => $r->user());
     Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -46,9 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/profil/{id}', [ProfilController::class, 'update']);
 
     // Konsumen: Klaim / Pesanan
-    Route::get('/claims', [ClaimController::class, 'index']); 
-    Route::post('/claims', [ClaimController::class, 'store']); 
-    Route::patch('/claims/{id}/selesai', [ClaimController::class, 'selesai']); 
+    Route::get('/claims', [ClaimController::class, 'index']);
+    Route::post('/claims', [ClaimController::class, 'store']);
+    Route::patch('/claims/{id}/selesai', [ClaimController::class, 'selesai']);
 
     // Konsumen: Pembayaran Midtrans (Grouped via Prefix)
     Route::prefix('payments')->group(function () {
@@ -60,12 +60,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'readAll']);
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'read']);
-    
+
     // Pelaporan Masalah
     Route::post('/abuse-reports', [AbuseReportController::class, 'store']);
 
     // Log Aktivitas
-    Route::get('/activity-logs', [ActivityLogController::class, 'index']);   
+    Route::get('/activity-logs', [ActivityLogController::class, 'index']);
 });
 
 // Route Khusus Merchant
@@ -88,6 +88,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::patch('/listings/{id}/moderasi', [AdminController::class, 'moderasiListing']);
     Route::get('/users', [AdminController::class, 'daftarUser']);
     Route::patch('/users/{id}/status', [AdminController::class, 'ubahStatusUser']);
-    Route::get('/abuse-reports', [AbuseReportController::class, 'index']); 
-    Route::patch('/abuse-reports/{id}/status', [AbuseReportController::class, 'updateStatus']);  
+    Route::get('/abuse-reports', [AbuseReportController::class, 'index']);
+    Route::patch('/abuse-reports/{id}/status', [AbuseReportController::class, 'updateStatus']);
 });

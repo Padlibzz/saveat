@@ -37,10 +37,10 @@ Schedule::call(function () {
         ->where('status', 'pending')
         ->get();
 
-    foreach($expiredClaims as $claim) {
+    foreach ($expiredClaims as $claim) {
         $claim->update([
-            'status' => 'batal', 
-            'status_pembayaran' => 'gagal'
+            'status' => 'batal',
+            'status_pembayaran' => 'gagal',
         ]);
 
         $listing = $claim->listing;

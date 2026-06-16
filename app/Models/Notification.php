@@ -17,12 +17,12 @@ class Notification extends Model
         'is_read',
     ];
 
-    public function user() 
+    public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function claim() 
+    public function claim()
     {
         return $this->belongsTo(Claim::class, 'claim_id');
     }

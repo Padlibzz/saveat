@@ -43,7 +43,7 @@ class MerchantListingController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'kategori_id' => 'required|exists:categories,id', 
+            'kategori_id' => 'required|exists:categories,id',
             'nama' => 'required|string|max:255',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'harga_normal' => 'required|numeric|min:0',

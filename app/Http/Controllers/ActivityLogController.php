@@ -9,7 +9,7 @@ class ActivityLogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ActivityLog::with('user:id,name,email,peran'); 
+        $query = ActivityLog::with('user:id,name,email,peran');
 
         if ($request->user()->peran !== 'admin') {
             $query->where('user_id', $request->user()->id);
@@ -19,7 +19,7 @@ class ActivityLogController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $logs
+            'data' => $logs,
         ], 200);
     }
 }

@@ -10,16 +10,16 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            
+
             // Relasi ke tabel users dan claims
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('claim_id')->nullable()->constrained('claims')->onDelete('set null');
-            
+
             $table->enum('jenis', ['claims_masuk', 'claims_berhasil', 'listing_expired', 'pesanan_selesai', 'menunggu_pembayaran']);
             $table->string('judul');
             $table->text('pesan');
             $table->boolean('is_read')->default(false);
-            
+
             $table->timestamps();
         });
     }

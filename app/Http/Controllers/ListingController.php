@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Listing;
 use App\Enums\ListingStatus;
-use Illuminate\Http\Request;
+use App\Models\Listing;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class ListingController extends Controller
 {
@@ -21,7 +21,7 @@ class ListingController extends Controller
         if ($request->filled('search')) {
             // PERBAIKAN: Mencegah error/wildcard injection
             $search = str_replace(['%', '_'], ['\%', '\_'], $request->search);
-            $query->where('nama', 'like', '%' . $search . '%');
+            $query->where('nama', 'like', '%'.$search.'%');
         }
 
         // Filter kategori
@@ -42,7 +42,7 @@ class ListingController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Daftar makanan yang tersedia berhasil diambil',
-            'data'    => $listings
+            'data' => $listings,
         ], 200);
     }
 }

@@ -28,7 +28,7 @@ class Claim extends Model
 
     protected $casts = [
         'midtrans_raw_response' => 'array',
-        'waktu_pembayaran'      => 'datetime',
+        'waktu_pembayaran' => 'datetime',
     ];
 
     public function user()

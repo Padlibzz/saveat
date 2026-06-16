@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AbuseReport;
+use App\Models\Claim;
 use App\Models\Listing;
 use App\Models\Profil;
-use App\Models\Claim;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
@@ -35,18 +37,18 @@ class AdminController extends Controller
     {
         $query = User::query();
 
-        if($request->filled('peran')) {
+        if ($request->filled('peran')) {
             $query->where('peran', $request->peran);
         }
 
-        if($request->filled('status')) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%'.$request->search.'%')
-                  ->orWhere('email', 'like', '%'.$request->search.'%');
+                    ->orWhere('email', 'like', '%'.$request->search.'%');
             });
         }
 
@@ -76,7 +78,7 @@ class AdminController extends Controller
             ], 400);
         }
 
-        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'status' => 'required|in:aktif,nonaktif,diblokir',
         ]);
 
@@ -98,18 +100,18 @@ class AdminController extends Controller
 
     public function moderasiListing(Request $request, $id)
     {
-        $listing = \App\Models\Listing::find($id);
+        $listing = Listing::find($id);
 
         if (! $listing) {
             return response()->json([
-                'status'    => 'error',
-                'message'   => 'Listing tidak ditemukan.'
+                'status' => 'error',
+                'message' => 'Listing tidak ditemukan.',
             ], 404);
         }
 
         $request->validate([
-            'aksi'      => 'required|in:arsipkan,aktifkan',
-            'alasan'    => 'required_if:aksi,arsipkan|nullable|string|max:500',
+            'aksi' => 'required|in:arsipkan,aktifkan',
+            'alasan' => 'required_if:aksi,arsipkan|nullable|string|max:500',
         ]);
 
         $statusBaru = $request->aksi === 'arsipkan' ? 'diarsipkan' : 'aktif';
@@ -117,21 +119,21 @@ class AdminController extends Controller
 
         // Jika listing diarsipkan karena laporan, tandai laporan terkait sebagai selesai
         if ($request->aksi === 'arsipkan') {
-            \App\Models\AbuseReport::where('listing_id', $id)
+            AbuseReport::where('listing_id', $id)
                 ->where('status', 'menunggu')
                 ->update(['status' => 'selesai']);
         }
 
         return response()->json([
-            'status'    => 'success',
-            'message'   => 'Status listing berhasil diperbarui.',
-            'data'      => $listing
+            'status' => 'success',
+            'message' => 'Status listing berhasil diperbarui.',
+            'data' => $listing,
         ], 200);
     }
 
     public function merchantMenunggu()
     {
-        $merchant = \App\Models\Profil::with('user:id,name,email,no_telphone')
+        $merchant = Profil::with('user:id,name,email,no_telphone')
             ->where('tipe_profil', 'merchant')
             ->where('status_verifikasi', 'menunggu')
             ->orderBy('created_at', 'asc')
@@ -139,7 +141,7 @@ class AdminController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $merchant
+            'data' => $merchant,
         ], 200);
     }
 }

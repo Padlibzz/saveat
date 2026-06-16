@@ -30,7 +30,7 @@ class MerchantDashboardController extends Controller
         $totalPendapatan = (clone $claimsValid)
             ->where('status_pembayaran', 'sudah_dibayar')
             ->sum('total_harga');
-        
+
         // Jumlah pembeli unik
         $totalPembeliUnik = (clone $claimsValid)->distinct('user_id')->count('user_id');
 
@@ -44,7 +44,7 @@ class MerchantDashboardController extends Controller
                 'total_pendapatan' => (float) $totalPendapatan,
                 'total_pembeli_unik' => $totalPembeliUnik,
                 'makanan_terselamatkan' => (int) $makananTerselamatkan,
-            ]
+            ],
         ], 200);
     }
 

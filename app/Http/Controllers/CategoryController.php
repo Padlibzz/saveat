@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category; // Pastikan model ini sudah ada
-use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -18,7 +17,7 @@ class CategoryController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Daftar kategori berhasil diambil.',
-            'data' => $categories
+            'data' => $categories,
         ], 200);
     }
 }

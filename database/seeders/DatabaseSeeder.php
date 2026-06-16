@@ -3,13 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Listing;
 use App\Models\Profil;
 use App\Models\User;
-use App\Models\Listing;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -64,14 +63,14 @@ class DatabaseSeeder extends Seeder
         );
 
         // Menyuntikkan profil Merchant dan langsung "disetujui" agar bisa langsung tes buat makanan
-       $merchantProfile = Profil::firstOrCreate(
+        $merchantProfile = Profil::firstOrCreate(
             ['user_id' => $merchantUser->id],
             [
                 'tipe_profil' => 'merchant',
                 'nama_usaha' => 'Toko Roti',
                 'alamat' => 'Jl. Merdeka No. 45, Kota Bandung',
                 'deskripsi' => 'Menjual berbagai macam roti dan kue sisa produksi hari ini dengan harga miring.',
-                'status_verifikasi' => 'disetujui', 
+                'status_verifikasi' => 'disetujui',
                 'diverifikasi_oleh' => $admin->id, // Berelasi dengan admin yang dibuat di atas
             ]
         );
@@ -109,7 +108,7 @@ class DatabaseSeeder extends Seeder
                 'harga_diskon' => 5000,
                 'stok_total' => 10,
                 'stok_sisa' => 10,
-                'batas_waktu' => Carbon::now()->addHours(5), 
+                'batas_waktu' => Carbon::now()->addHours(5),
                 'status' => 'aktif',
             ],
             [
@@ -142,7 +141,7 @@ class DatabaseSeeder extends Seeder
                 'harga_diskon' => 17500,
                 'stok_total' => 15,
                 'stok_sisa' => 15,
-                'batas_waktu' => Carbon::now()->addDays(1), 
+                'batas_waktu' => Carbon::now()->addDays(1),
                 'status' => 'aktif',
             ],
             [
@@ -153,7 +152,7 @@ class DatabaseSeeder extends Seeder
                 'harga_diskon' => 10000,
                 'stok_total' => 20,
                 'stok_sisa' => 20,
-                'batas_waktu' => Carbon::now()->addHours(2), 
+                'batas_waktu' => Carbon::now()->addHours(2),
                 'status' => 'aktif',
             ],
             [
