@@ -806,15 +806,25 @@ async function doBayar(claimId) {
   if (!confirmed) return;
   
   try {
-    const res = await fetch(`${BASE_URL}/claims/${claimId}/bayar`, {
+    // 1. TAMBAHKAN CONTENT-TYPE DAN BODY JSON DI SINI
+    const res = await fetch(`${BASE_URL}/payments/${claimId}/create`, {
       method: 'POST', 
-      headers: authHeaders()
+      headers: {
+        ...authHeaders(),
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({
+        metode_pembayaran: 'qris' // Anda bisa ganti dengan dropdown pilihan user nanti
+      })
     });
     
     const data = await res.json();
     
+    // Tangani jika ada error validasi dari Laravel
     if (!res.ok) {
-        throw new Error(data.message || 'Gagal meminta token pembayaran');
+        let errMsg = data.message || 'Gagal meminta token pembayaran';
+        if (data.errors) errMsg = Object.values(data.errors).flat().join(' ');
+        throw new Error(errMsg);
     }
 
     // Panggil Midtrans Snap menggunakan token dari backend
@@ -825,16 +835,13 @@ async function doBayar(claimId) {
         setTimeout(() => loadClaims(), 1500); 
       },
       onPending: function(result) {
-        /* Dijalankan jika user pilih metode yang butuh waktu (misal Transfer Bank / VA) */
         showToast('Menunggu pembayaran diselesaikan ⏳', 'warning');
         loadClaims();
       },
       onError: function(result) {
-        /* Dijalankan jika pembayaran gagal atau ditolak bank */
         showToast('Pembayaran gagal ❌', 'error');
       },
       onClose: function() {
-        /* Dijalankan jika user menekan tombol 'X' di popup sebelum bayar */
         showToast('Anda menutup popup sebelum membayar ⚠️', 'warning');
       }
     });

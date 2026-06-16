@@ -95,7 +95,7 @@ class PaymentController extends Controller
                     'name'     => $claim->listing ? substr($claim->listing->nama, 0, 50) : 'Makanan Saveat',
                 ],
             ],
-            'enabled_payments' => $enabledPayments,
+            // 'enabled_payments' => $enabledPayments,
         ];
 
         try {
@@ -135,19 +135,20 @@ class PaymentController extends Controller
      * Webhook Endpoint Otomatis dari Server Midtrans (Aman & Ter-validasi Signature).
      * Endpoint: POST /api/payments/webhook
      */
-    public function webhook(Request $request)
+   public function webhook(Request $request)
     {
         try {
-            $notification = new Notification();
+            // Hapus / jangan gunakan: $notification = new Notification();
+            // Ambil data langsung dari Payload Request Laravel untuk menghindari error "Dummy ID" dari Simulator Midtrans
 
-            $orderId           = $notification->order_id;
-            $transactionStatus = $notification->transaction_status;
-            $fraudStatus       = $notification->fraud_status;
-            $paymentType       = $notification->payment_type;
-            $transactionId     = $notification->transaction_id;
-            $signatureKey      = $notification->signature_key;
-            $statusCode        = $notification->status_code;
-            $grossAmount       = $notification->gross_amount;
+            $orderId           = $request->input('order_id');
+            $transactionStatus = $request->input('transaction_status');
+            $fraudStatus       = $request->input('fraud_status');
+            $paymentType       = $request->input('payment_type');
+            $transactionId     = $request->input('transaction_id');
+            $signatureKey      = $request->input('signature_key');
+            $statusCode        = $request->input('status_code');
+            $grossAmount       = $request->input('gross_amount');
 
             // Memvalidasi Validitas Signature Key untuk menghentikan serangan Man-in-the-Middle (MitM)
             $serverKey         = config('midtrans.server_key');
@@ -162,6 +163,7 @@ class PaymentController extends Controller
 
             if (!$claim) {
                 Log::warning('Midtrans webhook: claim record data not found.', ['order_id' => $orderId]);
+                // KEMBALIKAN 404 JIKA PESANAN TIDAK ADA DI DATABASE KITA
                 return response()->json(['status' => 'error', 'message' => 'Order data matching record not found.'], 404);
             }
 
@@ -194,7 +196,6 @@ class PaymentController extends Controller
             // Kirim notifikasi pembayaran lunas ke konsumen jika status transaksi aman/sukses
             if ($updateData['status_pembayaran'] === 'sudah_dibayar') {
                 
-                // Notifikasi ke Konsumen (Klaim berhasil karena sudah bayar)
                 NotificationService::klaimBerhasil(
                     $claim->user_id,
                     $claim->id,
@@ -202,10 +203,8 @@ class PaymentController extends Controller
                     $claim->listing ? \Carbon\Carbon::parse($claim->listing->batas_waktu)->format('H:i, d M Y') : '-'
                 );
 
-                // Load relasi merchant jika belum ada (opsional tapi disarankan agar tidak error)
                 $claim->loadMissing('listing.merchant');
 
-                // Notifikasi ke Merchant (Ada klaim valid yang sudah dibayar masuk ke sistem)
                 if ($claim->listing && $claim->listing->merchant && $claim->listing->merchant->user_id) {
                     NotificationService::klaimMasuk(
                         $claim->listing->merchant->user_id,
