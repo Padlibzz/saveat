@@ -12,24 +12,27 @@ use Midtrans\Notification;
 
 class PaymentController extends Controller
 {
+    /**
+     * Menginisialisasi Konfigurasi SDK Midtrans dari Environment File (.env).
+     */
     public function __construct()
     {
-        Config::$serverKey        = config('midtrans.server_key');
-        Config::$clientKey        = config('midtrans.client_key');
-        Config::$isProduction     = config('midtrans.is_production');
-        Config::$isSanitized      = config('midtrans.is_sanitized');
-        Config::$is3ds            = config('midtrans.is_3ds');
+        Config::$serverKey    = config('midtrans.server_key');
+        Config::$clientKey    = config('midtrans.client_key');
+        Config::$isProduction = config('midtrans.is_production');
+        Config::$isSanitized  = config('midtrans.is_sanitized');
+        Config::$is3ds        = config('midtrans.is_3ds');
     }
 
     /**
-     * Buat transaksi Midtrans Snap dan kembalikan snap_token + redirect_url.
-     * POST /payments/{claimId}/create
+     * Membuat Transaksi Midtrans Snap Baru dan Mengembalikan Snap Token & Redirect URL.
+     * Endpoint: POST /api/payments/{claimId}/create
      */
     public function createTransaction(Request $request, $claimId)
     {
         $claim = Claim::with(['user.profil', 'listing'])->find($claimId);
 
-        if (! $claim || $claim->user_id !== $request->user()->id) {
+        if (!$claim || $claim->user_id !== $request->user()->id) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Pesanan tidak ditemukan.',
@@ -50,7 +53,7 @@ class PaymentController extends Controller
             ], 400);
         }
 
-        // Jika sudah punya snap_token yang valid, kembalikan langsung
+        // Jika data token masih aktif dan berstatus pending, kembalikan data yang ada langsung (efisiensi kuota limit API)
         if ($claim->midtrans_snap_token && $claim->midtrans_transaction_status === 'pending') {
             return response()->json([
                 'status'       => 'success',
@@ -68,10 +71,10 @@ class PaymentController extends Controller
         $orderId = 'SAVEAT-' . $claim->id . '-' . time();
         $amount  = (int) $claim->total_harga;
 
-        // Mapping metode pembayaran ke payment_type Midtrans
+        // Pemetaan metode pembayaran internal ke tipe payment Midtrans
         $enabledPayments = $this->mapPaymentMethod($request->metode_pembayaran);
 
-        $user  = $claim->user;
+        $user   = $claim->user;
         $profil = $user->profil ?? null;
 
         $params = [
@@ -87,7 +90,7 @@ class PaymentController extends Controller
             'item_details' => [
                 [
                     'id'       => (string) $claim->listing_id,
-                    'price'    => $amount / max($claim->jumlah, 1),
+                    'price'    => (int)($amount / max($claim->jumlah, 1)),
                     'quantity' => $claim->jumlah,
                     'name'     => $claim->listing ? substr($claim->listing->nama, 0, 50) : 'Makanan Saveat',
                 ],
@@ -129,14 +132,12 @@ class PaymentController extends Controller
     }
 
     /**
-     * Webhook handler dari Midtrans.
-     * POST /payments/webhook
-     * Route ini TIDAK memerlukan auth (dipanggil oleh server Midtrans).
+     * Webhook Endpoint Otomatis dari Server Midtrans (Aman & Ter-validasi Signature).
+     * Endpoint: POST /api/payments/webhook
      */
     public function webhook(Request $request)
     {
         try {
-            // Verifikasi notifikasi dari Midtrans
             $notification = new Notification();
 
             $orderId           = $notification->order_id;
@@ -145,28 +146,25 @@ class PaymentController extends Controller
             $paymentType       = $notification->payment_type;
             $transactionId     = $notification->transaction_id;
             $signatureKey      = $notification->signature_key;
+            $statusCode        = $notification->status_code;
+            $grossAmount       = $notification->gross_amount;
 
-            // Verifikasi signature key
-            $serverKey = config('midtrans.server_key');
-            $statusCode = $notification->status_code;
-            $grossAmount = $notification->gross_amount;
-
+            // Memvalidasi Validitas Signature Key untuk menghentikan serangan Man-in-the-Middle (MitM)
+            $serverKey         = config('midtrans.server_key');
             $expectedSignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
 
             if ($signatureKey !== $expectedSignature) {
-                Log::warning('Midtrans webhook: invalid signature', ['order_id' => $orderId]);
-                return response()->json(['status' => 'error', 'message' => 'Invalid signature.'], 403);
+                Log::warning('Midtrans webhook: invalid signature detected.', ['order_id' => $orderId]);
+                return response()->json(['status' => 'error', 'message' => 'Invalid signature key.'], 403);
             }
 
-            // Cari claim berdasarkan midtrans_order_id
             $claim = Claim::where('midtrans_order_id', $orderId)->first();
 
-            if (! $claim) {
-                Log::warning('Midtrans webhook: claim not found', ['order_id' => $orderId]);
-                return response()->json(['status' => 'error', 'message' => 'Order not found.'], 404);
+            if (!$claim) {
+                Log::warning('Midtrans webhook: claim record data not found.', ['order_id' => $orderId]);
+                return response()->json(['status' => 'error', 'message' => 'Order data matching record not found.'], 404);
             }
 
-            // Update data Midtrans di claim
             $updateData = [
                 'midtrans_transaction_id'     => $transactionId,
                 'midtrans_payment_type'       => $paymentType,
@@ -174,7 +172,7 @@ class PaymentController extends Controller
                 'midtrans_raw_response'       => $request->all(),
             ];
 
-            // Tentukan status pembayaran berdasarkan transaction_status
+            // Penentuan status pembayaran berdasarkan parameter response resmi Midtrans
             if ($transactionStatus === 'capture') {
                 if ($fraudStatus === 'accept') {
                     $updateData['status_pembayaran'] = 'sudah_dibayar';
@@ -193,39 +191,47 @@ class PaymentController extends Controller
 
             $claim->update($updateData);
 
-            // Kirim notifikasi jika pembayaran berhasil
+            // Kirim notifikasi pembayaran lunas ke konsumen jika status transaksi aman/sukses
             if ($updateData['status_pembayaran'] === 'sudah_dibayar') {
+                
+                // Notifikasi ke Konsumen (Klaim berhasil karena sudah bayar)
                 NotificationService::klaimBerhasil(
                     $claim->user_id,
                     $claim->id,
                     $claim->listing ? $claim->listing->nama : 'Pesanan',
                     $claim->listing ? \Carbon\Carbon::parse($claim->listing->batas_waktu)->format('H:i, d M Y') : '-'
                 );
+
+                // Load relasi merchant jika belum ada (opsional tapi disarankan agar tidak error)
+                $claim->loadMissing('listing.merchant');
+
+                // Notifikasi ke Merchant (Ada klaim valid yang sudah dibayar masuk ke sistem)
+                if ($claim->listing && $claim->listing->merchant && $claim->listing->merchant->user_id) {
+                    NotificationService::klaimMasuk(
+                        $claim->listing->merchant->user_id,
+                        $claim->id,
+                        $claim->listing->nama
+                    );
+                }
             }
 
-            Log::info('Midtrans webhook processed', [
-                'order_id'   => $orderId,
-                'status'     => $transactionStatus,
-                'claim_id'   => $claim->id,
-            ]);
-
-            return response()->json(['status' => 'success', 'message' => 'Webhook processed.'], 200);
+            return response()->json(['status' => 'success', 'message' => 'Webhook callback verified and processed.'], 200);
 
         } catch (\Exception $e) {
-            Log::error('Midtrans webhook error: ' . $e->getMessage(), $request->all());
-            return response()->json(['status' => 'error', 'message' => 'Webhook processing failed.'], 500);
+            Log::error('Midtrans webhook execution error: ' . $e->getMessage(), $request->all());
+            return response()->json(['status' => 'error', 'message' => 'Internal webhook processing failed.'], 500);
         }
     }
 
     /**
-     * Cek status transaksi dari Midtrans.
-     * GET /payments/{claimId}/status
+     * Memeriksa Status Pembayaran dari Sisi Konsumen Aplikasi Mobile/Web.
+     * Endpoint: GET /api/payments/{claimId}/status
      */
     public function checkStatus(Request $request, $claimId)
     {
         $claim = Claim::find($claimId);
 
-        if (! $claim || $claim->user_id !== $request->user()->id) {
+        if (!$claim || $claim->user_id !== $request->user()->id) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Pesanan tidak ditemukan.',
@@ -244,14 +250,14 @@ class PaymentController extends Controller
                 'midtrans_payment_type'       => $claim->midtrans_payment_type,
                 'midtrans_transaction_status' => $claim->midtrans_transaction_status,
                 'snap_token'                  => $claim->midtrans_snap_token,
-                'redirect_url'               => $claim->midtrans_redirect_url,
+                'redirect_url'                => $claim->midtrans_redirect_url,
                 'waktu_pembayaran'            => $claim->waktu_pembayaran,
             ],
         ], 200);
     }
 
     /**
-     * Map metode pembayaran lokal ke enabled_payments Midtrans.
+     * Melakukan Pemetaan Metode Pembayaran Lokal Aplikasi ke Fitur Enabled Payments Midtrans.
      */
     private function mapPaymentMethod(string $metode): array
     {

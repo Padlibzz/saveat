@@ -53,4 +53,16 @@ class NotificationService
             'is_read'  => false,
         ]);
     }
+
+    public static function menungguPembayaran(int $userId, int $claimId, string $namaListing): void
+    {
+        Notification::create([
+            'user_id'   => $userId,
+            'claim_id'  => $claimId,
+            'jenis'     => 'menunggu_pembayaran',
+            'judul'     => 'Menunggu Pembayaran',
+            'pesan'     => "Pesanan \"{$namaListing}\" berhasil dibuat. Yuk, selesaikan pembayaranmu sekarang!",
+            'is_read'   => false,
+        ]);
+    }
 }
