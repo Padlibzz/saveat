@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('nama')->unique();
-            $table->text('deskripsi')->nullable(); // <-- Tambahkan baris ini
+            $table->text('deskripsi')->nullable();
             $table->timestamps();
         });
     }
