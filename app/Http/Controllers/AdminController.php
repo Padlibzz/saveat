@@ -117,7 +117,6 @@ class AdminController extends Controller
         $statusBaru = $request->aksi === 'arsipkan' ? 'diarsipkan' : 'aktif';
         $listing->update(['status' => $statusBaru]);
 
-        // Jika listing diarsipkan karena laporan, tandai laporan terkait sebagai selesai
         if ($request->aksi === 'arsipkan') {
             AbuseReport::where('listing_id', $id)
                 ->where('status', 'menunggu')

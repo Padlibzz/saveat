@@ -11,7 +11,6 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        // Mengambil semua data kategori, diurutkan berdasarkan nama (opsional)
         $categories = Category::orderBy('nama', 'asc')->get();
 
         return response()->json([

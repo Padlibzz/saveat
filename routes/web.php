@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('landing');
@@ -17,9 +17,9 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/dashboard', function () {
     return view('dashboard-user');
 })->middleware('auth');
-route::get('/merchant/dashboard', function () {
+Route::get('/merchant/dashboard', function () {
     return view('dashboard-merchant');
 })->middleware('auth');
-route::get('/admin/dashboard', function () {
+Route::get('/admin/dashboard', function () {
     return view('dashboard-admin');
 })->middleware('auth');

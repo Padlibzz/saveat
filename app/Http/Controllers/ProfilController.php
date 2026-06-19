@@ -39,7 +39,6 @@ class ProfilController extends Controller
 
         $validatedData = $request->validate($rules);
 
-        // Always use the authenticated user's ID — never trust user_id from the request body
         $validatedData['user_id'] = $request->user()->id;
 
         if ($request->tipe_profil === 'merchant') {
@@ -84,7 +83,6 @@ class ProfilController extends Controller
             ], 403);
         }
 
-        // Validasi input gabungan antara tabel users dan tabel profils
         $rules = [
             'name' => 'sometimes|string|max:255',
             'no_telphone' => 'sometimes|string',
@@ -103,7 +101,6 @@ class ProfilController extends Controller
 
         $validatedData = $request->validate($rules);
 
-        // 1. Proses Sinkronisasi dan Pembaruan Data pada Tabel Users
         $user = $profil->user;
         if ($user) {
             if ($request->filled('name')) {
@@ -113,9 +110,7 @@ class ProfilController extends Controller
                 $user->no_telphone = $request->no_telphone;
             }
 
-            // Logika File Upload untuk Foto Profil Pengguna
             if ($request->hasFile('profil_image')) {
-                // Hapus file foto lama dari storage fisik jika ada untuk menghemat ruang
                 if ($user->profil_image && Storage::disk('public')->exists($user->profil_image)) {
                     Storage::disk('public')->delete($user->profil_image);
                 }
@@ -128,7 +123,6 @@ class ProfilController extends Controller
             $user->save();
         }
 
-        // 2. Proses Pembaruan Data pada Tabel Profils
         $profilFields = ['tipe_profil', 'alamat', 'nama_usaha', 'deskripsi', 'link_map'];
         $inputProfil = array_intersect_key($validatedData, array_flip($profilFields));
 
