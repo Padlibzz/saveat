@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -23,3 +24,11 @@ Route::get('/merchant/dashboard', function () {
 Route::get('/admin/dashboard', function () {
     return view('dashboard-admin');
 })->middleware('auth');
+
+Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+
+    return redirect('/auth/login');
+})->name('logout');
