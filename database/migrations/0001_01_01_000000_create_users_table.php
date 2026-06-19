@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('username')->unique();
-            $table->string('email')->unique(); // Hanya ada satu email sekarang
+            $table->string('email')->unique(); 
             $table->string('no_telphone');
             $table->enum('peran', ['konsumen', 'merchant', 'admin'])->default('konsumen');
             $table->string('status')->default('aktif');
-            $table->string('profil_image')->nullable(); // Ditambahkan
+            $table->string('profil_image')->nullable(); 
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

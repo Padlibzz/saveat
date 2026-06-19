@@ -114,7 +114,8 @@ class ClaimController extends Controller
                 'status' => ClaimStatus::PENDING->value,
             ]);
 
-            $listing->decrement('stok_sisa', $request->jumlah);
+            $listing->stok_sisa -= $request->jumlah;
+$listing->save();
 
             $persenSisa = $listing->stok_sisa / max($listing->stok_total, 1);
             if ($listing->stok_sisa <= 0) {
@@ -217,6 +218,13 @@ class ClaimController extends Controller
                 'message' => 'Pesanan sudah diselesaikan sebelumnya.',
             ], 400);
         }
+
+        if ($claim->status_pembayaran !== PaymentStatus::SUDAH_DIBAYAR->value) {
+    return response()->json([
+        'status' => 'error',
+        'message' => 'Pesanan belum dibayar.',
+    ], 400);
+}
 
         $claim->update(['status' => ClaimStatus::DIAMBIL->value]);
 
