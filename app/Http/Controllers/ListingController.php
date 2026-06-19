@@ -39,6 +39,16 @@ class ListingController extends Controller
         // SARAN KEDEPAN: Ubah jadi ->paginate(20) jika data sudah banyak
         $listings = $query->get();
 
+        if($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Daftar makanan yang tersedia berhasil diambil',
+                'data' => $listings,
+            ], 200);
+        }
+
+         return view('listings.index', compact('listings'));
+
         return response()->json([
             'success' => true,
             'message' => 'Daftar makanan yang tersedia berhasil diambil',
