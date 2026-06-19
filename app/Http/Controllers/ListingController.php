@@ -17,18 +17,15 @@ class ListingController extends Controller
             ->where('batas_waktu', '>', Carbon::now())
             ->with('merchant', 'kategori');
 
-        // Pencarian nama makanan
         if ($request->filled('search')) {
             $search = str_replace(['%', '_'], ['\%', '\_'], $request->search);
             $query->where('nama', 'like', '%'.$search.'%');
         }
 
-        // Filter kategori
         if ($request->filled('kategori_id')) {
             $query->where('kategori_id', $request->kategori_id);
         }
 
-        // Filter urutan - termurah / terbaru
         match ($request->input('filter')) {
             'termurah' => $query->orderBy('harga_diskon', 'asc'),
             'terbaru' => $query->orderBy('created_at', 'desc'),
@@ -36,6 +33,17 @@ class ListingController extends Controller
         };
 
         $listings = $query->get();
+        $listings = $query->paginate(20);
+
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Daftar makanan yang tersedia berhasil diambil',
+                'data' => $listings,
+            ], 200);
+        }
+
+        return view('listings.index', compact('listings'));
 
         // Hitung jarak jika user mengirim koordinat atau memakai lokasi profil
         $userLat = $request->input('lat');

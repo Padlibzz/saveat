@@ -39,7 +39,6 @@ class ProfilController extends Controller
 
         $validatedData = $request->validate($rules);
 
-        // Always use the authenticated user's ID — never trust user_id from the request body
         $validatedData['user_id'] = $request->user()->id;
 
         if ($request->tipe_profil === 'merchant') {
@@ -84,7 +83,6 @@ class ProfilController extends Controller
             ], 403);
         }
 
-        // Validasi input gabungan antara tabel users dan tabel profils
         $rules = [
             'name' => 'sometimes|string|max:255',
             'no_telphone' => 'sometimes|string',
@@ -106,7 +104,6 @@ class ProfilController extends Controller
 
         $validatedData = $request->validate($rules);
 
-        // 1. Proses Sinkronisasi dan Pembaruan Data pada Tabel Users
         $user = $profil->user;
         if ($user) {
             if ($request->filled('name')) {
@@ -131,6 +128,7 @@ class ProfilController extends Controller
 
         // 2. Proses Pembaruan Data pada Tabel Profils
         $profilFields = ['tipe_profil', 'alamat', 'nama_usaha', 'deskripsi', 'link_map', 'latitude', 'longitude'];
+        $profilFields = ['tipe_profil', 'alamat', 'nama_usaha', 'deskripsi', 'link_map'];
         $inputProfil = array_intersect_key($validatedData, array_flip($profilFields));
 
         if ($request->has('tipe_profil') && $request->tipe_profil === 'merchant' && $profil->tipe_profil !== 'merchant') {

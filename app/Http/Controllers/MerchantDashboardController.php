@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 
 class MerchantDashboardController extends Controller
 {
-    // Statistik penjualan + makanan terselamatkan
     public function statistik(Request $request)
     {
         $merchant = $request->user()->merchant;
@@ -25,16 +24,13 @@ class MerchantDashboardController extends Controller
         $claimsValid = Claim::whereIn('listing_id', $listingIds)
             ->where('status', '!=', 'batal');
 
-        // Total porsi terjual & total pendapatan (hanya yang sudah dibayar)
         $totalPorsiTerjual = (clone $claimsValid)->sum('jumlah');
         $totalPendapatan = (clone $claimsValid)
             ->where('status_pembayaran', 'sudah_dibayar')
             ->sum('total_harga');
 
-        // Jumlah pembeli unik
         $totalPembeliUnik = (clone $claimsValid)->distinct('user_id')->count('user_id');
 
-        // Makanan terselamatkan = total porsi yang berhasil diklaim (tidak batal)
         $makananTerselamatkan = $totalPorsiTerjual;
 
         return response()->json([
@@ -48,7 +44,6 @@ class MerchantDashboardController extends Controller
         ], 200);
     }
 
-    // Daftar klaim masuk untuk listing milik merchant
     public function klaimMasuk(Request $request)
     {
         $merchant = $request->user()->merchant;
@@ -66,12 +61,10 @@ class MerchantDashboardController extends Controller
             ->whereIn('listing_id', $listingIds)
             ->orderBy('created_at', 'desc');
 
-        // Filter berdasarkan listing terbaru
         if ($request->filled('listing_id')) {
             $query->where('listing_id', $request->listing_id);
         }
 
-        // Filter berdasarkan status klaim
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
