@@ -12,6 +12,7 @@ use App\Http\Controllers\MerchantListingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\RecommendationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -66,6 +67,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Log Aktivitas
     Route::get('/activity-logs', [ActivityLogController::class, 'index']);
+
+    // Izin Lokasi
+    Route::patch('/profil/lokasi', [ProfilController::class, 'updateLokasi']);
+    Route::get('/recommendations', [RecommendationController::class, 'index']);
+
 });
 
 // Route Khusus Merchant

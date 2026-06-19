@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('landing');
@@ -15,7 +15,6 @@ Route::get('/auth/register', function () {
 Route::post('/auth/register', [AuthController::class, 'register']);
 
 Route::post('/auth/login', [AuthController::class, 'login']);
-
-Route::get('/dashboard-konsumen', function () {
-    return view('dashboard-konsumen');
+Route::get('/dashboard', function () {
+    return view('dashboard');
 })->middleware('auth');

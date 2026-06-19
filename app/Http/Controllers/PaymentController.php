@@ -34,7 +34,6 @@ class PaymentController extends Controller
             ], 404);
         }
 
-        // PERBAIKAN: Menggunakan Enum
         if ($claim->status === ClaimStatus::BATAL->value) {
             return response()->json([
                 'status' => 'error',
@@ -83,15 +82,14 @@ class PaymentController extends Controller
             ],
             'item_details' => [
                 [
-                    // PERBAIKAN: Quantity diatur ke 1 dan price disamakan dengan $amount
-                    // Agar Midtrans tidak menolak pembayaran akibat perhitungan desimal/pecahan
+                    
                     'id' => (string) $claim->listing_id,
                     'price' => $amount,
                     'quantity' => 1,
                     'name' => $claim->listing ? substr($claim->listing->nama.' (x'.$claim->jumlah.')', 0, 50) : 'Makanan Saveat',
                 ],
             ],
-            // PERBAIKAN: Uncomment kode ini agar Snap Midtrans ter-filter berdasarkan metode bayar yang dipilih di aplikasi
+           
             'enabled_payments' => $enabledPayments,
         ];
 
@@ -164,7 +162,6 @@ class PaymentController extends Controller
                 'midtrans_raw_response' => $request->all(),
             ];
 
-            // PERBAIKAN: Menggunakan Enum
             if ($transactionStatus === 'capture') {
                 if ($fraudStatus === 'accept') {
                     $updateData['status_pembayaran'] = PaymentStatus::SUDAH_DIBAYAR->value;
@@ -181,7 +178,6 @@ class PaymentController extends Controller
                 $updateData['status_pembayaran'] = PaymentStatus::BELUM_DIBAYAR->value;
             }
 
-            // PERBAIKAN: Cek status sebelum update untuk menghindari notifikasi ganda / spam
             $sudahLunasSebelumnya = $claim->status_pembayaran === PaymentStatus::SUDAH_DIBAYAR->value;
 
             $claim->update($updateData);

@@ -36,7 +36,6 @@ class ClaimController extends Controller
 
     private function resolveStatusRiwayat(Claim $klaim): string
     {
-        // PERBAIKAN: Menggunakan Enum
         if ($klaim->status === ClaimStatus::DIAMBIL->value) {
             return 'sudah_diambil';
         }
@@ -88,7 +87,6 @@ class ClaimController extends Controller
                 ], 400);
             }
 
-            // PERBAIKAN: Menggunakan Enum
             if (! in_array($listing->status, [ListingStatus::AKTIF->value, ListingStatus::HAMPIR_HABIS->value])) {
                 return response()->json([
                     'status' => 'error',
@@ -103,7 +101,6 @@ class ClaimController extends Controller
                 ], 400);
             }
 
-            // PERBAIKAN: Menggunakan Enum
             $claim = Claim::create([
                 'user_id' => $request->user()->id,
                 'listing_id' => $request->listing_id,
@@ -114,7 +111,8 @@ class ClaimController extends Controller
                 'status' => ClaimStatus::PENDING->value,
             ]);
 
-            $listing->decrement('stok_sisa', $request->jumlah);
+            $listing->stok_sisa -= $request->jumlah;
+            $listing->save();
 
             $persenSisa = $listing->stok_sisa / max($listing->stok_total, 1);
             if ($listing->stok_sisa <= 0) {
@@ -166,7 +164,6 @@ class ClaimController extends Controller
             ], 403);
         }
 
-        // PERBAIKAN: Menggunakan Enum
         if ($claim->status_pembayaran !== PaymentStatus::SUDAH_DIBAYAR->value) {
             return response()->json([
                 'status' => 'error',
@@ -203,7 +200,6 @@ class ClaimController extends Controller
             ], 404);
         }
 
-        // PERBAIKAN: Menggunakan Enum
         if ($claim->status === ClaimStatus::BATAL->value) {
             return response()->json([
                 'status' => 'error',
@@ -215,6 +211,13 @@ class ClaimController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Pesanan sudah diselesaikan sebelumnya.',
+            ], 400);
+        }
+
+        if ($claim->status_pembayaran !== PaymentStatus::SUDAH_DIBAYAR->value) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pesanan belum dibayar.',
             ], 400);
         }
 

@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\UserStatus;
 use App\Models\ActivityLog;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -35,7 +35,7 @@ class AuthController extends Controller
 
         ActivityLog::catat($user->id, 'login', 'User login berhasil.');
 
-        return redirect('/dashboard-konsumen')
+        return redirect('/dashboard')
             ->with('success', 'Login berhasil.');
     }
 

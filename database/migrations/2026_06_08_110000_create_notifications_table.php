@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
 
-            // Relasi ke tabel users dan claims
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('claim_id')->nullable()->constrained('claims')->onDelete('set null');
 

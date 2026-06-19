@@ -39,7 +39,6 @@ class ProfilController extends Controller
 
         $validatedData = $request->validate($rules);
 
-        // Always use the authenticated user's ID — never trust user_id from the request body
         $validatedData['user_id'] = $request->user()->id;
 
         if ($request->tipe_profil === 'merchant') {
@@ -84,7 +83,6 @@ class ProfilController extends Controller
             ], 403);
         }
 
-        // Validasi input gabungan antara tabel users dan tabel profils
         $rules = [
             'name' => 'sometimes|string|max:255',
             'no_telphone' => 'sometimes|string',
@@ -99,11 +97,13 @@ class ProfilController extends Controller
             $rules['nama_usaha'] = 'required_if:tipe_profil,merchant|string|max:255';
             $rules['deskripsi'] = 'nullable|string';
             $rules['link_map'] = 'nullable|url';
+            // Koordinat lokasi toko — dipakai untuk hitung jarak ke konsumen (B02)
+            $rules['latitude'] = 'nullable|numeric|between:-90,90';
+            $rules['longitude'] = 'nullable|numeric|between:-180,180';
         }
 
         $validatedData = $request->validate($rules);
 
-        // 1. Proses Sinkronisasi dan Pembaruan Data pada Tabel Users
         $user = $profil->user;
         if ($user) {
             if ($request->filled('name')) {
@@ -113,9 +113,7 @@ class ProfilController extends Controller
                 $user->no_telphone = $request->no_telphone;
             }
 
-            // Logika File Upload untuk Foto Profil Pengguna
             if ($request->hasFile('profil_image')) {
-                // Hapus file foto lama dari storage fisik jika ada untuk menghemat ruang
                 if ($user->profil_image && Storage::disk('public')->exists($user->profil_image)) {
                     Storage::disk('public')->delete($user->profil_image);
                 }
@@ -129,6 +127,7 @@ class ProfilController extends Controller
         }
 
         // 2. Proses Pembaruan Data pada Tabel Profils
+        $profilFields = ['tipe_profil', 'alamat', 'nama_usaha', 'deskripsi', 'link_map', 'latitude', 'longitude'];
         $profilFields = ['tipe_profil', 'alamat', 'nama_usaha', 'deskripsi', 'link_map'];
         $inputProfil = array_intersect_key($validatedData, array_flip($profilFields));
 
@@ -181,6 +180,39 @@ class ProfilController extends Controller
             'status' => 'success',
             'message' => 'Status merchant berhasil diperbarui dan peran disinkronkan',
             'data' => $profil->load('user'),
+        ], 200);
+    }
+
+    /**
+     * Update lokasi konsumen (dipanggil saat toggle "Layanan Lokasi" diaktifkan,
+     * browser mengirim koordinat GPS user). Khusus untuk profil milik sendiri.
+     */
+    public function updateLokasi(Request $request)
+    {
+        $request->validate([
+            'latitude'    => 'required_if:izin_lokasi,true|nullable|numeric|between:-90,90',
+            'longitude'   => 'required_if:izin_lokasi,true|nullable|numeric|between:-180,180',
+            'izin_lokasi' => 'required|boolean',
+        ]);
+
+        $profil = $request->user()->profil;
+
+        if (! $profil) {
+            return response()->json(['status' => 'error', 'message' => 'Profil tidak ditemukan.'], 404);
+        }
+
+        $profil->update([
+            'latitude'    => $request->izin_lokasi ? $request->latitude : null,
+            'longitude'   => $request->izin_lokasi ? $request->longitude : null,
+            'izin_lokasi' => $request->boolean('izin_lokasi'),
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => $request->izin_lokasi
+                ? 'Lokasi berhasil diaktifkan.'
+                : 'Layanan lokasi dinonaktifkan.',
+            'data'    => $profil,
         ], 200);
     }
 }

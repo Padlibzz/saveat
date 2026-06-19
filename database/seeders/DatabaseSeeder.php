@@ -112,7 +112,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'aktif',
             ],
             [
-                'merchant_id' => $merchantProfile->id, // <--- UBAH DI SINI
+                'merchant_id' => $merchantProfile->id, 
                 'kategori_id' => $catMakananBerat,
                 'nama' => 'Nasi Bakar Ayam Kemangi',
                 'harga_normal' => 25000,
@@ -123,7 +123,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'aktif',
             ],
             [
-                'merchant_id' => $merchantProfile->id, // <--- UBAH DI SINI
+                'merchant_id' => $merchantProfile->id, 
                 'kategori_id' => $catMakananRingan,
                 'nama' => 'Donat Kentang Gula Halus (Isi 6)',
                 'harga_normal' => 30000,
@@ -134,7 +134,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'aktif',
             ],
             [
-                'merchant_id' => $merchantProfile->id, // <--- UBAH DI SINI
+                'merchant_id' => $merchantProfile->id, 
                 'kategori_id' => $catMakananBerat,
                 'nama' => 'Bento Box Ayam Teriyaki',
                 'harga_normal' => 35000,
@@ -145,7 +145,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'aktif',
             ],
             [
-                'merchant_id' => $merchantProfile->id, // <--- UBAH DI SINI
+                'merchant_id' => $merchantProfile->id,
                 'kategori_id' => $catMinuman,
                 'nama' => 'Kopi Susu Gula Aren (Sisa Event)',
                 'harga_normal' => 20000,
@@ -156,7 +156,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'aktif',
             ],
             [
-                'merchant_id' => $merchantProfile->id, // <--- UBAH DI SINI
+                'merchant_id' => $merchantProfile->id, 
                 'kategori_id' => $catBahanSegar,
                 'nama' => 'Paket Sayur Sop (Bentuk masih bagus)',
                 'harga_normal' => 15000,

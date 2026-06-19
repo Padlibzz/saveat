@@ -36,7 +36,6 @@ class Listing extends Model
 
     public function kategori(): BelongsTo
     {
-        // PERBAIKAN: Ubah 'categori_id' menjadi 'kategori_id'
         return $this->belongsTo(Category::class, 'kategori_id');
     }
 }
