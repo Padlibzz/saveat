@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Profil extends Model
 {
@@ -15,8 +16,11 @@ class Profil extends Model
     protected $fillable = [
         'user_id',
         'tipe_profil',
-        'alamat',
         'nama_usaha',
+        'alamat',
+        'latitude',
+        'longitude',
+        'izin_lokasi',
         'deskripsi',
         'link_map',
         'status_verifikasi',
@@ -32,6 +36,11 @@ class Profil extends Model
     public function verifikator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'diverifikasi_oleh');
+    }
+
+    public function listings(): HasMany
+    {
+        return $this->hasMany(Listing::class, 'merchant_id');
     }
 
     public function isKonsumen(): bool

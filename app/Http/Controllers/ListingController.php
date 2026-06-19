@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ListingStatus;
+use App\Helpers\GeoHelper;
 use App\Models\Listing;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -31,6 +32,7 @@ class ListingController extends Controller
             default => $query->orderBy('created_at', 'desc'),
         };
 
+        $listings = $query->get();
         $listings = $query->paginate(20);
 
         if ($request->expectsJson() || $request->is('api/*')) {
@@ -42,6 +44,48 @@ class ListingController extends Controller
         }
 
         return view('listings.index', compact('listings'));
+
+        // Hitung jarak jika user mengirim koordinat atau memakai lokasi profil
+        $userLat = $request->input('lat');
+        $userLng = $request->input('lng');
+
+        if (! $userLat && ! $userLng && $request->user()) {
+            $profil = $request->user()->profil;
+
+            if ($profil && $profil->izin_lokasi) {
+                $userLat = $profil->latitude;
+                $userLng = $profil->longitude;
+            }
+        }
+
+        if ($userLat && $userLng) {
+            $listings = $listings->map(function ($listing) use ($userLat, $userLng) {
+                if (
+                    $listing->merchant &&
+                    $listing->merchant->latitude &&
+                    $listing->merchant->longitude
+                ) {
+                    $listing->jarak_km = GeoHelper::jarakKm(
+                        (float) $userLat,
+                        (float) $userLng,
+                        (float) $listing->merchant->latitude,
+                        (float) $listing->merchant->longitude
+                    );
+                } else {
+                    $listing->jarak_km = null;
+                }
+
+                return $listing;
+            });
+        }
+
+        if (
+            $request->input('filter') === 'terdekat'
+            && $userLat
+            && $userLng
+        ) {
+            $listings = $listings->sortBy('jarak_km')->values();
+        }
 
         return response()->json([
             'success' => true,
