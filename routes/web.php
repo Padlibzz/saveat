@@ -15,5 +15,11 @@ Route::get('/auth/register', function () {
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return view('dashboard-user');
+})->middleware('auth');
+route::get('/merchant/dashboard', function () {
+    return view('dashboard-merchant');
+})->middleware('auth');
+route::get('/admin/dashboard', function () {
+    return view('dashboard-admin');
 })->middleware('auth');

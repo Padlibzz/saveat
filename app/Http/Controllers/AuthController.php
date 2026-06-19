@@ -7,11 +7,13 @@ use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth; 
 
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
+        // PERBAIKAN: Identifikasi menggunakan login_identifier (email/username)
         $request->validate([
             'login_identifier' => 'required',
             'password' => 'required',
@@ -21,24 +23,45 @@ class AuthController extends Controller
             ->orWhere('username', $request->login_identifier)
             ->first();
 
+        // 1. Validasi Gagal
         if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json(['pesan' => 'Email/Username atau password salah.'], 401);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json(['pesan' => 'Email/Username atau password salah.'], 401);
+            }
+            return back()->withErrors(['login_identifier' => 'Email/Username atau password salah.'])->withInput();
         }
 
-        // PERBAIKAN: Menggunakan Enum
+        // 2. Cek Status Akun
         if ($user->status !== UserStatus::AKTIF->value) {
-            return response()->json(['pesan' => 'Akun Anda telah dinonaktifkan. Hubungi admin.'], 403);
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json(['pesan' => 'Akun Anda telah dinonaktifkan. Hubungi admin.'], 403);
+            }
+            return back()->withErrors(['login_identifier' => 'Akun Anda dinonaktifkan. Hubungi admin.']);
         }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
 
         ActivityLog::catat($user->id, 'login', 'User login berhasil.');
 
-        return response()->json([
-            'pesan' => 'Login berhasil',
-            'access_token' => $token,
-            'peran' => $user->peran,
-        ], 200);
+        // 3. JIKA PERMINTAAN DARI API (Mobile / Frontend JS)
+        if ($request->expectsJson() || $request->is('api/*')) {
+            $token = $user->createToken('auth_token')->plainTextToken;
+            return response()->json([
+                'pesan' => 'Login berhasil',
+                'access_token' => $token,
+                'peran' => $user->peran,
+            ], 200);
+        }
+
+        // 4. JIKA PERMINTAAN DARI WEB (Browser HTML / Blade)
+        Auth::login($user); // Daftarkan user ke Session Cookie Laravel
+        $request->session()->regenerate(); // Hindari Session Fixation Attack
+        
+        if ($user->peran === 'admin') {
+            return redirect()->intended('/admin/dashboard')->with('success', 'Selamat datang, Admin!');
+        } elseif ($user->peran === 'merchant') {
+            return redirect()->intended('/merchant/dashboard')->with('success', 'Selamat datang, Merchant!');
+        }
+        
+        return redirect()->intended('/dashboard')->with('success', 'Login berhasil!');
     }
 
     public function register(Request $request)
@@ -58,24 +81,28 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'no_telphone' => $request->no_telphone,
             'peran' => 'konsumen',
-            'status' => UserStatus::AKTIF->value, // PERBAIKAN: Menggunakan Enum
+            'status' => UserStatus::AKTIF->value,
         ]);
 
         ActivityLog::catat($user->id, 'register', 'User baru mendaftar.');
 
-        return response()->json([
-            'pesan' => 'Registrasi berhasil',
-            'data' => $user,
-        ], 201);
+        // JIKA PERMINTAAN DARI API
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'pesan' => 'Registrasi berhasil',
+                'data' => $user,
+            ], 201);
+        }
+
+        // JIKA PERMINTAAN DARI WEB
+        Auth::login($user); // Langsung login setelah daftar
+        return redirect('/dashboard')->with('success', 'Registrasi berhasil! Selamat datang.');
     }
 
     public function refreshToken(Request $request)
     {
+        // Refresh token hanya relevan untuk API
         $user = $request->user();
-
-        // PERBAIKAN: Tidak menghapus token saat ini seketika agar tidak terjadi race condition di Frontend
-        // Biarkan token lama expired dengan sendirinya sesuai konfigurasi sanctum (config/sanctum.php)
-
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -88,8 +115,17 @@ class AuthController extends Controller
     {
         ActivityLog::catat($request->user()->id, 'logout', 'User logout.');
 
-        $request->user()->currentAccessToken()->delete();
+        // JIKA PERMINTAAN DARI API
+        if ($request->expectsJson() || $request->is('api/*')) {
+            $request->user()->currentAccessToken()->delete();
+            return response()->json(['pesan' => 'Logout berhasil.'], 200);
+        }
 
-        return response()->json(['pesan' => 'Logout berhasil.'], 200);
+        // JIKA PERMINTAAN DARI WEB
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/')->with('success', 'Anda telah berhasil keluar.');
     }
 }
