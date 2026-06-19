@@ -36,7 +36,6 @@ class ClaimController extends Controller
 
     private function resolveStatusRiwayat(Claim $klaim): string
     {
-        // PERBAIKAN: Menggunakan Enum
         if ($klaim->status === ClaimStatus::DIAMBIL->value) {
             return 'sudah_diambil';
         }
@@ -88,7 +87,6 @@ class ClaimController extends Controller
                 ], 400);
             }
 
-            // PERBAIKAN: Menggunakan Enum
             if (! in_array($listing->status, [ListingStatus::AKTIF->value, ListingStatus::HAMPIR_HABIS->value])) {
                 return response()->json([
                     'status' => 'error',
@@ -103,7 +101,6 @@ class ClaimController extends Controller
                 ], 400);
             }
 
-            // PERBAIKAN: Menggunakan Enum
             $claim = Claim::create([
                 'user_id' => $request->user()->id,
                 'listing_id' => $request->listing_id,
@@ -115,7 +112,7 @@ class ClaimController extends Controller
             ]);
 
             $listing->stok_sisa -= $request->jumlah;
-$listing->save();
+            $listing->save();
 
             $persenSisa = $listing->stok_sisa / max($listing->stok_total, 1);
             if ($listing->stok_sisa <= 0) {
@@ -167,7 +164,6 @@ $listing->save();
             ], 403);
         }
 
-        // PERBAIKAN: Menggunakan Enum
         if ($claim->status_pembayaran !== PaymentStatus::SUDAH_DIBAYAR->value) {
             return response()->json([
                 'status' => 'error',
@@ -204,7 +200,6 @@ $listing->save();
             ], 404);
         }
 
-        // PERBAIKAN: Menggunakan Enum
         if ($claim->status === ClaimStatus::BATAL->value) {
             return response()->json([
                 'status' => 'error',
@@ -220,11 +215,11 @@ $listing->save();
         }
 
         if ($claim->status_pembayaran !== PaymentStatus::SUDAH_DIBAYAR->value) {
-    return response()->json([
-        'status' => 'error',
-        'message' => 'Pesanan belum dibayar.',
-    ], 400);
-}
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pesanan belum dibayar.',
+            ], 400);
+        }
 
         $claim->update(['status' => ClaimStatus::DIAMBIL->value]);
 

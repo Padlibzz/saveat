@@ -21,7 +21,7 @@ class MerchantListingController extends Controller
         }
 
         $listings = Listing::with('kategori')
-            ->where('merchant_id', $merchant->id) // Duplikasi sebelumnya sudah dihapus
+            ->where('merchant_id', $merchant->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -69,7 +69,7 @@ class MerchantListingController extends Controller
                 $input['foto'] = $path;
             }
 
-            $input['merchant_id'] = $merchant->id; // Duplikasi sebelumnya sudah dihapus
+            $input['merchant_id'] = $merchant->id; 
             $input['stok_sisa'] = $request->stok_total;
             $input['status'] = 'aktif';
 
@@ -140,7 +140,6 @@ class MerchantListingController extends Controller
 
         $input = $validator->validated();
 
-        // Jika stok total diubah, sesuaikan stok sisa secara proporsional
         if ($request->filled('stok_total')) {
             $terjual = $listing->stok_total - $listing->stok_sisa;
             $stokBaru = $request->stok_total - $terjual;
@@ -155,9 +154,7 @@ class MerchantListingController extends Controller
             $input['stok_sisa'] = $stokBaru;
         }
 
-        // Tweak: Tambahkan logika hapus foto lama dari storage
         if ($request->hasFile('foto')) {
-            // Hapus gambar lama jika ada
             if ($listing->foto && Storage::disk('public')->exists($listing->foto)) {
                 Storage::disk('public')->delete($listing->foto);
             }

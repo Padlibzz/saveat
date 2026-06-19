@@ -9,10 +9,8 @@ class Category extends Model
 {
     use HasFactory;
 
-    // Menentukan nama tabel secara eksplisit (opsional tapi aman)
     protected $table = 'categories';
 
-    // Kolom yang diizinkan untuk diisi massal oleh seeder/controller
     protected $fillable = [
         'nama',
         'deskripsi',
