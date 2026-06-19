@@ -1,0 +1,20 @@
+name: Saveat Local
+values:
+  - key: base_url
+    value: 'http://localhost/api'
+  - key: access_token
+    value: 4|cL5VpPhzE9pz1vp9PcjpLATohhsMllTD9D1njcQn9df99ef6
+  - key: listing_id
+    value: '1'
+  - key: claim_id
+    value: '1'
+  - key: profil_id
+    value: '1'
+  - key: notification_id
+    value: '1'
+  - key: user_id
+    value: '1'
+  - key: report_id
+    value: '1'
+  - key: kode_klaim
+    value: KLAIM-001

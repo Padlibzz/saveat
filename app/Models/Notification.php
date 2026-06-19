@@ -9,8 +9,8 @@ class Notification extends Model
     protected $table = 'notifications';
 
     protected $fillable = [
-        'user_id',   
-        'claim_id',  
+        'user_id',
+        'claim_id',
         'jenis',
         'judul',
         'pesan',
@@ -22,7 +22,7 @@ class Notification extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function claim() 
+    public function claim()
     {
         return $this->belongsTo(Claim::class, 'claim_id');
     }

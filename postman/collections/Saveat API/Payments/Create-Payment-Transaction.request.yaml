@@ -1,0 +1,41 @@
+$kind: http-request
+name: Create Payment Transaction
+method: POST
+url: '{{base_url}}/payments/{{claim_id}}/create'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{access_token}}'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Accept
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "metode_pembayaran": "gopay"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      const res = pm.response.json();
+      pm.test("Status 201 - Transaksi berhasil dibuat", () => {
+          pm.response.to.have.status(201);
+      });
+      pm.test("Response memiliki snap_token", () => {
+          pm.expect(res).to.have.property('snap_token');
+      });
+      pm.test("Response memiliki redirect_url", () => {
+          pm.expect(res).to.have.property('redirect_url');
+      });
+      if (res.snap_token) {
+          pm.environment.set('snap_token', res.snap_token);
+      }
+      if (res.order_id) {
+          pm.environment.set('midtrans_order_id', res.order_id);
+      }

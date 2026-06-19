@@ -1,0 +1,32 @@
+$kind: http-request
+name: Get Payment Methods
+method: GET
+url: '{{base_url}}/payment-methods'
+order: 500
+headers:
+  - key: Accept
+    value: application/json
+events:
+  - listen: test
+    script:
+      type: text/javascript
+      exec: |-
+        pm.test("Status code is 200", function () {
+            pm.response.to.have.status(200);
+        });
+        pm.test("Content-Type is application/json", function () {
+            pm.expect(pm.response.headers.get("Content-Type")).to.include("application/json");
+        });
+        pm.test("Response contains payment methods", function () {
+            const json = pm.response.json();
+            pm.expect(json.status).to.eql("success");
+            pm.expect(json.data).to.be.an("array").that.is.not.empty;
+        });
+        pm.test("Each method has kode, nama, and kategori", function () {
+            const json = pm.response.json();
+            json.data.forEach(function (method) {
+                pm.expect(method).to.have.property("kode");
+                pm.expect(method).to.have.property("nama");
+                pm.expect(method).to.have.property("kategori");
+            });
+        });

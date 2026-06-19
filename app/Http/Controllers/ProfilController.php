@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Profil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProfilController extends Controller
 {
@@ -26,7 +27,6 @@ class ProfilController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'user_id' => 'required|exists:users,id', 
             'tipe_profil' => 'required|in:konsumen,merchant,admin',
             'alamat' => 'nullable|string',
         ];
@@ -38,6 +38,9 @@ class ProfilController extends Controller
         }
 
         $validatedData = $request->validate($rules);
+
+        // Always use the authenticated user's ID — never trust user_id from the request body
+        $validatedData['user_id'] = $request->user()->id;
 
         if ($request->tipe_profil === 'merchant') {
             $validatedData['status_verifikasi'] = 'menunggu';
@@ -81,7 +84,11 @@ class ProfilController extends Controller
             ], 403);
         }
 
+        // Validasi input gabungan antara tabel users dan tabel profils
         $rules = [
+            'name' => 'sometimes|string|max:255',
+            'no_telphone' => 'sometimes|string',
+            'profil_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'tipe_profil' => 'sometimes|in:konsumen,merchant,admin',
             'alamat' => 'nullable|string',
         ];
@@ -96,18 +103,47 @@ class ProfilController extends Controller
 
         $validatedData = $request->validate($rules);
 
-        if ($request->has('tipe_profil') && $request->tipe_profil === 'merchant' && $profil->tipe_profil !== 'merchant') {
-            $validatedData['status_verifikasi'] = 'menunggu';
-            $validatedData['diverifikasi_oleh'] = null; 
-            $validatedData['alasan_penolakan'] = null;  
+        // 1. Proses Sinkronisasi dan Pembaruan Data pada Tabel Users
+        $user = $profil->user;
+        if ($user) {
+            if ($request->filled('name')) {
+                $user->name = $request->name;
+            }
+            if ($request->filled('no_telphone')) {
+                $user->no_telphone = $request->no_telphone;
+            }
+
+            // Logika File Upload untuk Foto Profil Pengguna
+            if ($request->hasFile('profil_image')) {
+                // Hapus file foto lama dari storage fisik jika ada untuk menghemat ruang
+                if ($user->profil_image && Storage::disk('public')->exists($user->profil_image)) {
+                    Storage::disk('public')->delete($user->profil_image);
+                }
+
+                $file = $request->file('profil_image');
+                $namaFoto = time().'_'.$file->getClientOriginalName();
+                $path = $file->storeAs('profiles', $namaFoto, 'public');
+                $user->profil_image = $path;
+            }
+            $user->save();
         }
 
-        $profil->update($validatedData);
+        // 2. Proses Pembaruan Data pada Tabel Profils
+        $profilFields = ['tipe_profil', 'alamat', 'nama_usaha', 'deskripsi', 'link_map'];
+        $inputProfil = array_intersect_key($validatedData, array_flip($profilFields));
+
+        if ($request->has('tipe_profil') && $request->tipe_profil === 'merchant' && $profil->tipe_profil !== 'merchant') {
+            $inputProfil['status_verifikasi'] = 'menunggu';
+            $inputProfil['diverifikasi_oleh'] = null;
+            $inputProfil['alasan_penolakan'] = null;
+        }
+
+        $profil->update($inputProfil);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Profil berhasil diupdate',
-            'data' => $profil,
+            'message' => 'Profil dan data user berhasil diperbarui.',
+            'data' => $profil->load('user'),
         ], 200);
     }
 
@@ -126,7 +162,7 @@ class ProfilController extends Controller
         $request->validate([
             'status_verifikasi' => 'required|in:disetujui,ditolak',
             'alasan_penolakan' => 'required_if:status_verifikasi,ditolak|nullable|string',
-            'diverifikasi_oleh' => 'required|exists:users,id', 
+            'diverifikasi_oleh' => 'required|exists:users,id',
         ]);
 
         $profil->update([

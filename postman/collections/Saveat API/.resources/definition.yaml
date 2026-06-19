@@ -1,0 +1,8 @@
+$kind: collection
+name: Saveat API
+description: 'Complete API collection for the Saveat food-saving platform.'
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{access_token}}'

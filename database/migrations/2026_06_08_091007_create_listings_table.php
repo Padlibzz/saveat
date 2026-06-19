@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('stok_total');
             $table->integer('stok_sisa');
             $table->dateTime('batas_waktu');
-            $table->enum('status', ['aktif', 'habis', 'diarsipkan', 'ditolak'])->default('aktif');
+            $table->enum('status', ['aktif', 'hampir_habis', 'tutup', 'diarsipkan', 'ditolak'])->default('aktif');
             $table->timestamps();
         });
     }

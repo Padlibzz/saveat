@@ -19,6 +19,7 @@ class User extends Authenticatable
         'no_telphone',
         'peran',
         'status',
+        'profil_image', // <--- Tambahkan baris ini
     ];
 
     protected $hidden = [
