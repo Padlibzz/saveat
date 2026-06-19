@@ -13,7 +13,9 @@ Route::get('/auth/register', function () {
     return view('auth.register');
 });
 Route::post('/auth/register', [AuthController::class, 'register']);
+
 Route::post('/auth/login', [AuthController::class, 'login']);
-Route::get('/dashboard', function () {
-    return view('dashboard');
+
+Route::get('/dashboard-konsumen', function () {
+    return view('dashboard-konsumen');
 })->middleware('auth');

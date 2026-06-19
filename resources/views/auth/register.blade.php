@@ -39,8 +39,8 @@
 
                         <input
                             type="text"
-                            id="nama"
-                            name="nama"
+                            id="name"
+                            name="name"
                             placeholder="Masukkan nama Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"

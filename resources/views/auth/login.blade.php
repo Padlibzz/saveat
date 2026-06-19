@@ -33,14 +33,14 @@
         <form action="/auth/login" method="POST" class="space-y-4">
             @csrf
             <h3 class="text-[#6D6B2E] text-lg">
-                Mohon masukkan username dan password 
+                Mohon masukkan username/email dan password 
             </h3>
             <div class="space-y-4">
 
                 <!-- Username -->
                 <div>
                     <label for="username" class="block text-md text-[#6D6B2E] mb-2">
-                        Username
+                        Username atau Email
                     </label>
 
                     <div class="relative">
@@ -49,8 +49,8 @@
                         <input
                             type="text"
                             id="username"
-                            name="username"
-                            placeholder="Masukkan username Anda"
+                            name="login_identifier"
+                            placeholder="Masukkan username atau email Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"
                         >

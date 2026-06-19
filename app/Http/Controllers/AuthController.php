@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\UserStatus;
 use App\Models\ActivityLog;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -21,24 +23,20 @@ class AuthController extends Controller
             ->orWhere('username', $request->login_identifier)
             ->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json(['pesan' => 'Email/Username atau password salah.'], 401);
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return back()->with('error', 'Email/Username atau password salah.');
         }
 
-        // PERBAIKAN: Menggunakan Enum
         if ($user->status !== UserStatus::AKTIF->value) {
-            return response()->json(['pesan' => 'Akun Anda telah dinonaktifkan. Hubungi admin.'], 403);
+            return back()->with('error', 'Akun Anda telah dinonaktifkan.');
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        Auth::login($user);
 
         ActivityLog::catat($user->id, 'login', 'User login berhasil.');
 
-        return response()->json([
-            'pesan' => 'Login berhasil',
-            'access_token' => $token,
-            'peran' => $user->peran,
-        ], 200);
+        return redirect('/dashboard-konsumen')
+            ->with('success', 'Login berhasil.');
     }
 
     public function register(Request $request)
@@ -58,15 +56,17 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'no_telphone' => $request->no_telphone,
             'peran' => 'konsumen',
-            'status' => UserStatus::AKTIF->value, // PERBAIKAN: Menggunakan Enum
+            'status' => UserStatus::AKTIF->value,
         ]);
 
-        ActivityLog::catat($user->id, 'register', 'User baru mendaftar.');
+        ActivityLog::catat(
+            $user->id,
+            'register',
+            'User baru mendaftar.'
+        );
 
-        return response()->json([
-            'pesan' => 'Registrasi berhasil',
-            'data' => $user,
-        ], 201);
+        return redirect('/auth/login')
+            ->with('success', 'Registrasi berhasil, silakan login.');
     }
 
     public function refreshToken(Request $request)
