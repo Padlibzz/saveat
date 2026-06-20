@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
             'name' => 'Administrator',
             'username' => 'admin',
             'email' => 'admin@test.com',
-            'password' => Hash::make('password'),
+            'password' => 'admin1234',
             'no_telphone' => '081234567890',
             'peran' => 'admin',
             'status' => 'aktif',
