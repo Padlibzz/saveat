@@ -28,7 +28,7 @@
         <!-- Sidebar -->
         <aside
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed lg:static top-0 left-0 z-50 w-64 h-screen bg-white shadow-lg transition-transform duration-300 lg:translate-x-0">
+            class="fixed lg:fixed top-0 left-0 z-50 w-64 h-screen bg-white shadow-lg transition-transform duration-300 lg:translate-x-0">
 
             <div class="p-6">
                 <div class="flex items-center gap-3">
@@ -88,7 +88,7 @@
         <div class="flex-1">
 
             <!-- Navbar -->
-            <nav class="bg-white shadow-md p-4">
+            <nav class="bg-white shadow-md p-4 lg:ml-64">
 
                 <div class="flex items-center justify-between">
 
@@ -144,7 +144,7 @@
             </nav>
 
             <!-- Content -->
-            <section class="p-6">
+            <section class="p-6 lg:ml-64">
 
                 <!-- Search -->
                 <input
