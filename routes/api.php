@@ -29,7 +29,6 @@ Route::get('/listings', [ListingController::class, 'index']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/payment-methods', [ClaimController::class, 'paymentMethods']);
 
-// Webhook Midtrans (HARUS publik karena dipanggil oleh server Midtrans)
 Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
 
 // Route Terproteksi (Memerlukan Autentikasi Sanctum)
@@ -53,7 +52,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Konsumen: Pembayaran Midtrans (Grouped via Prefix)
     Route::prefix('payments')->group(function () {
-        Route::post('/{claimId}/create', [PaymentController::class, 'createTransaction']);
         Route::get('/{claimId}/status', [PaymentController::class, 'checkStatus']);
     });
 

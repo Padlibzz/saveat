@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\ClaimStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Claim;
 use App\Services\NotificationService;
@@ -10,7 +9,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Midtrans\Config;
-use Midtrans\Snap;
 
 class PaymentController extends Controller
 {
@@ -21,109 +19,6 @@ class PaymentController extends Controller
         Config::$isProduction = config('midtrans.is_production');
         Config::$isSanitized = config('midtrans.is_sanitized');
         Config::$is3ds = config('midtrans.is_3ds');
-    }
-
-    public function createTransaction(Request $request, $claimId)
-    {
-        $claim = Claim::with(['user.profil', 'listing'])->find($claimId);
-
-        if (! $claim || $claim->user_id !== $request->user()->id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Pesanan tidak ditemukan.',
-            ], 404);
-        }
-
-        if ($claim->status === ClaimStatus::BATAL->value) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Pesanan sudah dibatalkan.',
-            ], 400);
-        }
-
-        if ($claim->status_pembayaran === PaymentStatus::SUDAH_DIBAYAR->value) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Pesanan ini sudah dibayar.',
-            ], 400);
-        }
-
-        if ($claim->midtrans_snap_token && $claim->midtrans_transaction_status === 'pending') {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Snap token sudah tersedia.',
-                'snap_token' => $claim->midtrans_snap_token,
-                'redirect_url' => $claim->midtrans_redirect_url,
-                'order_id' => $claim->midtrans_order_id,
-            ], 200);
-        }
-
-        $request->validate([
-            'metode_pembayaran' => 'required|string|in:qris,dana,gopay,ovo,shopeepay,linkaja,transfer_bank,tunai',
-        ]);
-
-        $orderId = 'SAVEAT-'.$claim->id.'-'.time();
-        $amount = (int) $claim->total_harga;
-
-        $enabledPayments = $this->mapPaymentMethod($request->metode_pembayaran);
-
-        $user = $claim->user;
-        $profil = $user->profil ?? null;
-
-        $params = [
-            'transaction_details' => [
-                'order_id' => $orderId,
-                'gross_amount' => $amount,
-            ],
-            'customer_details' => [
-                'first_name' => $profil ? $profil->nama : ($user->name ?? 'Konsumen'),
-                'email' => $user->email ?? '',
-                'phone' => $profil ? ($profil->no_hp ?? '') : '',
-            ],
-            'item_details' => [
-                [
-                    
-                    'id' => (string) $claim->listing_id,
-                    'price' => $amount,
-                    'quantity' => 1,
-                    'name' => $claim->listing ? substr($claim->listing->nama.' (x'.$claim->jumlah.')', 0, 50) : 'Makanan Saveat',
-                ],
-            ],
-           
-            'enabled_payments' => $enabledPayments,
-        ];
-
-        try {
-            $snapResponse = Snap::createTransaction($params);
-
-            $claim->update([
-                'metode_pembayaran' => $request->metode_pembayaran,
-                'midtrans_order_id' => $orderId,
-                'midtrans_snap_token' => $snapResponse->token,
-                'midtrans_redirect_url' => $snapResponse->redirect_url,
-                'midtrans_transaction_status' => 'pending',
-            ]);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Transaksi berhasil dibuat. Lanjutkan pembayaran.',
-                'snap_token' => $snapResponse->token,
-                'redirect_url' => $snapResponse->redirect_url,
-                'order_id' => $orderId,
-                'amount' => $amount,
-            ], 201);
-
-        } catch (\Exception $e) {
-            Log::error('Midtrans createTransaction error: '.$e->getMessage(), [
-                'claim_id' => $claimId,
-                'params' => $params,
-            ]);
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal membuat transaksi pembayaran: '.$e->getMessage(),
-            ], 500);
-        }
     }
 
     public function webhook(Request $request)
@@ -147,7 +42,7 @@ class PaymentController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Invalid signature key.'], 403);
             }
 
-            $claim = Claim::where('midtrans_order_id', $orderId)->first();
+            $claim = Claim::where('kode_klaim', $orderId)->first();
 
             if (! $claim) {
                 Log::warning('Midtrans webhook: claim record data not found.', ['order_id' => $orderId]);
@@ -238,21 +133,5 @@ class PaymentController extends Controller
                 'waktu_pembayaran' => $claim->waktu_pembayaran,
             ],
         ], 200);
-    }
-
-    private function mapPaymentMethod(string $metode): array
-    {
-        $map = [
-            'qris' => ['qris'],
-            'gopay' => ['gopay'],
-            'dana' => ['dana'],
-            'ovo' => ['other_qris'],
-            'shopeepay' => ['shopeepay'],
-            'linkaja' => ['other_qris'],
-            'transfer_bank' => ['bca_va', 'bni_va', 'bri_va', 'mandiri_bill', 'permata_va', 'other_va'],
-            'tunai' => ['indomaret', 'alfamart'],
-        ];
-
-        return $map[$metode] ?? ['qris', 'gopay', 'dana', 'shopeepay', 'bca_va', 'bni_va', 'bri_va'];
     }
 }
