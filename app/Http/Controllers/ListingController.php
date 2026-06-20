@@ -28,21 +28,13 @@ class ListingController extends Controller
             $query->where('kategori_id', $request->kategori_id);
         }
 
-<<<<<<< HEAD
-        match ($request->input('filter')) {
-            'termurah' => $query->orderBy('harga_diskon', 'asc'),
-            'terbaru' => $query->orderBy('created_at', 'desc'),
-            default => $query->orderBy('created_at', 'desc'),
-        };
-=======
         if ($request->input('filter') !== 'terdekat') {
             match ($request->input('filter')) {
                 'termurah' => $query->orderBy('harga_diskon', 'asc'),
-                'terbaru'  => $query->orderBy('created_at', 'desc'),
-                default    => $query->orderBy('created_at', 'desc'),
+                'terbaru' => $query->orderBy('created_at', 'desc'),
+                default => $query->orderBy('created_at', 'desc'),
             };
         }
->>>>>>> origin/frontend
 
         $listings = $query->get();
 
@@ -90,9 +82,7 @@ class ListingController extends Controller
             }
         }
 
-<<<<<<< HEAD
-=======
-        $perPage = 20; 
+        $perPage = 20;
         $currentPage = Paginator::resolveCurrentPage() ?: 1;
         $currentItems = $listings->slice(($currentPage - 1) * $perPage, $perPage)->values();
 
@@ -103,28 +93,19 @@ class ListingController extends Controller
             $currentPage,
             [
                 'path' => Paginator::resolveCurrentPath(),
-                'query' => $request->query()
+                'query' => $request->query(),
             ]
         );
 
->>>>>>> origin/frontend
         if ($request->expectsJson() || $request->is('api/*')) {
             return response()->json([
                 'success' => true,
                 'message' => 'Daftar makanan yang tersedia berhasil diambil',
-<<<<<<< HEAD
                 'data' => $listings,
             ], 200);
         }
 
-        return view('listings.index', compact('listings'));
-=======
-                'data'    => $listings,
-            ], 200);
-        }
-
         return view('listing-makanan', compact('listings'));
->>>>>>> origin/frontend
     }
 
     public function checkout(Request $request, $id)
@@ -144,11 +125,11 @@ class ListingController extends Controller
         }
 
         // PENGAMAN BERLAPIS UNTUK PERHITUNGAN JARAK DI HALAMAN CHECKOUT
-        $listing->jarak_km = null; 
+        $listing->jarak_km = null;
         if (
-            $userLat && $userLng && 
-            $listing->merchant && 
-            is_numeric($listing->merchant->latitude) && 
+            $userLat && $userLng &&
+            $listing->merchant &&
+            is_numeric($listing->merchant->latitude) &&
             is_numeric($listing->merchant->longitude) &&
             is_numeric($userLat) &&
             is_numeric($userLng)

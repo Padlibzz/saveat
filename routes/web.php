@@ -41,4 +41,14 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/admin/dashboard', [AdminController::class, 'index']);
+
+    // Password reset routes (preserved from stashed changes)
+    Route::get('/auth/forgot-password', function () {
+        return view('auth.forgot-password');
+    })->name('password.request');
+    Route::post('/auth/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+    Route::get('/auth/reset-password/{token}', function ($token) {
+        return view('auth.reset-password', ['token' => $token]);
+    })->name('password.reset');
 });
