@@ -1,13 +1,4 @@
-@props([
-    'foto' => null,
-    'nama' => '',
-    'merchant' => '',
-    'alamat' => '',
-    'jarak' => '-',
-    'harga_diskon' => 0,
-    'harga_asli' => 0,
-    'tersisa' => 0,
-])
+@props(['id', 'foto', 'nama', 'merchant', 'alamat', 'jarak', 'harga_diskon', 'harga_asli', 'tersisa'])
 
 <div class="bg-white rounded-2xl shadow-md overflow-hidden w-80 hover:shadow-lg transition">
 
@@ -74,6 +65,11 @@
             </span>
 
         </div>
+
+        <a href="{{ $attributes['data-url'] ?? '#' }}" 
+        class="block text-center bg-[#545523] text-white py-2 m-2 rounded-xl font-medium hover:bg-[#43441c] transition">
+        Beli Sekarang
+        </a>
 
     </div>
 

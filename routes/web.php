@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\ListingController;
 use App\Http\Controllers\RecommendationController;
 use Illuminate\Support\Facades\Route;
 
@@ -61,3 +62,12 @@ Route::get('/api/recommendations', [RecommendationController::class, 'index']);
 
 Route::get('/dashboard', [RecommendationController::class, 'dashboard'])
     ->middleware('auth');
+<<<<<<< HEAD
+=======
+
+Route::get('/listing-makanan', [ListingController::class, 'index'])->name('listing-makanan');
+
+Route::get('/checkout/{id}', [ListingController::class, 'checkout'])
+    ->middleware('auth')
+    ->name('checkout');
+>>>>>>> origin/frontend

@@ -24,7 +24,7 @@ class RecommendationController extends Controller
 
     public function dashboard(Request $request)
     {
-        $listings = $this->getRecommendations($request->user(), 4);
+        $listings = $this->getRecommendations($request->user(), 6);
 
         return view('dashboard-konsumen', compact('listings'));
     }
