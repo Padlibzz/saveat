@@ -191,15 +191,16 @@
         <div class="flex px-6 py-20 gap-12 overflow-x-auto justify-center">
             @foreach($listings as $listing)
                 <x-food-card
-                    :image="$listing->gambar"
+                    :foto="$listing->foto"
                     :nama="$listing->nama"
-                    :alamat="$listing->alamat"
-                    :jarak="$listing->jarak . ' km'"
-                    :merchant="$listing->merchant"
-                    :harga-diskon="$listing->harga_diskon"
-                    :harga-asli="$listing->harga_asli"
+                    :merchant="$listing->merchant?->nama_usaha ?? 'Merchant'"
+                    :alamat="$listing->merchant?->alamat ?? 'Alamat belum tersedia'"
+                    :jarak="'-'"
+                    :harga_diskon="$listing->harga_diskon"
+                    :harga_asli="$listing->harga_normal"
+                    :tersisa="$listing->stok_sisa"
                 />
-            @endforeach 
+            @endforeach
         </div>
     </section>
 

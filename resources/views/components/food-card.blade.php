@@ -1,3 +1,14 @@
+@props([
+    'foto' => null,
+    'nama' => '',
+    'merchant' => '',
+    'alamat' => '',
+    'jarak' => '-',
+    'harga_diskon' => 0,
+    'harga_asli' => 0,
+    'tersisa' => 0,
+])
+
 <div class="bg-white rounded-2xl shadow-md overflow-hidden w-80 hover:shadow-lg transition">
 
     <!-- Foto -->
@@ -30,7 +41,7 @@
         <!-- Badge Tersisa -->
         <div class="absolute top-3 right-3">
             <span class="bg-yellow-400 text-yellow-900 text-xs font-semibold px-3 py-1 rounded-full">
-                Tersisa {{ $tersisa }}
+                Tersisa {{ $tersisa ?? 0 }}
             </span>
         </div>
 
