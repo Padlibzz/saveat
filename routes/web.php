@@ -2,11 +2,12 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\RecommendationController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('landing');
-});
+Route::get('/', [LandingController::class, 'index']);
+
 Route::get('/auth/login', function () {
     return view('auth.login');
 });
@@ -40,3 +41,8 @@ Route::get('/profile', [ProfilController::class, 'index'])
     ->middleware('auth');
 
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/api/recommendations', [RecommendationController::class, 'index']);
+
+Route::get('/dashboard', [RecommendationController::class, 'dashboard'])
+    ->middleware('auth');
