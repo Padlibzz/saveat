@@ -6,11 +6,29 @@ use App\Models\AbuseReport;
 use App\Models\Claim;
 use App\Models\Listing;
 use App\Models\Profil;
+use Carbon\Carbon;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
+    public function index()
+    {
+        $totalPengguna = User::count();
+        $aktifHariIni = User::where('status', 'aktif')->count();
+        $baruDaftar = User::whereDate('created_at', Carbon::today())->count();
+        $makananTerselamatkan = Claim::where('status', '!=', 'batal')->sum('jumlah');
+        $totalDilaporkan = AbuseReport::count();
+
+        return view('dashboard-admin', compact(
+            'totalPengguna',
+            'aktifHariIni',
+            'baruDaftar',
+            'makananTerselamatkan',
+            'totalDilaporkan'
+        ));
+    }
+
     public function statistik(Request $request)
     {
         $totalMerchantAktif = Profil::where('tipe_profil', 'merchant')
@@ -187,4 +205,3 @@ public function detailMerchant($id)
     return view('admin.merchant-detail', compact('merchant'));
 }
 }
-
