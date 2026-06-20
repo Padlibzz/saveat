@@ -8,10 +8,18 @@ class LandingController extends Controller
 {
     public function index()
     {
-        $listings = Listing::orderBy('jarak')
+        // Tampilkan listing terbaru yang masih tersedia (4 item untuk landing page)
+        $listings = Listing::whereIn('status', ['aktif', 'hampir_habis'])
+            ->where('stok_sisa', '>', 0)
+            ->where('batas_waktu', '>', now())
+            ->with(['merchant', 'kategori'])
+            ->orderBy('created_at', 'desc')
             ->take(4)
             ->get();
 
-        return view('landing', compact('listings'));
+        // Statistik real-time untuk landing page (makanan terselamatkan, merchant, rating)
+        $stats = app(PublicStatsController::class)->index()->getData()->data;
+
+        return view('landing', compact('listings', 'stats'));
     }
 }
