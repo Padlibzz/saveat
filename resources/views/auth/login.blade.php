@@ -14,7 +14,7 @@
     <nav class="container mx-auto px-4 py-6 flex items-center justify-between">
 
         <div class="flex items-center gap-3">
-            <img src="svg/logo.png" alt="SaveEat Logo" class="w-10 h-10">
+            <img src="{{ asset('img/logo-saveat.png') }}" alt="SaveEat Logo" class="w-10 h-10">
 
             <h1 class="text-3xl font-bold text-[#545523]">
                 SaveEat

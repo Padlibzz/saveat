@@ -32,7 +32,7 @@
 
             <div class="p-6">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('svg/logo.png') }}"
+                    <img src="{{ asset('img/logo-saveat.png') }}"
                         alt="SaveEat"
                         class="w-10 h-10">
 
