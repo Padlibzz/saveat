@@ -25,9 +25,18 @@ Route::get('/dashboard-konsumen', function (\Illuminate\Http\Request $request, R
     return redirect('/dashboard');
 })->middleware('auth');
 
-Route::get('/dashboard-admin', function () {
-    return view('dashboard-admin');
-})->middleware('auth', 'role:admin');
+use App\Http\Controllers\AdminController;
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/users', [AdminController::class, 'daftarUser'])->name('admin.users');
+    Route::get('/profile', [ProfilController::class, 'index'])->name('admin.profile');
+    Route::get('/analisis-penjualan', [AdminController::class, 'analisisPenjualan'])->name('admin.analisis');
+    Route::get('/merchants/menunggu', [AdminController::class, 'merchantMenunggu'])->name('admin.merchant-menunggu');
+    Route::get('/merchants/{id}', [AdminController::class, 'detailMerchant'])->name('admin.merchant-detail');
+    Route::patch('/merchants/{id}/verifikasi', [ProfilController::class, 'verifikasiMerchant'])->name('admin.merchant-verifikasi');
+});
+
+Route::get('/dashboard-admin', [AdminController::class, 'statistik'])->name('admin.dashboard')->middleware('auth', 'role:admin');
 
 Route::get('/dashboard-merchant', function () {
     return view('dashboard-merchant');
