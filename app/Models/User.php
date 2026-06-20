@@ -46,4 +46,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Profil::class, 'user_id')->where('tipe_profil', 'merchant');
     }
+
+    public function claims()
+    {
+        return $this->hasMany(Claim::class, 'user_id');
+    }
 }

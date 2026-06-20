@@ -21,6 +21,10 @@ class ProfilController extends Controller
             ], 200);
         }
 
+        if ($user->peran === 'admin') {
+            return view('admin.profil', compact('profil'));
+        }
+
         return view('profile', compact('profil'));
     }
 
@@ -200,11 +204,15 @@ class ProfilController extends Controller
             $profil->user->update(['peran' => 'konsumen']);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Status merchant berhasil diperbarui dan peran disinkronkan',
-            'data' => $profil->load('user'),
-        ], 200);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Status merchant berhasil diperbarui dan peran disinkronkan',
+                'data' => $profil->load('user'),
+            ], 200);
+        }
+
+        return redirect()->route('admin.merchant-menunggu')->with('success', 'Status merchant berhasil diperbarui.');
     }
 
     /**
