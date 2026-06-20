@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\ListingController;
 use App\Http\Controllers\RecommendationController;
 
 Route::get('/', [LandingController::class, 'index']);
@@ -50,3 +51,7 @@ Route::get('/api/recommendations', [RecommendationController::class, 'index']);
 
 Route::get('/dashboard', [RecommendationController::class, 'dashboard'])
     ->middleware('auth');
+
+Route::get('/listing-makanan', function () {
+    return view('listing-makanan');
+})->name('listing-makanan');

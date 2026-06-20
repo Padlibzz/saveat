@@ -75,6 +75,8 @@
 
         </div>
 
+        <a href="" class="inline-block mt-4 bg-[#6D6B2E] text-white px-6 py-3 rounded-xl hover:bg-[#545523]"> Beli Sekarang</a>
+
     </div>
 
 </div>
