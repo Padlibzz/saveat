@@ -222,7 +222,10 @@ class ProfilController extends Controller
         $profil = $request->user()->profil;
 
         if (! $profil) {
-            return response()->json(['status' => 'error', 'message' => 'Profil tidak ditemukan.'], 404);
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Profil tidak ditemukan.'], 404);
+            }
+            return back()->with('error', 'Profil tidak ditemukan.');
         }
 
         $profil->update([
@@ -231,12 +234,18 @@ class ProfilController extends Controller
             'izin_lokasi' => $request->boolean('izin_lokasi'),
         ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => $request->izin_lokasi
-                ? 'Lokasi berhasil diaktifkan.'
-                : 'Layanan lokasi dinonaktifkan.',
-            'data' => $profil,
-        ], 200);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $request->izin_lokasi
+                    ? 'Lokasi berhasil diaktifkan.'
+                    : 'Layanan lokasi dinonaktifkan.',
+                'data' => $profil,
+            ], 200);
+        }
+
+        return redirect()->route('profile')->with('success', $request->izin_lokasi
+            ? 'Lokasi berhasil diaktifkan.'
+            : 'Layanan lokasi dinonaktifkan.');
     }
 }
