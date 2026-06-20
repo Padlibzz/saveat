@@ -18,8 +18,11 @@ Route::post('/auth/register', [AuthController::class, 'register']);
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
-Route::get('/dashboard-konsumen', function () {
-    return view('dashboard-konsumen');
+Route::get('/dashboard-konsumen', function (\Illuminate\Http\Request $request, RecommendationController $recommendationController) {
+    // Memanggil metode internal untuk mendapatkan listing
+    // Menggunakan refleksi atau memanggil metode secara langsung jika memungkinkan, 
+    // namun karena getRecommendations adalah private, kita gunakan dashboard saja
+    return redirect('/dashboard');
 })->middleware('auth');
 
 Route::get('/dashboard-admin', function () {
@@ -41,6 +44,18 @@ Route::get('/profile', [ProfilController::class, 'index'])
     ->middleware('auth');
 
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/auth/forgot-password', function () {
+    return view('auth.forgot-password');
+})->name('password.request');
+
+Route::post('/auth/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
+Route::get('/auth/reset-password/{token}', function ($token) {
+    return view('auth.reset-password', ['token' => $token]);
+})->name('password.reset');
 
 Route::get('/api/recommendations', [RecommendationController::class, 'index']);
 

@@ -66,14 +66,21 @@ class AdminController extends Controller
 
         $users = $query->orderBy('created_at', 'desc')->paginate(20);
 
+        $stats = [
+            'merchant_aktif' => Profil::where('tipe_profil', 'merchant')->where('status_verifikasi', 'disetujui')->count(),
+            'makanan_terselamatkan' => Claim::where('status', '!=', 'batal')->sum('jumlah'),
+        ];
+        $totalTransaksi = Claim::count();
+
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
                 'data' => $users,
+                'stats' => $stats
             ], 200);
         }
 
-        return view('admin.users', ['users' => $users]);
+        return view('admin.users', compact('users', 'stats', 'totalTransaksi'));
     }
 
     public function ubahStatusUser(Request $request, $id)
@@ -133,22 +140,51 @@ class AdminController extends Controller
 
         return redirect()->back()->with('success', 'Status listing berhasil diperbarui.');
     }
+public function analisisPenjualan()
+{
+    $totalPendapatan = Claim::where('status', 'selesai')->sum('total_harga');
+    $totalMakananHemat = Claim::where('status', 'selesai')->sum('jumlah');
+    $totalListingAktif = Listing::where('status', 'aktif')->count();
 
-    public function merchantMenunggu(Request $request)
-    {
-        $merchant = Profil::with('user:id,name,email,no_telphone')
-            ->where('tipe_profil', 'merchant')
-            ->where('status_verifikasi', 'menunggu')
-            ->orderBy('created_at', 'asc')
-            ->get();
+    // Get daily sales for the last 7 days
+    $salesData = Claim::where('status', 'selesai')
+        ->where('created_at', '>=', now()->subDays(7))
+        ->selectRaw('DATE(created_at) as date, sum(total_harga) as total')
+        ->groupBy('date')
+        ->orderBy('date', 'asc')
+        ->pluck('total', 'date');
 
-        if ($request->wantsJson()) {
-            return response()->json([
-                'status' => 'success',
-                'data' => $merchant,
-            ], 200);
-        }
-
-        return view('admin.merchant-menunggu', ['merchants' => $merchant]);
+    $chartLabels = [];
+    $chartData = [];
+    for ($i = 6; $i >= 0; $i--) {
+        $date = now()->subDays($i)->format('Y-m-d');
+        $chartLabels[] = now()->subDays($i)->format('D');
+        $chartData[] = $salesData->get($date, 0);
     }
+
+    return view('admin.analisis_pen', compact('totalPendapatan', 'totalMakananHemat', 'totalListingAktif', 'chartLabels', 'chartData'));
 }
+
+public function merchantMenunggu()
+{
+    $merchants = Profil::with('user:id,name,email')
+        ->where('tipe_profil', 'merchant')
+        ->where('status_verifikasi', 'menunggu')
+        ->get();
+
+    $stats = [
+        'ditunda' => $merchants->count(),
+        'disetujui' => Profil::where('tipe_profil', 'merchant')->where('status_verifikasi', 'disetujui')->where('updated_at', '>=', now()->startOfWeek())->count(),
+        'ditolak' => Profil::where('tipe_profil', 'merchant')->where('status_verifikasi', 'ditolak')->where('updated_at', '>=', now()->startOfWeek())->count(),
+    ];
+
+    return view('admin.merchant-menunggu', compact('merchants', 'stats'));
+}
+
+public function detailMerchant($id)
+{
+    $merchant = Profil::with('user')->findOrFail($id);
+    return view('admin.merchant-detail', compact('merchant'));
+}
+}
+

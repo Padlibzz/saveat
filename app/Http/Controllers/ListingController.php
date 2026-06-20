@@ -34,7 +34,6 @@ class ListingController extends Controller
 
         $listings = $query->get();
 
-        // Hitung jarak jika user mengirim koordinat atau memakai lokasi profil
         $userLat = $request->input('lat');
         $userLng = $request->input('lng');
 
