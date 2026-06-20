@@ -23,5 +23,3 @@ Route::get('/dashboard', function () {
 Route::get('dashboard-admin', function () {
     return view('dashboard-admin');
 })->middleware('auth');
-
-Route::post('/auth/login', [AuthController::class, 'login']);

@@ -13,7 +13,7 @@ class LoginTest extends TestCase
     public function test_user_bisa_login_dengan_kredensial_yang_benar()
     {
         $user = User::create([
-            'nama' => 'Test User',
+            'name' => 'Test User',
             'email' => 'test@saveat.com',
             'username' => 'testuser',
             'password' => bcrypt('password123'),
@@ -23,7 +23,7 @@ class LoginTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/login', [
-            'login_identifier' => 'testuser',
+            'login' => 'testuser',
             'password' => 'password123',
         ]);
 

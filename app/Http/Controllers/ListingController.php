@@ -33,17 +33,6 @@ class ListingController extends Controller
         };
 
         $listings = $query->get();
-        $listings = $query->paginate(20);
-
-        if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Daftar makanan yang tersedia berhasil diambil',
-                'data' => $listings,
-            ], 200);
-        }
-
-        return view('listings.index', compact('listings'));
 
         // Hitung jarak jika user mengirim koordinat atau memakai lokasi profil
         $userLat = $request->input('lat');
@@ -77,20 +66,20 @@ class ListingController extends Controller
 
                 return $listing;
             });
+
+            if ($request->input('filter') === 'terdekat') {
+                $listings = $listings->sortBy('jarak_km')->values();
+            }
         }
 
-        if (
-            $request->input('filter') === 'terdekat'
-            && $userLat
-            && $userLng
-        ) {
-            $listings = $listings->sortBy('jarak_km')->values();
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Daftar makanan yang tersedia berhasil diambil',
+                'data' => $listings,
+            ], 200);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Daftar makanan yang tersedia berhasil diambil',
-            'data' => $listings,
-        ], 200);
+        return view('listings.index', compact('listings'));
     }
 }
