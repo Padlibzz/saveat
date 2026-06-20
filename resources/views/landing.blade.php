@@ -189,7 +189,7 @@
         </p>
 
         <div class="flex px-6 py-20 gap-12 overflow-x-auto justify-center">
-            {{-- @foreach($listings as $listing)
+            @foreach($listings as $listing)
                 <x-food-card
                     :image="$listing->gambar"
                     :nama="$listing->nama"
@@ -199,7 +199,7 @@
                     :harga-diskon="$listing->harga_diskon"
                     :harga-asli="$listing->harga_asli"
                 />
-            @endforeach  --}}
+            @endforeach 
         </div>
     </section>
 
