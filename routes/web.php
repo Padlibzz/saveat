@@ -51,6 +51,12 @@ Route::get('/auth/forgot-password', function () {
 
 Route::post('/auth/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
 
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
+Route::get('/auth/reset-password/{token}', function ($token) {
+    return view('auth.reset-password', ['token' => $token]);
+})->name('password.reset');
+
 Route::get('/api/recommendations', [RecommendationController::class, 'index']);
 
 Route::get('/dashboard', [RecommendationController::class, 'dashboard'])

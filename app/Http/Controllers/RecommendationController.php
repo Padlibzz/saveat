@@ -26,7 +26,7 @@ class RecommendationController extends Controller
     {
         $listings = $this->getRecommendations($request->user(), 4);
 
-        return view('dashboard-user', compact('listings'));
+        return view('dashboard-konsumen', compact('listings'));
     }
 
     private function getRecommendations($user, $limit = 20)
@@ -34,7 +34,7 @@ class RecommendationController extends Controller
         $profil = $user->profil;
 
         $kategoriFavorit = Claim::where('user_id', $user->id)
-            ->where('status', '!=', ClaimStatus::BATAL->value)
+            ->where('claims.status', '!=', ClaimStatus::BATAL->value)
             ->join('listings', 'claims.listing_id', '=', 'listings.id')
             ->selectRaw('listings.kategori_id, COUNT(*) as total')
             ->groupBy('listings.kategori_id')
