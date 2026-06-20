@@ -161,12 +161,18 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-                        {{-- FOOD CARD --}}
-                        {{-- Ganti dengan food-card milik kalian --}}
-
-                        {{-- @foreach($recommendations as $food)
-                            @include('components.food-card', ['food' => $food])
-                        @endforeach --}}
+                        @foreach($listings as $listing)
+                            <x-food-card
+                                :foto="$listing->foto"
+                                :nama="$listing->nama"
+                                :merchant="$listing->merchant?->nama_usaha ?? 'Merchant'"
+                                :alamat="$listing->merchant?->alamat ?? '-'"
+                                :jarak="$listing->jarak ?? '-'"
+                                :harga_diskon="$listing->harga_diskon"
+                                :harga_asli="$listing->harga_normal"
+                                :tersisa="$listing->stok_sisa"
+                            />
+                        @endforeach
 
                     </div>
 
