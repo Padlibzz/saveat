@@ -99,6 +99,8 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
+        $user->currentAccessToken()->delete();
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

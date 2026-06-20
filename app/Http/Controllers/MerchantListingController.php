@@ -71,7 +71,7 @@ class MerchantListingController extends Controller
 
             $input['merchant_id'] = $merchant->id;
             $input['stok_sisa'] = $request->stok_total;
-            $input['status'] = 'aktif';
+            $input['status'] = ListingStatus::AKTIF->value;
 
             $listing = Listing::create($input);
 
@@ -104,7 +104,7 @@ class MerchantListingController extends Controller
             ], 404);
         }
 
-        if (! in_array($listing->status, ['aktif', 'hampir_habis'])) {
+        if (! in_array($listing->status, [ListingStatus::AKTIF, ListingStatus::HAMPIR_HABIS])) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Listing yang sudah tutup/diarsipkan tidak dapat diedit.',
@@ -189,14 +189,14 @@ class MerchantListingController extends Controller
             ], 404);
         }
 
-        if ($listing->status === 'tutup') {
+        if ($listing->status === ListingStatus::TUTUP) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Listing ini sudah ditutup.',
             ], 400);
         }
 
-        $listing->update(['status' => 'tutup']);
+        $listing->update(['status' => ListingStatus::TUTUP->value]);
 
         return response()->json([
             'status' => 'success',
