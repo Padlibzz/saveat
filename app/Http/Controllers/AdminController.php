@@ -8,29 +8,41 @@ use App\Models\Listing;
 use App\Models\Profil;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
-    public function statistik()
+    public function statistik(Request $request)
     {
         $totalMerchantAktif = Profil::where('tipe_profil', 'merchant')
             ->where('status_verifikasi', 'disetujui')
             ->count();
-
+        $totalKonsumenAktif = Profil::where('tipe_profil', 'konsumen')
+            ->where('status_verifikasi', 'disetujui')
+            ->count();
         $totalListing = Listing::count();
         $totalKlaim = Claim::where('status', '!=', 'batal')->count();
         $totalMakananTerselamatkan = Claim::where('status', '!=', 'batal')->sum('jumlah');
 
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'total_merchant_aktif' => $totalMerchantAktif,
-                'total_listing' => $totalListing,
-                'total_klaim' => $totalKlaim,
-                'total_makanan_terselamatkan' => (int) $totalMakananTerselamatkan,
-            ],
-        ], 200);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'total_merchant_aktif' => $totalMerchantAktif,
+                    'total_konsumen_aktif' => $totalKonsumenAktif,
+                    'total_listing' => $totalListing,
+                    'total_klaim' => $totalKlaim,
+                    'total_makanan_terselamatkan' => (int) $totalMakananTerselamatkan,
+                ],
+            ], 200);
+        }
+
+        return view('dashboard-admin', compact(
+            'totalMerchantAktif',
+            'totalKonsumenAktif',
+            'totalListing',
+            'totalKlaim',
+            'totalMakananTerselamatkan'
+        ));
     }
 
     public function daftarUser(Request $request)
@@ -54,60 +66,48 @@ class AdminController extends Controller
 
         $users = $query->orderBy('created_at', 'desc')->paginate(20);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $users,
-        ], 200);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'data' => $users,
+            ], 200);
+        }
+
+        return view('admin.users', ['users' => $users]);
     }
 
     public function ubahStatusUser(Request $request, $id)
     {
-        $user = User::find($id);
-
-        if (! $user) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'User tidak ditemukan.',
-            ], 404);
-        }
+        $user = User::findOrFail($id);
 
         if ($user->id === $request->user()->id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Tidak dapat mengubah status akun sendiri.',
-            ], 400);
+            $pesanError = 'Tidak dapat mengubah status akun sendiri.';
+
+            return $request->wantsJson()
+                ? response()->json(['status' => 'error', 'message' => $pesanError], 400)
+                : redirect()->back()->withErrors(['error' => $pesanError]);
         }
 
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'status' => 'required|in:aktif,nonaktif,diblokir',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
         $user->update(['status' => $request->status]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Status user berhasil diperbarui.',
-            'data' => $user,
-        ], 200);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Status user berhasil diperbarui.',
+                'data' => $user,
+            ], 200);
+        }
+
+        return redirect()->back()->with('success', 'Status user berhasil diperbarui.');
     }
 
     public function moderasiListing(Request $request, $id)
     {
-        $listing = Listing::find($id);
-
-        if (! $listing) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Listing tidak ditemukan.',
-            ], 404);
-        }
+        $listing = Listing::findOrFail($id);
 
         $request->validate([
             'aksi' => 'required|in:arsipkan,aktifkan',
@@ -123,14 +123,18 @@ class AdminController extends Controller
                 ->update(['status' => 'selesai']);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Status listing berhasil diperbarui.',
-            'data' => $listing,
-        ], 200);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Status listing berhasil diperbarui.',
+                'data' => $listing,
+            ], 200);
+        }
+
+        return redirect()->back()->with('success', 'Status listing berhasil diperbarui.');
     }
 
-    public function merchantMenunggu()
+    public function merchantMenunggu(Request $request)
     {
         $merchant = Profil::with('user:id,name,email,no_telphone')
             ->where('tipe_profil', 'merchant')
@@ -138,9 +142,13 @@ class AdminController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $merchant,
-        ], 200);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'data' => $merchant,
+            ], 200);
+        }
+
+        return view('admin.merchant-menunggu', ['merchants' => $merchant]);
     }
 }

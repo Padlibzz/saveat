@@ -5,9 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\UserStatus;
 use App\Models\ActivityLog;
 use App\Models\User;
-
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -15,28 +14,49 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'login_identifier' => 'required',
-            'password' => 'required',
+            'login' => 'required|string',
+            'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->login_identifier)
-            ->orWhere('username', $request->login_identifier)
-            ->first();
+        $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return back()->with('error', 'Email/Username atau password salah.');
+        $credentials = [
+            $loginType => $request->login,
+            'password' => $request->password,
+        ];
+
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+
+            ActivityLog::catat($user->id, 'login', 'User login berhasil.');
+
+            if ($request->wantsJson()) {
+                $token = $user->createToken('auth_token')->plainTextToken;
+
+                return response()->json([
+                    'pesan' => 'Login berhasil',
+                    'access_token' => $token,
+                ], 200);
+            } else {
+                $request->session()->regenerate();
+
+                $redirectUrl = match ($user->peran) {
+                    'admin' => '/dashboard-admin',
+                    'merchant' => '/dashboard-merchant',
+                    default => '/dashboard',
+                };
+
+                return redirect($redirectUrl)->with('success', 'Login berhasil.');
+            }
         }
 
-        if ($user->status !== UserStatus::AKTIF->value) {
-            return back()->with('error', 'Akun Anda telah dinonaktifkan.');
+        if ($request->wantsJson()) {
+            return response()->json(['pesan' => 'Login gagal, periksa kembali kredensial Anda.'], 401);
+        } else {
+            return back()->withErrors([
+                'login' => 'Login gagal, periksa kembali username/email dan password Anda.',
+            ])->onlyInput('login');
         }
-
-        Auth::login($user);
-
-        ActivityLog::catat($user->id, 'login', 'User login berhasil.');
-
-        return redirect('/dashboard')
-            ->with('success', 'Login berhasil.');
     }
 
     public function register(Request $request)
@@ -59,22 +79,25 @@ class AuthController extends Controller
             'status' => UserStatus::AKTIF->value,
         ]);
 
-        ActivityLog::catat(
-            $user->id,
-            'register',
-            'User baru mendaftar.'
-        );
+        ActivityLog::catat($user->id, 'register', 'User baru mendaftar.');
 
-        return redirect('/auth/login')
-            ->with('success', 'Registrasi berhasil, silakan login.');
+        if ($request->wantsJson()) {
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'pesan' => 'Registrasi berhasil',
+                'data' => $user,
+                'access_token' => $token,
+            ], 201);
+        } else {
+            return redirect('/auth/login')
+                ->with('success', 'Registrasi berhasil, silakan login.');
+        }
     }
 
     public function refreshToken(Request $request)
     {
         $user = $request->user();
-
-        // PERBAIKAN: Tidak menghapus token saat ini seketika agar tidak terjadi race condition di Frontend
-        // Biarkan token lama expired dengan sendirinya sesuai konfigurasi sanctum (config/sanctum.php)
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -86,10 +109,21 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        ActivityLog::catat($request->user()->id, 'logout', 'User logout.');
+        if ($request->wantsJson()) {
+            $user = $request->user();
+            ActivityLog::catat($user->id, 'logout', 'User logout.');
+            if (auth()->check()) {
+                auth()->user()->currentAccessToken()->delete();
+            }
 
-        $request->user()->currentAccessToken()->delete();
+            return response()->json(['pesan' => 'Logout berhasil.'], 200);
 
-        return response()->json(['pesan' => 'Logout berhasil.'], 200);
+        } else {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect('/')->with('success', 'Logout berhasil.');
+        }
     }
 }
