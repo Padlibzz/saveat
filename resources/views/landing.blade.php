@@ -14,7 +14,7 @@
     <nav class="container mx-auto px-4 py-6 flex items-center justify-between">
 
         <div class="flex items-center gap-3">
-            <img src="svg/logo.png" alt="SaveEat Logo" class="w-10 h-10">
+            <img src="{{ asset('img/logo-saveat.png') }}" alt="SaveEat Logo" class="w-10 h-10">
 
             <h1 class="text-3xl font-bold text-[#545523]">
                 SaveEat
@@ -54,14 +54,14 @@
                         lebih baik.
                     </p>
 
-                    <a href="#"
+                    <a href="auth/login"
                         class="inline-block mt-8 bg-[#545523] text-white px-8 py-3 rounded-lg hover:opacity-90 transition">
                         Explore Now
                     </a>
                 </div>
 
                 <div class="md:w-1/2 flex justify-center">
-                    <img src="gambar-makanan.png"
+                    <img src="{{ asset('img/sample-food.png') }}"
                         alt="Food"
                         class="w-full max-w-lg">
                 </div>
@@ -116,38 +116,67 @@
             </p>
             
             <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-15">
+
+    <!-- Unggahan Merchant -->
                 <div class="text-center">
-                    <img src="svg/merchant.svg" alt="Merchant"
-                        class="bg-[#545523] rounded-full p-4 mx-auto">
+                    <div class="bg-[#545523] rounded-full p-4 mx-auto w-20 h-20 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="w-10 h-10 text-white">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 9l1.5-4.5A1.5 1.5 0 016 3h12a1.5 1.5 0 011.5 1.5L21 9m-18 0a3 3 0 003 3h12a3 3 0 003-3m-18 0v9a1.5 1.5 0 001.5 1.5h15A1.5 1.5 0 0021 18V9" />
+                        </svg>
+                    </div>
+
                     <h3 class="text-[#545523] font-semibold text-xl mt-4">
                         Unggahan Merchant
                     </h3>
+
                     <p class="mt-4 text-lg text-[#545523]">
                         Toko roti, kafe, dan toko lokal mencantumkan kelebihan makanan mereka di akhir hari.
                     </p>
                 </div>
 
+                <!-- Konsumen Klaim -->
                 <div class="text-center">
-                    <img src="svg/merchant.svg" alt="Merchant"
-                        class="bg-[#545523] rounded-full p-4 mx-auto">
+                    <div class="bg-[#545523] rounded-full p-4 mx-auto w-20 h-20 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="w-10 h-10 text-white">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m21 21-4.35-4.35m0 0A7.5 7.5 0 1 0 6.04 6.04a7.5 7.5 0 0 0 10.61 10.61Z" />
+                        </svg>
+                    </div>
+
                     <h3 class="text-[#545523] font-semibold text-xl mt-4">
                         Konsumen Klaim
                     </h3>
+
                     <p class="mt-4 text-lg text-[#545523]">
                         Telusuri Merchant yang tersedia di dekat Anda dan pesan barang favorit Anda melalui aplikasi.
                     </p>
                 </div>
 
+                <!-- Klaim Cepat -->
                 <div class="text-center">
-                    <img src="svg/merchant.svg" alt="Merchant"
-                        class="bg-[#545523] rounded-full p-4 mx-auto">
+                    <div class="bg-[#545523] rounded-full p-4 mx-auto w-20 h-20 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="w-10 h-10 text-white">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12.75 11.25 15 15 9.75m6 2.25a9 9 0 11-18 0 9 9 0 0118 0Z" />
+                        </svg>
+                    </div>
+
                     <h3 class="text-[#545523] font-semibold text-xl mt-4">
                         Klaim Cepat
                     </h3>
+
                     <p class="mt-4 text-lg text-[#545523]">
                         Datanglah ke toko pada waktu pengambilan yang telah ditentukan dan nikmati penghematan yang lezat.
                     </p>
                 </div>
+
             </div>
         </div>
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Profil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class ProfilController extends Controller
@@ -143,6 +144,27 @@ class ProfilController extends Controller
             'message' => 'Profil dan data user berhasil diperbarui.',
             'data' => $profil->load('user'),
         ], 200);
+    }
+
+    public function applyMerchant(Request $request)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
+        if (!$user) {
+            return back()->with('error', 'User belum login.');
+        }
+
+        $profil = $user->profil;
+
+        if (!$profil) {
+            return back()->with('error', 'Profil tidak ditemukan.');
+        }
+
+        $request->merge([
+            'tipe_profil' => 'merchant'
+        ]);
+
+        return $this->update($request, $profil->id);
     }
 
     public function verifikasiMerchant(Request $request, $id)

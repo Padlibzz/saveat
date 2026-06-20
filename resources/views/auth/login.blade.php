@@ -14,7 +14,7 @@
     <nav class="container mx-auto px-4 py-6 flex items-center justify-between">
 
         <div class="flex items-center gap-3">
-            <img src="svg/logo.png" alt="SaveEat Logo" class="w-10 h-10">
+            <img src="{{ asset('img/logo-saveat.png') }}" alt="SaveEat Logo" class="w-10 h-10">
 
             <h1 class="text-3xl font-bold text-[#545523]">
                 SaveEat
@@ -33,11 +33,10 @@
         <form action="/auth/login" method="POST" class="space-y-4">
             @csrf
             <h3 class="text-[#6D6B2E] text-lg">
-                Mohon masukkan username/email dan password 
+                Mohon masukkan username atau email/email dan password 
             </h3>
             <div class="space-y-4">
 
-                <!-- Username -->
                 <div>
                     <label for="username" class="block text-md text-[#6D6B2E] mb-2">
                         Username atau Email
@@ -49,7 +48,7 @@
                         <input
                             type="text"
                             id="username"
-                            name="login"
+                            name="login_identifier"
                             placeholder="Masukkan username atau email Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"

@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Profil;
 
 class AuthController extends Controller
 {
@@ -77,6 +78,11 @@ class AuthController extends Controller
             'no_telphone' => $request->no_telphone,
             'peran' => 'konsumen',
             'status' => UserStatus::AKTIF->value,
+        ]);
+
+        Profil::create([
+            'user_id' => $user->id,
+            'tipe_profil' => 'konsumen',
         ]);
 
         ActivityLog::catat($user->id, 'register', 'User baru mendaftar.');
