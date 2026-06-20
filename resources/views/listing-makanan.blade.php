@@ -1,3 +1,4 @@
+@section('page_title', 'Listing Makanan')
 <!DOCTYPE html>
 <html lang="en">
 <head>

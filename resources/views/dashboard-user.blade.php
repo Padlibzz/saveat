@@ -1,3 +1,4 @@
+@section('page_title', 'Dashboard')
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -86,8 +87,8 @@
 
             </section>
 
+            <x-footer/>
         </div>
-
 
     </div>
 

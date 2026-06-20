@@ -52,6 +52,4 @@ Route::get('/api/recommendations', [RecommendationController::class, 'index']);
 Route::get('/dashboard', [RecommendationController::class, 'dashboard'])
     ->middleware('auth');
 
-Route::get('/listing-makanan', function () {
-    return view('listing-makanan');
-})->name('listing-makanan');
+Route::get('/listing-makanan', [ListingController::class, 'index'])->name('listing-makanan');

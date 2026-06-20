@@ -7,6 +7,8 @@ use App\Helpers\GeoHelper;
 use App\Models\Listing;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 
 class ListingController extends Controller
 {
@@ -26,32 +28,21 @@ class ListingController extends Controller
             $query->where('kategori_id', $request->kategori_id);
         }
 
-        match ($request->input('filter')) {
-            'termurah' => $query->orderBy('harga_diskon', 'asc'),
-            'terbaru' => $query->orderBy('created_at', 'desc'),
-            default => $query->orderBy('created_at', 'desc'),
-        };
-
-        $listings = $query->get();
-        $listings = $query->paginate(20);
-
-        if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Daftar makanan yang tersedia berhasil diambil',
-                'data' => $listings,
-            ], 200);
+        if ($request->input('filter') !== 'terdekat') {
+            match ($request->input('filter')) {
+                'termurah' => $query->orderBy('harga_diskon', 'asc'),
+                'terbaru'  => $query->orderBy('created_at', 'desc'),
+                default    => $query->orderBy('created_at', 'desc'),
+            };
         }
 
-        return view('listings.index', compact('listings'));
+        $listings = $query->get();
 
-        // Hitung jarak jika user mengirim koordinat atau memakai lokasi profil
         $userLat = $request->input('lat');
         $userLng = $request->input('lng');
 
         if (! $userLat && ! $userLng && $request->user()) {
             $profil = $request->user()->profil;
-
             if ($profil && $profil->izin_lokasi) {
                 $userLat = $profil->latitude;
                 $userLng = $profil->longitude;
@@ -77,20 +68,35 @@ class ListingController extends Controller
 
                 return $listing;
             });
+
+            if ($request->input('filter') === 'terdekat') {
+                $listings = $listings->sortBy('jarak_km')->values();
+            }
         }
 
-        if (
-            $request->input('filter') === 'terdekat'
-            && $userLat
-            && $userLng
-        ) {
-            $listings = $listings->sortBy('jarak_km')->values();
+        $perPage = 20; 
+        $currentPage = Paginator::resolveCurrentPage() ?: 1;
+        $currentItems = $listings->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+        $listings = new LengthAwarePaginator(
+            $currentItems,
+            $listings->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path' => Paginator::resolveCurrentPath(),
+                'query' => $request->query()
+            ]
+        );
+
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Daftar makanan yang tersedia berhasil diambil',
+                'data'    => $listings,
+            ], 200);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Daftar makanan yang tersedia berhasil diambil',
-            'data' => $listings,
-        ], 200);
+        return view('listing-makanan', compact('listings'));
     }
 }

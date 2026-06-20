@@ -13,8 +13,8 @@
                         </button>
 
                         <h2 class="text-xl font-semibold text-[#545523]">
-                            Dashboard
-                        </h2>
+                            @yield('page_title', 'Dashboard') 
+                            </h2>
 
                     </div>
 
