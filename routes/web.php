@@ -53,3 +53,7 @@ Route::get('/dashboard', [RecommendationController::class, 'dashboard'])
     ->middleware('auth');
 
 Route::get('/listing-makanan', [ListingController::class, 'index'])->name('listing-makanan');
+
+Route::get('/checkout/{id}', [ListingController::class, 'checkout'])
+    ->middleware('auth')
+    ->name('checkout');

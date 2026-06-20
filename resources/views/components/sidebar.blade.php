@@ -16,7 +16,7 @@
                 class="w-10 h-10">
 
             <h1 class="text-3xl font-bold text-[#545523]">
-                SaveEat
+                Saveat
             </h1>
         </div>
     </div>

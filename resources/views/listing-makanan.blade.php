@@ -47,11 +47,11 @@
 
                         @forelse ($listings as $listing)
                             <x-food-card
-                                :foto="$listing->foto"
+                                data-url="/checkout/{{ $listing->id }}" :foto="$listing->foto"
                                 :nama="$listing->nama"
                                 :merchant="$listing->merchant?->nama_usaha ?? 'Merchant'"
                                 :alamat="$listing->merchant?->alamat ?? '-'"
-                                :jarak="$listing->jarak_km ?? null"
+                                :jarak="$listing->jarak_km ?? '-'"
                                 :harga_diskon="$listing->harga_diskon"
                                 :harga_asli="$listing->harga_normal"
                                 :tersisa="$listing->stok_sisa"
