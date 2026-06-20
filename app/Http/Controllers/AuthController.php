@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserStatus;
 use App\Models\ActivityLog;
+use App\Models\Profil;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Profil;
 
 class AuthController extends Controller
 {
@@ -44,7 +44,7 @@ class AuthController extends Controller
                 $redirectUrl = match ($user->peran) {
                     'admin' => '/dashboard-admin',
                     'merchant' => '/dashboard-merchant',
-                    default => '/dashboard',
+                    default => '/dashboard-konsumen',
                 };
 
                 return redirect($redirectUrl)->with('success', 'Login berhasil.');

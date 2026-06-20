@@ -48,7 +48,7 @@
                         <input
                             type="text"
                             id="username"
-                            name="login_identifier"
+                            name="login"
                             placeholder="Masukkan username atau email Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"

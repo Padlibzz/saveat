@@ -11,18 +11,17 @@ class ProfilController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Profil::with('user');
+        $user = Auth::user();
+        $profil = Profil::where('user_id', $user->id)->first();
 
-        if ($request->has('tipe')) {
-            $query->where('tipe_profil', $request->tipe);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'data' => $profil ? $profil->load('user') : null,
+            ], 200);
         }
 
-        $profils = $query->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $profils,
-        ], 200);
+        return view('profile', compact('profil'));
     }
 
     public function store(Request $request)
@@ -139,11 +138,15 @@ class ProfilController extends Controller
 
         $profil->update($inputProfil);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Profil dan data user berhasil diperbarui.',
-            'data' => $profil->load('user'),
-        ], 200);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Profil dan data user berhasil diperbarui.',
+                'data' => $profil->load('user'),
+            ], 200);
+        }
+
+        return redirect()->route('profile')->with('success', 'Profil dan data user berhasil diperbarui.');
     }
 
     public function applyMerchant(Request $request)
