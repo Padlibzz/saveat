@@ -128,7 +128,6 @@ class ProfilController extends Controller
 
         // 2. Proses Pembaruan Data pada Tabel Profils
         $profilFields = ['tipe_profil', 'alamat', 'nama_usaha', 'deskripsi', 'link_map', 'latitude', 'longitude'];
-        $profilFields = ['tipe_profil', 'alamat', 'nama_usaha', 'deskripsi', 'link_map'];
         $inputProfil = array_intersect_key($validatedData, array_flip($profilFields));
 
         if ($request->has('tipe_profil') && $request->tipe_profil === 'merchant' && $profil->tipe_profil !== 'merchant') {
@@ -190,8 +189,8 @@ class ProfilController extends Controller
     public function updateLokasi(Request $request)
     {
         $request->validate([
-            'latitude'    => 'required_if:izin_lokasi,true|nullable|numeric|between:-90,90',
-            'longitude'   => 'required_if:izin_lokasi,true|nullable|numeric|between:-180,180',
+            'latitude' => 'required_if:izin_lokasi,true|nullable|numeric|between:-90,90',
+            'longitude' => 'required_if:izin_lokasi,true|nullable|numeric|between:-180,180',
             'izin_lokasi' => 'required|boolean',
         ]);
 
@@ -202,17 +201,17 @@ class ProfilController extends Controller
         }
 
         $profil->update([
-            'latitude'    => $request->izin_lokasi ? $request->latitude : null,
-            'longitude'   => $request->izin_lokasi ? $request->longitude : null,
+            'latitude' => $request->izin_lokasi ? $request->latitude : null,
+            'longitude' => $request->izin_lokasi ? $request->longitude : null,
             'izin_lokasi' => $request->boolean('izin_lokasi'),
         ]);
 
         return response()->json([
-            'status'  => 'success',
+            'status' => 'success',
             'message' => $request->izin_lokasi
                 ? 'Lokasi berhasil diaktifkan.'
                 : 'Layanan lokasi dinonaktifkan.',
-            'data'    => $profil,
+            'data' => $profil,
         ], 200);
     }
 }
