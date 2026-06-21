@@ -13,7 +13,7 @@
     </style>
 </head>
 <body
-    x-data="{ sidebarOpen: false }"
+    x-data="{ sidebarOpen: false, mode: '{{ request('kode') ? 'manual' : 'scan' }}' }"
     class="bg-gradient-to-r from-[#CFD086] to-[#F1F2CF] min-h-screen font-[Poppins]">
 
     <div class="flex min-h-screen">
@@ -26,15 +26,32 @@
 
                 <div class="bg-[#FAF7F2] rounded-xl p-5 shadow-sm">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-[#545523]">Klaim Masuk</h2>
-                        @php
-                            $baruCount = $klaims->where('status', 'pending')->count();
-                        @endphp
-                        @if ($baruCount > 0)
-                            <span class="bg-[#545523] text-white text-xs font-semibold px-3 py-1 rounded-full">
-                                {{ $baruCount }} Baru
-                            </span>
-                        @endif
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-xl font-bold text-[#545523]">Klaim Masuk</h2>
+                            @php
+                                $baruCount = $klaims->where('status', 'pending')->count();
+                            @endphp
+                            @if ($baruCount > 0)
+                                <span class="bg-[#545523] text-white text-xs font-semibold px-3 py-1 rounded-full">
+                                    {{ $baruCount }} Baru
+                                </span>
+                            @endif
+                        </div>
+
+                        <a href="{{ route('merchant.scan-qr') }}"
+                            class="bg-[#545523] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition flex items-center gap-2">
+                            <i class="fa-solid fa-qrcode"></i>
+                            Verifikasi Pesanan
+                        </a>
+                    </div>
+
+                    <div class="mb-4">
+                        <input type="text"
+                            name="kode_klaim"
+                            value="{{ old('kode_klaim', request('kode')) }}"
+                            placeholder="Contoh: CLM-AB12CD34"
+                            autocomplete="off"
+                            class="w-full text-center uppercase tracking-wider font-semibold border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-[#545523]">
                     </div>
 
                     <div class="overflow-x-auto">
@@ -45,6 +62,7 @@
                                     <th class="py-2 pr-4">Pelanggan</th>
                                     <th class="py-2 pr-4">Menu</th>
                                     <th class="py-2 pr-4">Status</th>
+                                    <th class="py-2 pr-4">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -63,10 +81,18 @@
                                                 {{ ucfirst($klaim->status) }}
                                             </span>
                                         </td>
+                                        <td class="py-3 pr-4">
+                                            @if ($klaim->status === 'pending' && $klaim->status_pembayaran === 'sudah_dibayar')
+                                                <a href="{{ route('merchant.scan-qr') }}?kode={{ $klaim->kode_klaim }}"
+                                                    class="text-[#545523] text-xs font-semibold underline">
+                                                    Verifikasi
+                                                </a>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="py-6 text-center text-gray-500">Belum ada klaim masuk.</td>
+                                        <td colspan="5" class="py-6 text-center text-gray-500">Belum ada klaim masuk.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
