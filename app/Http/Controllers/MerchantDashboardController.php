@@ -15,13 +15,20 @@ class MerchantDashboardController extends Controller
      */
     public function index(Request $request)
     {
-        // Proteksi Keamanan: Pastikan role-nya merchant & data profil merchant-nya ada
         if ($request->user()->peran !== 'merchant' || ! $request->user()->merchant) {
-            return redirect()->route('dashboard')->with('error', 'Anda belum terdaftar atau disetujui sebagai merchant resmi.');
+            return redirect()->route('dashboard')->with('error', 'Anda belum terdaftar sebagai merchant resmi.');
         }
 
-        // Membuka file view dashboard-merchant.blade.php kamu
-        return view('dashboard-merchant');
+        $merchant = $request->user()->merchant;
+        $listingIds = \App\Models\Listing::where('merchant_id', $merchant->id)->pluck('id');
+        $claimsValid = \App\Models\Claim::whereIn('listing_id', $listingIds)->where('status', '!=', 'batal');
+
+        // Ambil data untuk dikirim ke Blade View
+        $totalPorsiTerjual = (clone $claimsValid)->sum('jumlah');
+        $totalPendapatan = (clone $claimsValid)->where('status_pembayaran', 'sudah_dibayar')->sum('total_harga');
+        $totalPembeliUnik = (clone $claimsValid)->distinct('user_id')->count('user_id');
+
+        return view('dashboard-merchant', compact('totalPorsiTerjual', 'totalPendapatan', 'totalPembeliUnik'));
     }
 
     /**

@@ -14,21 +14,18 @@ class MerchantListingController extends Controller
         $merchant = $request->user()->merchant;
 
         if (! $merchant) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Profil merchant tidak ditemukan.',
-            ], 404);
+            return redirect()->route('dashboard')->with('error', 'Profil merchant tidak ditemukan.');
         }
 
+        // Mengambil semua produk aktif milik merchant ini
         $listings = Listing::with('kategori')
             ->where('merchant_id', $merchant->id)
+            ->whereIn('status', ['aktif', 'hampir_habis']) // Hanya tampilkan yang aktif
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $listings,
-        ], 200);
+        // Mengembalikan ke halaman blade produk-aktif
+        return view('produk-aktif', compact('listings'));
     }
 
     public function store(Request $request)

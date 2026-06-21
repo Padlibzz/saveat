@@ -7,14 +7,15 @@ use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\MerchantDashboardController;
+use App\Http\Controllers\MerchantListingController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Halaman Publik
+// ================= HALAMAN PUBLIK =================
 Route::get('/', [LandingController::class, 'index']);
 Route::get('/listing-makanan', [ListingController::class, 'index'])->name('listing-makanan');
 
-// Jalur khusus user yang BELUM login (Guest)
+// ================= GUEST MIDDLEWARE (Belum Login) =================
 Route::middleware('guest')->group(function () {
     Route::get('/auth/login', function () { return view('auth.login'); })->name('login');
     Route::post('/auth/login', [AuthController::class, 'login']);
@@ -22,7 +23,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/auth/register', [AuthController::class, 'register']);
 });
 
-// Jalur khusus user yang SUDAH login (Auth)
+// ================= AUTH MIDDLEWARE (Sudah Login) =================
 Route::middleware('auth')->group(function () {
     
     // Proses Logout
@@ -45,6 +46,10 @@ Route::middleware('auth')->group(function () {
 
     // ================= AREA MERCHANT =================
     Route::get('/merchant/dashboard', [MerchantDashboardController::class, 'index'])->name('merchant.dashboard');
+    Route::get('/merchant/produk-aktif', [MerchantListingController::class, 'index'])->name('merchant.produk-aktif');
+    Route::get('/merchant/upload-makanan', function () { return view('upload-makanan'); })->name('merchant.upload-makanan');
+    Route::post('/merchant/listing', [MerchantListingController::class, 'store'])->name('merchant.listing.store');
+    Route::post('/merchant/listing/{id}/tutup', [MerchantListingController::class, 'tutup'])->name('merchant.listing.tutup');
 
     // ================= AREA ADMIN =================
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
