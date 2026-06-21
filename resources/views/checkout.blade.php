@@ -79,7 +79,7 @@
             </section>
 
             <section class="space-y-4">
-                <form id="checkoutForm" @submit.prevent="submitForm($event)">
+                <form id="checkoutForm" action="{{ route('transaksi.proses') }}" @submit.prevent="submitForm($event)">
                     @csrf
                     <input type="hidden" name="listing_id" value="{{ $listing->id }}">
                     <input type="hidden" name="jumlah" x-model="qty">
@@ -88,11 +88,7 @@
                         <h4 class="font-bold text-gray-400 text-xs uppercase mb-3">Metode Pembayaran</h4>
                         <div class="space-y-2">
                             <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:bg-gray-50">
-                                <input type="radio" name="metode_pembayaran" value="cash" x-model="metode" class="accent-[#545523]">
-                                <span>Bayar Tunai</span>
-                            </label>
-                            <label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:bg-gray-50">
-                                <input type="radio" name="metode_pembayaran" value="midtrans" x-model="metode" class="accent-[#545523]">
+                                <input type="radio" name="metode_pembayaran" value="midtrans" x-model="metode" class="accent-[#545523]" checked>
                                 <span>Bayar Online</span>
                             </label>
                         </div>
@@ -122,23 +118,24 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('checkoutData', (maxStok, hargaSatuan) => ({
                 qty: 1,
-                maxStok,
-                hargaSatuan,
+                maxStok: parseInt(maxStok),
+                hargaSatuan: parseFloat(hargaSatuan),
                 pajak: 2000,
-                metode: 'cash',
+                metode: 'midtrans',
                 get total() { return (this.qty * this.hargaSatuan) + this.pajak },
                 increment() { if (this.qty < this.maxStok) this.qty++ },
                 decrement() { if (this.qty > 1) this.qty-- },
                 async submitForm(event) {
-                    let res = await fetch("{{ route('transaksi.proses') }}", {
+                    let form = event.target;
+                    let res = await fetch(form.action, {
                         method: 'POST',
-                        body: new FormData(event.target),
+                        body: new FormData(form),
                         headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}'}
                     });
                     let data = await res.json();
                     if (data.status === 'midtrans') { snap.pay(data.snap_token); }
                     else if (data.status === 'success') { window.location.href = data.url; }
-                    else { alert(data.message); }
+                    else { alert(data.message || 'Terjadi kesalahan.'); }
                 }
             }));
         });

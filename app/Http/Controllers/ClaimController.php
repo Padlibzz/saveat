@@ -17,6 +17,28 @@ use Midtrans\CoreApi;
 
 class ClaimController extends Controller
 {
+    public function pesananAktif(Request $request)
+    {
+        $claims = Claim::with(['listing.merchant'])
+            ->where('user_id', $request->user()->id)
+            ->where('status', '!=', ClaimStatus::DIAMBIL->value) // Filter bukan yang sudah selesai
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('pesanan', compact('claims'));
+    }
+
+    public function riwayat(Request $request)
+    {
+        $claims = Claim::with(['listing.merchant'])
+            ->where('user_id', $request->user()->id)
+            ->where('status', ClaimStatus::DIAMBIL->value) // Filter hanya yang sudah selesai
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('riwayat-pesanan', compact('claims'));
+    }
+
     public function index(Request $request)
     {
         $claims = Claim::with([
@@ -67,7 +89,7 @@ class ClaimController extends Controller
         $request->validate([
             'listing_id' => 'required|exists:listings,id',
             'jumlah' => 'required|integer|min:1',
-            'metode_pembayaran' => 'required|in:cash,midtrans',
+            'metode_pembayaran' => 'required|in:midtrans',
         ]);
 
         DB::beginTransaction();
@@ -93,16 +115,11 @@ class ClaimController extends Controller
                 'total_harga' => $totalHarga,
                 'kode_klaim' => $kodeKlaim,
                 'metode_pembayaran' => $request->metode_pembayaran,
-                'status_pembayaran' => $request->metode_pembayaran === 'cash' ? PaymentStatus::BELUM_DIBAYAR->value : PaymentStatus::BELUM_DIBAYAR->value,
+                'status_pembayaran' => PaymentStatus::BELUM_DIBAYAR->value,
                 'status' => ClaimStatus::PENDING->value,
             ]);
 
             $listing->decrement('stok_sisa', $request->jumlah);
-
-            if ($request->metode_pembayaran === 'cash') {
-                DB::commit();
-                return response()->json(['status' => 'success', 'url' => route('dashboard')]);
-            }
 
             // Midtrans Logic
             \Midtrans\Config::$serverKey = config('midtrans.server_key');

@@ -7,6 +7,8 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\MerchantDashboardController;
+use App\Http\Controllers\MerchantListingController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -32,12 +34,11 @@ Route::middleware('guest')->group(function () {
     })->name('password.reset');
 });
 
-// Centralized Dashboard Redirection
 Route::get('/dashboard', function () {
     $user = auth()->user();
     return match ($user->peran) {
         'admin' => redirect()->route('admin.dashboard'),
-        'merchant' => redirect('/dashboard-merchant'),
+        'merchant' => redirect()->route('merchant.dashboard'),
         default => redirect()->route('dashboard.konsumen'),
     };
 })->middleware('auth')->name('dashboard');
@@ -56,10 +57,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/merchant-application', [ProfilController::class, 'applyMerchant'])->name('merchant.application.submit');
 
     // Merchant Routes
-    Route::middleware(['role:merchant'])->group(function () {
-        Route::get('/dashboard-merchant', function () {
-            return view('dashboard-merchant');
-        })->name('dashboard.merchant');
+    Route::middleware(['role:merchant'])->prefix('merchant')->group(function () {
+        Route::get('/dashboard', [MerchantDashboardController::class, 'index'])->name('merchant.dashboard');
+        Route::get('/upload-makanan', [MerchantListingController::class, 'create'])->name('merchant.upload');
+        Route::post('/upload-makanan', [MerchantListingController::class, 'storeWeb'])->name('merchant.upload.submit');
+        Route::get('/produk-aktif', [MerchantListingController::class, 'indexWeb'])->name('merchant.produk-aktif');
+        Route::get('/produk-aktif/{id}/edit', [MerchantListingController::class, 'edit'])->name('merchant.listing.edit');
+        Route::put('/produk-aktif/{id}', [MerchantListingController::class, 'updateWeb'])->name('merchant.listing.update');
+        Route::delete('/produk-aktif/{id}', [MerchantListingController::class, 'destroy'])->name('merchant.listing.destroy');
+        Route::get('/klaim-masuk', [MerchantDashboardController::class, 'klaimMasukWeb'])->name('merchant.klaim-masuk');
     });
 
     // Admin Routes

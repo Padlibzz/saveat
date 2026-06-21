@@ -27,8 +27,6 @@
     </script>
     <style>
         body { font-family: 'DM Sans', sans-serif; background: #f0f2dc; }
-        #sidebar { transition: transform .3s ease; transform: translateX(-100%); }
-        #sidebar.open { transform: translateX(0); }
         #overlay.hidden { display: none; }
         #overlay:not(.hidden) { display: block; }
     </style>
@@ -39,13 +37,10 @@
 
     <div id="main-wrapper" class="min-h-screen flex flex-col transition-all duration-300 md:ml-64">
         <header class="bg-white border-b border-gray-100 shadow-sm px-5 py-4 flex items-center justify-between">
-            <button onclick="toggleSidebar()" class="w-10 h-10 flex justify-center items-center border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors">
-                <i class="fa-solid fa-bars text-[#6c6d2d] text-xl"></i>
-            </button>
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="text-sm font-medium text-red-600">Logout</button>
-            </form>
+            <div class="flex items-center gap-3">
+                <img src="{{ asset('img/logo-saveat.png') }}" alt="Logo" class="w-8 h-8 object-contain">
+                <h1 class="font-display text-xl font-bold text-olive">SavEat</h1>
+            </div>
         </header>
 
         <main class="flex-1 px-5 py-6">
@@ -58,15 +53,18 @@
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('overlay');
             const mainWrapper = document.getElementById('main-wrapper');
+            const sidebarText = document.querySelectorAll('.sidebar-text');
             
-            sidebar.classList.toggle('open');
+            sidebar.classList.toggle('w-64');
+            sidebar.classList.toggle('w-20');
             
-            if (sidebar.classList.contains('open')) {
-                if (window.innerWidth < 768) overlay.classList.remove('hidden');
-                mainWrapper.classList.add('md:ml-64');
+            if (window.innerWidth >= 768) {
+                mainWrapper.classList.toggle('md:ml-64');
+                mainWrapper.classList.toggle('md:ml-20');
+                sidebarText.forEach(el => el.classList.toggle('hidden'));
             } else {
-                overlay.classList.add('hidden');
-                mainWrapper.classList.remove('md:ml-64');
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
             }
         }
     </script>
