@@ -76,4 +76,146 @@ class MerchantDashboardController extends Controller
             'data' => $klaims,
         ], 200);
     }
+
+    // ============================================================
+    // ===================  WEB (BLADE) METHODS  ===================
+    // ============================================================
+
+    public function index(Request $request)
+    {
+        $merchant = $request->user()->merchant;
+
+        if (! $merchant) {
+            return redirect()->route('merchant.application')->with('error', 'Lengkapi profil merchant Anda terlebih dahulu.');
+        }
+
+        $listingIds = Listing::where('merchant_id', $merchant->id)->pluck('id');
+
+        $claimsValid = Claim::whereIn('listing_id', $listingIds)->where('status', '!=', 'batal');
+
+        // Penghasilan total 
+        $totalPendapatan = (clone $claimsValid)->where('status_pembayaran', 'sudah_dibayar')->sum('total_harga');
+
+        // Makanan terjual HARI INI
+        $makananTerjualHariIni = (clone $claimsValid)
+            ->whereDate('created_at', today())
+            ->sum('jumlah');
+
+        // Total pembeli unik (all-time) + pembeli baru minggu ini
+        $totalPembeliUnik = (clone $claimsValid)->distinct('user_id')->count('user_id');
+        $pembeliBaruMingguIni = (clone $claimsValid)
+            ->where('created_at', '>=', now()->subDays(7))
+            ->distinct('user_id')
+            ->count('user_id');
+
+        // Grafik "Kurs Penjualan" — breakdown 7 hari terakhir
+        $grafikPenjualan = $this->grafikPenjualan7Hari($listingIds);
+
+        // Aktivitas Terkini — gabungan klaim masuk, ulasan baru, listing segera berakhir
+        $aktivitasTerkini = $this->aktivitasTerkini($merchant, $listingIds);
+
+        return view('merchant.dashboard', compact(
+            'totalPendapatan',
+            'makananTerjualHariIni',
+            'totalPembeliUnik',
+            'pembeliBaruMingguIni',
+            'grafikPenjualan',
+            'aktivitasTerkini'
+        ));
+    }
+
+    private function grafikPenjualan7Hari($listingIds): array
+    {
+        $hariLabel = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+        $hasil = [];
+
+        $mulai = now()->subDays(6)->startOfDay();
+
+        for ($i = 0; $i < 7; $i++) {
+            $tanggal = $mulai->copy()->addDays($i);
+
+            $totalPorsi = Claim::whereIn('listing_id', $listingIds)
+                ->where('status', '!=', 'batal')
+                ->whereDate('created_at', $tanggal)
+                ->sum('jumlah');
+
+            $hasil[] = [
+                'label' => $hariLabel[$tanggal->dayOfWeekIso - 1], // 1=Senin ... 7=Minggu
+                'tanggal' => $tanggal->format('Y-m-d'),
+                'total' => (int) $totalPorsi,
+            ];
+        }
+
+        return $hasil;
+    }
+
+    private function aktivitasTerkini($merchant, $listingIds): array
+    {
+        $aktivitas = collect();
+
+        $klaimTerbaru = Claim::with(['user:id,name', 'listing:id,nama'])
+            ->whereIn('listing_id', $listingIds)
+            ->where('status', '!=', 'batal')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        foreach ($klaimTerbaru as $klaim) {
+            $aktivitas->push([
+                'tipe' => 'klaim',
+                'icon' => 'bag-shopping',
+                'judul' => $klaim->jumlah.'x '.($klaim->listing->nama ?? 'Makanan').' diklaim',
+                'keterangan' => 'Oleh '.($klaim->user->name ?? 'Konsumen'),
+                'waktu' => $klaim->created_at,
+            ]);
+        }
+
+        $ulasanTerbaru = \App\Models\Review::whereIn('listing_id', $listingIds)
+            ->where('rating', 5)
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        foreach ($ulasanTerbaru as $ulasan) {
+            $aktivitas->push([
+                'tipe' => 'ulasan',
+                'icon' => 'star',
+                'judul' => 'Ulasan Bintang 5 Baru',
+                'keterangan' => $ulasan->komentar ? '"'.$ulasan->komentar.'"' : 'Tanpa komentar',
+                'waktu' => $ulasan->created_at,
+            ]);
+        }
+
+        $listingSegeraBerakhir = Listing::whereIn('id', $listingIds)
+            ->whereIn('status', ['aktif', 'hampir_habis'])
+            ->whereBetween('batas_waktu', [now(), now()->addHour()])
+            ->orderBy('batas_waktu', 'asc')
+            ->take(5)
+            ->get();
+
+        foreach ($listingSegeraBerakhir as $listing) {
+            $aktivitas->push([
+                'tipe' => 'segera_berakhir',
+                'icon' => 'clock',
+                'judul' => 'Listing Segera Berakhir',
+                'keterangan' => $listing->nama.' • Sisa '.now()->diffInMinutes($listing->batas_waktu).' menit',
+                'waktu' => now(),
+            ]);
+        }
+
+        return $aktivitas->sortByDesc('waktu')->take(6)->values()->all();
+    }
+
+    public function klaimMasukWeb(Request $request)
+    {
+        $merchant = $request->user()->merchant;
+        $listingIds = Listing::where('merchant_id', $merchant->id)->pluck('id');
+
+        $klaims = Claim::with(['user:id,name', 'listing:id,nama'])
+            ->whereIn('listing_id', $listingIds)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('merchant.klaim-masuk', compact('klaims'));
+    }
 }
