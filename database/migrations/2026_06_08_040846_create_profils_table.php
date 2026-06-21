@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('deskripsi')->nullable();
             $table->string('link_map')->nullable();
 
-            $table->enum('status_verifikasi', ['menunggu', 'disetujui', 'ditolak'])->nullable();
+            $table->enum('status_verifikasi', ['menunggu', 'disetujui', 'ditolak'])->default('menunggu');
             $table->unsignedBigInteger('diverifikasi_oleh')->nullable();
             $table->text('alasan_penolakan')->nullable();
 

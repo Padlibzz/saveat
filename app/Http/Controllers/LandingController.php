@@ -17,8 +17,11 @@ class LandingController extends Controller
             ->take(4)
             ->get();
 
-        // Statistik real-time untuk landing page (makanan terselamatkan, merchant, rating)
-        $stats = app(PublicStatsController::class)->index()->getData()->data;
+        // Statistik real-time untuk landing page
+        $stats = app(PublicStatsController::class)
+            ->index()
+            ->getData()
+            ->data;
 
         return view('landing', compact('listings', 'stats'));
     }
