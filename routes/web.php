@@ -74,10 +74,12 @@ Route::middleware('auth')->group(function () {
     // Transaction Routes
     Route::post('/proses-transaksi', [ClaimController::class, 'prosesTransaksi'])->name('transaksi.proses');
     Route::post('/konfirmasi-pembayaran/{id}', [ClaimController::class, 'konfirmasiPembayaran'])->name('transaksi.konfirmasi');
+    Route::get('/pesanan', [ClaimController::class, 'pesananAktif'])->name('pesanan.aktif');
     Route::get('/pesanan/{id}', function ($id) {
         $claim = \App\Models\Claim::with('listing.merchant')->findOrFail($id);
         return view('pesanan-detail', compact('claim'));
     })->name('pesanan.detail');
+    Route::get('/riwayat-pesanan', [ClaimController::class, 'riwayat'])->name('riwayat.pesanan');
     
     // Shared Routes
     Route::get('/profile', [ProfilController::class, 'index'])->name('profile');
