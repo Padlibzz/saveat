@@ -24,6 +24,7 @@
     <nav class="p-4 space-y-2">
         @if(Auth::check())
             
+            {{-- ================= [BAGIAN 1] MENU ADMIN ================= --}}
             @if(Auth::user()->peran === 'admin')
                 <a href="/admin/dashboard"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('admin/dashboard') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
@@ -50,8 +51,8 @@
                 </a>
 
 
-            {{-- ================= [BAGIAN 2] MENU MERCHANT ================= --}}
-            @elseif(Auth::user()->peran === 'merchant')
+            {{-- ================= [BAGIAN 2] MENU MERCHANT (Hanya Aktif Saat di Halaman Merchant) ================= --}}
+            @elseif(Auth::user()->peran === 'merchant' && request()->is('merchant*'))
                 <a href="/merchant/dashboard"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('merchant/dashboard') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
                     <i class="fa-solid fa-store w-5"></i>
@@ -76,8 +77,16 @@
                     <span>Produk Aktif</span>
                 </a>
 
+                <div class="pt-4 my-4 border-t border-gray-100">
+                    <a href="/dashboard"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition bg-amber-500 text-white font-semibold hover:bg-amber-600 shadow-sm">
+                        <i class="fa-solid fa-arrow-left-long w-5"></i>
+                        <span>Menu Konsumen</span>
+                    </a>
+                </div>
 
-            {{-- ================= [BAGIAN 3] MENU KOSTUMER ================= --}}
+
+            {{-- ================= [BAGIAN 3] MENU KONSUMEN / KOSTUMER (Default) ================= --}}
             @else
                 <a href="/dashboard"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('dashboard') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
@@ -102,6 +111,17 @@
                     <i class="fa-solid fa-clock-rotate-left w-5"></i>
                     <span>Riwayat Pesanan</span>
                 </a>
+
+                @if(Auth::user()->peran === 'merchant')
+                    <div class="pt-4 my-4 border-t border-gray-100">
+                        <p class="text-[10px] font-bold tracking-wider uppercase text-gray-400 px-4 mb-2">Akses Toko</p>
+                        <a href="/merchant/dashboard"
+                            class="flex items-center gap-3 px-4 py-3 rounded-xl transition bg-[#545523] text-[#F1F2CF] font-semibold hover:bg-opacity-90 shadow-sm">
+                            <i class="fa-solid fa-store w-5"></i>
+                            <span>Dashboard Merchant</span>
+                        </a>
+                    </div>
+                @endif
             @endif
 
         @endif

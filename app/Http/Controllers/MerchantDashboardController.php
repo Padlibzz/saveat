@@ -8,6 +8,27 @@ use Illuminate\Http\Request;
 
 class MerchantDashboardController extends Controller
 {
+    /**
+     * ====================================================================
+     * [BARU] MENAMPILKAN HALAMAN VIEW DASHBOARD MERCHANT
+     * ====================================================================
+     */
+    public function index(Request $request)
+    {
+        // Proteksi Keamanan: Pastikan role-nya merchant & data profil merchant-nya ada
+        if ($request->user()->peran !== 'merchant' || ! $request->user()->merchant) {
+            return redirect()->route('dashboard')->with('error', 'Anda belum terdaftar atau disetujui sebagai merchant resmi.');
+        }
+
+        // Membuka file view dashboard-merchant.blade.php kamu
+        return view('dashboard-merchant');
+    }
+
+    /**
+     * ====================================================================
+     * FUNGSI BAWAAN BACKEND: STATISTIK TOKO (API JSON)
+     * ====================================================================
+     */
     public function statistik(Request $request)
     {
         $merchant = $request->user()->merchant;
@@ -44,6 +65,11 @@ class MerchantDashboardController extends Controller
         ], 200);
     }
 
+    /**
+     * ====================================================================
+     * FUNGSI BAWAAN BACKEND: KLAIM/PESANAN MASUK (API JSON)
+     * ====================================================================
+     */
     public function klaimMasuk(Request $request)
     {
         $merchant = $request->user()->merchant;
