@@ -77,6 +77,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/analisis-penjualan', [AdminController::class, 'analisisPenjualan'])->name('admin.analisis');
         Route::get('/users', [AdminController::class, 'daftarUser'])->name('admin.users');
         Route::get('/merchants/menunggu', [AdminController::class, 'merchantMenunggu'])->name('admin.merchant-menunggu');
+        Route::get('/merchants/{id}', [AdminController::class, 'merchantDetail'])->name('admin.merchant-detail');
+        Route::patch('/merchants/{id}/verifikasi', [ProfilController::class, 'verifikasiMerchant'])->name('admin.merchant-verifikasi');
     });
     
     // Transaction Routes

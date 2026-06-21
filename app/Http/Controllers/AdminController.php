@@ -199,6 +199,12 @@ public function merchantMenunggu()
     return view('admin.merchant-menunggu', compact('merchants', 'stats'));
 }
 
+public function merchantDetail($id)
+{
+    $merchant = Profil::with('user')->findOrFail($id);
+    return view('admin.merchant-detail', compact('merchant'));
+}
+
 public function detailMerchant($id)
 {
     $merchant = Profil::with('user')->findOrFail($id);
