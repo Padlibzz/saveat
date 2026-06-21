@@ -75,10 +75,9 @@
          <div class="container mx-auto px-6 py-20">
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-
                 <div>
                     <h2 class="text-6xl font-extrabold text-[#545523]">
-                        10,000+
+                        {{ number_format($stats->makanan_terselamatkan) }}+
                     </h2>
                     <p class="mt-3 text-2xl font-semibold text-gray-700">
                         Makanan Terselamatkan
@@ -87,7 +86,7 @@
 
                 <div>
                     <h2 class="text-6xl font-extrabold text-[#545523]">
-                        500+
+                        {{ $stats->total_merchant }}+
                     </h2>
                     <p class="mt-3 text-2xl font-semibold text-gray-700">
                         Merchant
@@ -96,13 +95,12 @@
 
                 <div>
                     <h2 class="text-6xl font-extrabold text-[#545523]">
-                        4.8/5
+                        {{ $stats->rating_pengguna }}/5
                     </h2>
                     <p class="mt-3 text-2xl font-semibold text-gray-700">
                         Rating Pengguna
                     </p>
                 </div>
-
             </div>
 
         </div>

@@ -55,7 +55,24 @@ class ClaimController extends Controller
                 return $klaim;
             });
 
-        return response()->json(['status' => 'success', 'data' => $claims], 200);
+        // Ringkasan untuk dashboard konsumen
+        $klaimValid = $claims->where('status', '!=', 'batal');
+
+        $totalHemat = $klaimValid->sum(function ($klaim) {
+            $hargaNormal = $klaim->listing->harga_normal ?? 0;
+
+            return ($hargaNormal - ($klaim->total_harga / max($klaim->jumlah, 1))) * $klaim->jumlah;
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $claims,
+            'summary' => [
+                'total_klaim' => $klaimValid->count(),
+                'makanan_terselamatkan' => (int) $klaimValid->sum('jumlah'),
+                'total_hemat' => (float) max($totalHemat, 0),
+            ],
+        ], 200);
     }
 
     private function resolveStatusRiwayat(Claim $klaim): string
