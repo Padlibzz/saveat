@@ -62,147 +62,115 @@ class ClaimController extends Controller
         ], 200);
     }
 
-    public function store(Request $request)
+    public function prosesTransaksi(Request $request)
     {
         $request->validate([
             'listing_id' => 'required|exists:listings,id',
             'jumlah' => 'required|integer|min:1',
-            'payment_type' => 'required|in:qris,dana',
+            'metode_pembayaran' => 'required|in:cash,midtrans',
         ]);
 
-        // Mulai transaksi DB secara manual agar bisa di-rollback jika Midtrans gagal
         DB::beginTransaction();
 
         try {
-            $listing = Listing::lockForUpdate()->with('merchant')->findOrFail($request->listing_id);
+            $listing = Listing::lockForUpdate()->findOrFail($request->listing_id);
 
-            if (now()->greaterThan($listing->batas_waktu)) {
-                throw new Exception('Makanan sudah melewati batas waktu.');
-            }
-            if (! in_array($listing->status, [ListingStatus::AKTIF->value, ListingStatus::HAMPIR_HABIS->value])) {
-                throw new Exception('Listing ini sudah tidak tersedia.');
-            }
             if ($listing->stok_sisa < $request->jumlah) {
                 throw new Exception('Stok sisa tidak mencukupi.');
             }
 
-            // Kalkulasi
             $hargaSatuan = $listing->harga_diskon ?? 0;
             $subtotal = $hargaSatuan * $request->jumlah;
-            $pajak = $subtotal * 0.11; // PPN 11%
+            $pajak = 2000; // Sesuai view
             $totalHarga = $subtotal + $pajak;
 
-            $kodeKlaim = 'CLM-'.strtoupper(Str::random(8));
+            $kodeKlaim = 'CLM-' . strtoupper(Str::random(8));
 
-            // Buat Pesanan
             $claim = Claim::create([
                 'user_id' => $request->user()->id,
-                'listing_id' => $request->listing_id,
+                'listing_id' => $listing->id,
                 'jumlah' => $request->jumlah,
                 'total_harga' => $totalHarga,
                 'kode_klaim' => $kodeKlaim,
-                'metode_pembayaran' => $request->payment_type, // Simpan metode
-                'status_pembayaran' => PaymentStatus::BELUM_DIBAYAR->value,
+                'metode_pembayaran' => $request->metode_pembayaran,
+                'status_pembayaran' => $request->metode_pembayaran === 'cash' ? PaymentStatus::BELUM_DIBAYAR->value : PaymentStatus::BELUM_DIBAYAR->value,
                 'status' => ClaimStatus::PENDING->value,
             ]);
 
-            // Potong Stok
-            $listing->stok_sisa -= $request->jumlah;
-            $listing->save();
+            $listing->decrement('stok_sisa', $request->jumlah);
 
-            // Update Status Listing
-            $persenSisa = $listing->stok_sisa / max($listing->stok_total, 1);
-            if ($listing->stok_sisa <= 0) {
-                $listing->update(['status' => ListingStatus::TUTUP->value]);
-            } elseif ($listing->status === ListingStatus::AKTIF->value && $persenSisa < 0.2) {
-                $listing->update(['status' => ListingStatus::HAMPIR_HABIS->value]);
+            if ($request->metode_pembayaran === 'cash') {
+                DB::commit();
+                return response()->json(['status' => 'success', 'url' => route('dashboard')]);
             }
 
-            // --- INTEGRASI MIDTRANS CORE API ---
-            Config::$serverKey = config('midtrans.server_key'); // Gunakan dari config
-            Config::$isProduction = config('midtrans.is_production');
+            // Midtrans Logic
+            \Midtrans\Config::$serverKey = config('midtrans.server_key');
+            \Midtrans\Config::$isProduction = config('midtrans.is_production');
+            \Midtrans\Config::$isSanitized = true;
+            \Midtrans\Config::$is3ds = true;
 
             $params = [
-                'payment_type' => $request->payment_type,
                 'transaction_details' => [
-                    'order_id' => $kodeKlaim, // Order ID di Midtrans adalah Kode Klaim
-                    'gross_amount' => (int) $totalHarga,
+                    'order_id' => $kodeKlaim,
+                    'gross_amount' => (int)$totalHarga,
                 ],
                 'customer_details' => [
                     'first_name' => $request->user()->name,
                     'email' => $request->user()->email,
-                    'phone' => $request->user()->no_telphone ?? '',
                 ],
-                'item_details' => [
-                    [
-                        'id' => (string) $listing->id,
-                        'price' => $hargaSatuan,
-                        'quantity' => $request->jumlah,
-                        'name' => substr($listing->nama, 0, 50),
-                    ],
-                    [
-                        'id' => 'TAX',
-                        'price' => (int) $pajak,
-                        'quantity' => 1,
-                        'name' => 'Pajak (11%)',
-                    ],
+                'callbacks' => [
+                    'finish' => route('pesanan.detail', ['id' => $claim->id])
                 ],
             ];
 
-            // Tembak ke Midtrans
-            $midtransResponse = CoreApi::charge($params);
+            $snapToken = \Midtrans\Snap::getSnapToken($params);
+            $claim->update(['midtrans_snap_token' => $snapToken]);
 
-            $paymentUrl = null;
-
-            // Ekstraksi URL Pembayaran (Beda untuk QRIS dan DANA)
-            if ($request->payment_type === 'qris' && isset($midtransResponse->actions)) {
-                foreach ($midtransResponse->actions as $action) {
-                    if ($action->name === 'generate-qr-code') {
-                        $paymentUrl = $action->url; // URL Gambar QR Code
-                        break;
-                    }
-                }
-            } elseif ($request->payment_type === 'dana' && isset($midtransResponse->actions)) {
-                foreach ($midtransResponse->actions as $action) {
-                    // DANA biasanya mengembalikan deeplink/web checkout
-                    if (in_array($action->name, ['generate-qr-code', 'generate-checkout-url', 'generate-deep-link'])) {
-                        $paymentUrl = $action->url;
-                        break;
-                    }
-                }
-            }
-
-            NotificationService::menungguPembayaran($request->user()->id, $claim->id, $listing->nama);
-
-            // Jika semua sukses, simpan transaksi database
             DB::commit();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Pesanan dibuat. Silakan selesaikan pembayaran.',
-                'data' => [
-                    'claim_id' => $claim->id,
-                    'kode_klaim' => $kodeKlaim,
-                    'rincian' => [
-                        'jumlah' => $request->jumlah,
-                        'subtotal' => $subtotal,
-                        'pajak' => $pajak,
-                        'total' => $totalHarga,
-                    ],
-                    'metode_pembayaran' => $request->payment_type,
-                    'payment_url' => $paymentUrl, // Tampilkan ini di UI (berupa QR img / tombol link DANA)
-                ],
-            ], 201);
+            return response()->json(['status' => 'midtrans', 'snap_token' => $snapToken]);
 
         } catch (Exception $e) {
-            // BATALKAN SEMUA PERUBAHAN DATABASE (stok tidak jadi berkurang)
             DB::rollBack();
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
 
+    public function konfirmasiPembayaran(Request $request, $id)
+    {
+        $merchant = $request->user()->merchant;
+
+        if (! $merchant || $merchant->status_verifikasi !== 'disetujui') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memproses pesanan: '.$e->getMessage(),
-            ], 500);
+                'message' => 'Aksi ditolak. Akun Merchant tidak valid.',
+            ], 403);
         }
+
+        $claim = Claim::where('id', $id)->whereHas('listing', function($query) use ($merchant) {
+            $query->where('merchant_id', $merchant->id);
+        })->firstOrFail();
+
+        if ($claim->metode_pembayaran !== 'cash') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Hanya pembayaran tunai yang dapat dikonfirmasi.',
+            ], 400);
+        }
+
+        if ($claim->status_pembayaran === PaymentStatus::SUDAH_DIBAYAR->value) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pembayaran sudah dikonfirmasi sebelumnya.',
+            ], 400);
+        }
+
+        $claim->update(['status_pembayaran' => PaymentStatus::SUDAH_DIBAYAR->value]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pembayaran berhasil dikonfirmasi.',
+        ], 200);
     }
 
     public function scanQr(Request $request)

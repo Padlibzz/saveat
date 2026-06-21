@@ -73,13 +73,7 @@ class AuthController extends Controller
             } else {
                 $request->session()->regenerate();
 
-                $redirectUrl = match ($user->peran) {
-                    'admin' => '/dashboard-admin',
-                    'merchant' => '/dashboard-merchant',
-                    default => '/dashboard-konsumen',
-                };
-
-                return redirect($redirectUrl)->with('success', 'Login berhasil.');
+                return redirect()->route('dashboard')->with('success', 'Login berhasil.');
             }
         }
 

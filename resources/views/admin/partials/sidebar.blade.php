@@ -22,5 +22,13 @@
             <i class="fa-solid fa-check-to-slot"></i> Verifikasi Merchant
         </a>
     </nav>
+    <div class="px-4 py-6 border-t border-[#5a7a2a]">
+        <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-cream/70 hover:bg-red-900/50 hover:text-red-200 transition-colors">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+        </form>
+    </div>
 </aside>
 <div id="overlay" class="fixed inset-0 z-30 bg-black/40 hidden md:hidden" onclick="toggleSidebar()"></div>
