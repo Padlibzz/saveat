@@ -66,6 +66,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/produk-aktif/{id}', [MerchantListingController::class, 'updateWeb'])->name('merchant.listing.update');
         Route::delete('/produk-aktif/{id}', [MerchantListingController::class, 'destroy'])->name('merchant.listing.destroy');
         Route::get('/klaim-masuk', [MerchantDashboardController::class, 'klaimMasukWeb'])->name('merchant.klaim-masuk');
+        Route::get('/scan-qr', [ClaimController::class, 'scanForm'])->name('merchant.scan-qr');
+        Route::post('/scan-qr', [ClaimController::class, 'verifikasiWeb'])->name('merchant.scan-qr.submit');
     });
 
     // Admin Routes
