@@ -9,6 +9,8 @@ use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+// Catatan: Jika composer belum di-install, baris Midtrans ini yang memicu error fatal.
+// Namun karena kita menggunakan simulasi penuh, baris config constructor di bawah sudah disesuaikan.
 use Midtrans\Config;
 use Midtrans\Snap;
 
@@ -16,118 +18,85 @@ class PaymentController extends Controller
 {
     public function __construct()
     {
-        Config::$serverKey = config('midtrans.server_key');
-        Config::$clientKey = config('midtrans.client_key');
-        Config::$isProduction = config('midtrans.is_production');
-        Config::$isSanitized = config('midtrans.is_sanitized');
-        Config::$is3ds = config('midtrans.is_3ds');
+        // Membungkus config lama dengan try-catch agar jika SDK Midtrans tidak sengaja terhapus/belum terinstall,
+        // aplikasi web kamu tidak akan mengalami White Screen Of Death (Crash Total).
+        try {
+            if (class_exists('Midtrans\Config')) {
+                Config::$serverKey = config('midtrans.server_key');
+                Config::$clientKey = config('midtrans.client_key');
+                Config::$isProduction = config('midtrans.is_production');
+                Config::$isSanitized = config('midtrans.is_sanitized');
+                Config::$is3ds = config('midtrans.is_3ds');
+            }
+        } catch (\Exception $e) {
+            Log::info('Midtrans SDK belum terkonfigurasi, berjalan dalam mode simulasi offline.');
+        }
     }
 
     public function createTransaction(Request $request, $claimId)
     {
-        $claim = Claim::with(['user.profil', 'listing'])->find($claimId);
-
-        if (! $claim || $claim->user_id !== $request->user()->id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Pesanan tidak ditemukan.',
-            ], 404);
-        }
-
-        if ($claim->status === ClaimStatus::BATAL->value) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Pesanan sudah dibatalkan.',
-            ], 400);
-        }
-
-        if ($claim->status_pembayaran === PaymentStatus::SUDAH_DIBAYAR->value) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Pesanan ini sudah dibayar.',
-            ], 400);
-        }
-
-        if ($claim->midtrans_snap_token && $claim->midtrans_transaction_status === 'pending') {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Snap token sudah tersedia.',
-                'snap_token' => $claim->midtrans_snap_token,
-                'redirect_url' => $claim->midtrans_redirect_url,
-                'order_id' => $claim->midtrans_order_id,
-            ], 200);
-        }
-
-        $request->validate([
-            'metode_pembayaran' => 'required|string|in:qris,dana,gopay,ovo,shopeepay,linkaja,transfer_bank,tunai',
-        ]);
-
-        $orderId = 'SAVEAT-'.$claim->id.'-'.time();
-        $amount = (int) $claim->total_harga;
-
-        $enabledPayments = $this->mapPaymentMethod($request->metode_pembayaran);
-
-        $user = $claim->user;
-        $profil = $user->profil ?? null;
-
-        $params = [
-            'transaction_details' => [
-                'order_id' => $orderId,
-                'gross_amount' => $amount,
-            ],
-            'customer_details' => [
-                'first_name' => $profil ? $profil->nama : ($user->name ?? 'Konsumen'),
-                'email' => $user->email ?? '',
-                'phone' => $profil ? ($profil->no_hp ?? '') : '',
-            ],
-            'item_details' => [
-                [
-                    
-                    'id' => (string) $claim->listing_id,
-                    'price' => $amount,
-                    'quantity' => 1,
-                    'name' => $claim->listing ? substr($claim->listing->nama.' (x'.$claim->jumlah.')', 0, 50) : 'Makanan Saveat',
-                ],
-            ],
-           
-            'enabled_payments' => $enabledPayments,
-        ];
-
         try {
-            $snapResponse = Snap::createTransaction($params);
+            // 1. Cari data klaim
+            $claim = Claim::findOrFail($claimId);
 
+            // 2. DETEKSI ENUM OTOMATIS: 
+            // Kita coba ambil dari Enum Class yang kamu punya di aplikasi.
+            $statusLunas = 'pending'; // Fallback paling aman jika semua gagal
+
+            if (defined('\App\Enums\ClaimStatus::PENDING')) {
+                // Jika status lunas di tempatmu menggunakan nama lain selain PENDING,
+                // silakan ganti kata PENDING di bawah dengan case yang ada di Enum kamu (misal: APPROVED, SUKSES, atau COMPLETED)
+                $statusLunas = ClaimStatus::PENDING->value; 
+            }
+
+            // Alternatif pengaman manual jika kamu tahu nilai enum di database-mu:
+            // Un-comment baris di bawah dan ganti 'isi_enum_db' dengan kata yang valid di DB kamu (misal: 'diterima', 'sukses')
+            // $statusLunas = 'diterima'; 
+
+            // Eksekusi update ke database
             $claim->update([
-                'metode_pembayaran' => $request->metode_pembayaran,
-                'midtrans_order_id' => $orderId,
-                'midtrans_snap_token' => $snapResponse->token,
-                'midtrans_redirect_url' => $snapResponse->redirect_url,
-                'midtrans_transaction_status' => 'pending',
+                'status' => $statusLunas, 
+                'status_pembayaran' => PaymentStatus::SUDAH_DIBAYAR->value,
+                'metode_pembayaran' => $request->input('metode_pembayaran', 'qris'),
+                'waktu_pembayaran' => now()
             ]);
 
+            // 3. TRIGGER NOTIFIKASI OTOMATIS
+            NotificationService::klaimBerhasil(
+                $claim->user_id,
+                $claim->id,
+                $claim->listing ? $claim->listing->nama : 'Pesanan',
+                $claim->listing ? Carbon::parse($claim->listing->batas_waktu)->format('H:i, d M Y') : '-'
+            );
+
+            $claim->loadMissing('listing.merchant');
+
+            if ($claim->listing && $claim->listing->merchant && $claim->listing->merchant->user_id) {
+                NotificationService::klaimMasuk(
+                    $claim->listing->merchant->user_id,
+                    $claim->id,
+                    $claim->listing->nama
+                );
+            }
+
             return response()->json([
                 'status' => 'success',
-                'message' => 'Transaksi berhasil dibuat. Lanjutkan pembayaran.',
-                'snap_token' => $snapResponse->token,
-                'redirect_url' => $snapResponse->redirect_url,
-                'order_id' => $orderId,
-                'amount' => $amount,
-            ], 201);
+                'message' => 'Simulasi pembayaran berhasil diproses!',
+                'kode_klaim' => $claim->kode_klaim
+            ], 200);
 
         } catch (\Exception $e) {
-            Log::error('Midtrans createTransaction error: '.$e->getMessage(), [
-                'claim_id' => $claimId,
-                'params' => $params,
-            ]);
-
+            Log::error('Gagal memproses simulasi pembayaran: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal membuat transaksi pembayaran: '.$e->getMessage(),
+                'message' => 'Gagal memproses transaksi simulasi: ' . $e->getMessage()
             ], 500);
         }
     }
 
     public function webhook(Request $request)
     {
+        // Tetap dipertahankan untuk arsitektur produksi Midtrans asli nanti
         try {
             $orderId = $request->input('order_id');
             $transactionStatus = $request->input('transaction_status');
@@ -143,7 +112,6 @@ class PaymentController extends Controller
 
             if ($signatureKey !== $expectedSignature) {
                 Log::warning('Midtrans webhook: invalid signature detected.', ['order_id' => $orderId]);
-
                 return response()->json(['status' => 'error', 'message' => 'Invalid signature key.'], 403);
             }
 
@@ -151,7 +119,6 @@ class PaymentController extends Controller
 
             if (! $claim) {
                 Log::warning('Midtrans webhook: claim record data not found.', ['order_id' => $orderId]);
-
                 return response()->json(['status' => 'error', 'message' => 'Order data matching record not found.'], 404);
             }
 
@@ -179,11 +146,9 @@ class PaymentController extends Controller
             }
 
             $sudahLunasSebelumnya = $claim->status_pembayaran === PaymentStatus::SUDAH_DIBAYAR->value;
-
             $claim->update($updateData);
 
             if ($updateData['status_pembayaran'] === PaymentStatus::SUDAH_DIBAYAR->value && ! $sudahLunasSebelumnya) {
-
                 NotificationService::klaimBerhasil(
                     $claim->user_id,
                     $claim->id,
@@ -206,7 +171,6 @@ class PaymentController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Midtrans webhook execution error: '.$e->getMessage(), $request->all());
-
             return response()->json(['status' => 'error', 'message' => 'Internal webhook processing failed.'], 500);
         }
     }

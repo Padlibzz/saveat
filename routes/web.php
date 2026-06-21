@@ -8,8 +8,10 @@ use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\MerchantDashboardController;
 use App\Http\Controllers\MerchantListingController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str; // KUNCI PERBAIKAN 1: Impor Class Str agar Str::random() bisa berjalan
 
 // ================= HALAMAN PUBLIK =================
 Route::get('/', [LandingController::class, 'index']);
@@ -39,6 +41,30 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', function () { return view('profile'); })->name('profile');
     Route::get('/checkout/{id}', [ListingController::class, 'checkout'])->name('checkout');
     Route::get('/api/recommendations', [RecommendationController::class, 'index']);
+    
+    // Halaman sukses berisikan QR Code klaim makanan (Disederhanakan pemanggilannya)
+    Route::get('/claim/success/{id}', [ListingController::class, 'claimSuccess'])->name('claim.success');
+    
+    // Endpoint 1: Membuat record klaim makanan baru (Dibutuhkan sebelum panggil Midtrans/Simulasi)
+    Route::post('/api/claim/store', function (\Illuminate\Http\Request $request) {
+        $claim = \App\Models\Claim::create([
+            'user_id' => auth()->id(),
+            'listing_id' => $request->listing_id,
+            'jumlah' => $request->jumlah,
+            'total_harga' => $request->total_harga,
+            'status' => 'pending', 
+            'status_pembayaran' => 'belum_dibayar',
+            'kode_klaim' => 'SVAT-' . strtoupper(Str::random(6)) 
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'claim_id' => $claim->id
+        ]);
+    });
+
+    // Endpoint 2: Hubungkan ke PaymentController untuk Simulasi Pembayaran Langsung Lunas
+    Route::post('/api/payment/create/{claimId}', [PaymentController::class, 'createTransaction']);
 
     // Pendaftaran Merchant
     Route::get('/merchant-application', function () { return view('merchant-application'); })->name('merchant.application');
