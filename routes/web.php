@@ -41,4 +41,9 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/admin/dashboard', [AdminController::class, 'index']);
+
+    Route::get('/admin/verifikasi-merchant', [AdminController::class, 'halamanVerifikasi'])->name('admin.verifikasi.index');
+
+    Route::post('/admin/merchant/{id}/setujui', [AdminController::class, 'setujuiMerchant'])->name('admin.merchant.setujui');
+    Route::post('/admin/merchant/{id}/tolak', [AdminController::class, 'tolakMerchant'])->name('admin.merchant.tolak');
 });

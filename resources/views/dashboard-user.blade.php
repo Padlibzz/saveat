@@ -25,9 +25,14 @@
             <!-- Navbar -->
             <x-navbar />
 
-            <!-- Content -->
-            <section class="p-6 lg:ml-64">
+            <section class="p-6 mb-2 lg:ml-64">
+            @if(session('success'))
+                <x-alert type="success" :message="session('success')" />
+            @endif
 
+            @if(session('error'))
+                <x-alert type="error" :message="session('error')" />
+            @endif
                 <!-- Search -->
                 <input
                     type="text"

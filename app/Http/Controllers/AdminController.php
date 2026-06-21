@@ -136,7 +136,7 @@ class AdminController extends Controller
         $listing->update(['status' => $statusBaru]);
 
         if ($request->aksi === 'arsipkan') {
-            AbuseReport::where('listing_id', $id)
+            $blur = AbuseReport::where('listing_id', $id)
                 ->where('status', 'menunggu')
                 ->update(['status' => 'selesai']);
         }
@@ -160,5 +160,81 @@ class AdminController extends Controller
             'status' => 'success',
             'data' => $merchant,
         ], 200);
+    }
+
+    public function halamanVerifikasi(Request $request)
+    {
+        // 1. Data Statistik Riil dari Database
+        $totalDitunda = Profil::where('tipe_profil', 'merchant')
+            ->where('status_verifikasi', 'menunggu')
+            ->count();
+
+        $totalDisetujuiMingguIni = Profil::where('tipe_profil', 'merchant')
+            ->where('status_verifikasi', 'disetujui')
+            ->whereBetween('updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            ->count();
+
+        $totalDitolakMingguIni = Profil::where('tipe_profil', 'merchant')
+            ->where('status_verifikasi', 'ditolak')
+            ->whereBetween('updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            ->count();
+
+        // 2. Query List Merchant + Fitur Pencarian (Search)
+        $query = Profil::with('user')->where('tipe_profil', 'merchant');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                // Mengakomodasi jika kolom database bernama 'nama_toko' atau mencari nama user pendaftar
+                $q->where('nama_toko', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($u) use ($search) {
+                      $u->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        $merchants = $query->orderByRaw("FIELD(status_verifikasi, 'menunggu', 'disetujui', 'ditolak') ASC")
+            ->orderBy('created_at', 'desc')
+            ->paginate(6); // 6 item per halaman sangat pas untuk grid desktop
+
+        return view('verifikasi-merchant', compact(
+            'totalDitunda',
+            'totalDisetujuiMingguIni',
+            'totalDitolakMingguIni',
+            'merchants'
+        ));
+    }
+
+    public function setujuiMerchant(Request $request, $id)
+    {
+        $profil = Profil::find($id);
+        if (! $profil) {
+            return $request->wantsJson() ? response()->json(['status' => 'error', 'message' => 'Tidak ditemukan'], 404) : back()->with('error', 'Data tidak ditemukan.');
+        }
+
+        $profil->update(['status_verifikasi' => 'disetujui']);
+
+        if ($profil->user_id) {
+            User::where('id', $profil->user_id)->update(['peran' => 'merchant']);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['status' => 'success', 'message' => 'Pengajuan disetujui!'], 200);
+        }
+        return back()->with('success', 'Merchant berhasil disetujui.');
+    }
+
+    public function tolakMerchant(Request $request, $id)
+    {
+        $profil = Profil::find($id);
+        if (! $profil) {
+            return $request->wantsJson() ? response()->json(['status' => 'error', 'message' => 'Tidak ditemukan'], 404) : back()->with('error', 'Data tidak ditemukan.');
+        }
+
+        $profil->update(['status_verifikasi' => 'ditolak']);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['status' => 'success', 'message' => 'Pengajuan ditolak.'], 200);
+        }
+        return back()->with('error', 'Pengajuan merchant ditolak.');
     }
 }

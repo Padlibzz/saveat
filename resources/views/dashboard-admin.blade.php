@@ -24,7 +24,14 @@
 
             <x-navbar />
 
-            <section class="p-6 lg:ml-64">
+            <section class="p-6 mb-2 lg:ml-64">
+            @if(session('success'))
+                <x-alert type="success" :message="session('success')" />
+            @endif
+
+            @if(session('error'))
+                <x-alert type="error" :message="session('error')" />
+            @endif
                 <div class="mb-6">
                     <h2 class="text-3xl font-bold text-[#545523] tracking-wide">Ringkasan Platform</h2>
                 </div>
