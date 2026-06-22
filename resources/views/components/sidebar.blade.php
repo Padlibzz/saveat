@@ -49,7 +49,6 @@
                     <span>Analisis Penjualan</span>
                 </a>
 
-
             {{-- ================= [BAGIAN 2] MENU MERCHANT ================= --}}
             @elseif(Auth::user()->peran === 'merchant')
                 <a href="/merchant/dashboard"
@@ -75,7 +74,6 @@
                     <i class="fa-solid fa-boxes-stacked w-5"></i>
                     <span>Produk Aktif</span>
                 </a>
-
 
             {{-- ================= [BAGIAN 3] MENU KOSTUMER ================= --}}
             @else

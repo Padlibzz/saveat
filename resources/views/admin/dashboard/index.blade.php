@@ -116,7 +116,6 @@
 <!-- Overlay for mobile sidebar -->
 <div id="overlay" class="fixed inset-0 z-30 bg-black/40 hidden md:hidden" onclick="toggleSidebar()"></div>
 
-
 <!-- ═══════════════════════════════════
      MAIN CONTENT
 ════════════════════════════════════ -->
@@ -132,7 +131,6 @@
     </button>
     <h1 class="font-display text-lg font-bold" style="color:#6c6d2d">Dashboard Admin</h1>
   </header>
-
 
   <!-- PAGE BODY -->
   <main class="flex-1 px-5 py-6 space-y-6">
@@ -167,7 +165,6 @@
       </div>
     </div>
 
-
     <!-- ── BAR CHART ── -->
     <div class="bg-white rounded-2xl p-5 shadow-sm">
       <div class="relative h-56">
@@ -182,7 +179,6 @@
     © 2026 Saveat. All rights reserved.
   </footer>
 </div>
-
 
 <!-- ═══════════════════════════════════
      JS

@@ -22,7 +22,7 @@
         </div>
 
         <div class="flex items-center gap-4">
-            <a href="auth/login" class="py-2 px-6 text-[#545523]">
+            <a href="{{ route('listing-makanan') }}" class="py-2 px-6 text-[#545523]">
                 Masuk
             </a>
 
@@ -54,7 +54,7 @@
                         lebih baik.
                     </p>
 
-                    <a href="auth/login"
+                    <a href="{{ route('listing-makanan') }}"
                         class="inline-block mt-8 bg-[#545523] text-white px-8 py-3 rounded-lg hover:opacity-90 transition">
                         Explore Now
                     </a>
@@ -77,28 +77,31 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
 
                 <div>
-                    <h2 class="text-6xl font-extrabold text-[#545523]">
-                        10,000+
+                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#545523]">
+                        {{ number_format($totalFoodSaved) }}+
                     </h2>
-                    <p class="mt-3 text-2xl font-semibold text-gray-700">
+
+                    <p class="mt-3 text-lg md:text-xl font-semibold text-gray-700">
                         Makanan Terselamatkan
                     </p>
                 </div>
 
                 <div>
-                    <h2 class="text-6xl font-extrabold text-[#545523]">
-                        500+
+                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#545523]">
+                        {{ number_format($totalMerchant) }}+
                     </h2>
-                    <p class="mt-3 text-2xl font-semibold text-gray-700">
+
+                    <p class="mt-3 text-lg md:text-xl font-semibold text-gray-700">
                         Merchant
                     </p>
                 </div>
 
                 <div>
-                    <h2 class="text-6xl font-extrabold text-[#545523]">
-                        4.8/5
+                    <h2 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#545523]">
+                        {{ $averageRating }}/5
                     </h2>
-                    <p class="mt-3 text-2xl font-semibold text-gray-700">
+
+                    <p class="mt-3 text-lg md:text-xl font-semibold text-gray-700">
                         Rating Pengguna
                     </p>
                 </div>
@@ -180,7 +183,6 @@
             </div>
         </div>
 
-
         <h2 class="text-4xl font-bold text-[#545523] text-center">
             Tersedia di sekitar Anda
         </h2>
@@ -191,7 +193,8 @@
         <div class="flex px-6 py-20 gap-12 overflow-x-auto justify-center">
             @foreach($listings as $listing)
                 <x-food-card
-                    data-url="/checkout/{{ $listing->id }}" :foto="$listing->foto"
+                    :id="$listing->id"
+                    data-url="{{ route('checkout', $listing->id) }}"
                     :nama="$listing->nama"
                     :merchant="$listing->merchant?->nama_usaha ?? 'Merchant'"
                     :alamat="$listing->merchant?->alamat ?? '-'"
@@ -222,9 +225,10 @@
                         Bergabunglah dengan jaringan merchant Saveat dan temukan cara baru untuk menjual makanan surplus yang masih layak konsumsi.
                     </p>
 
-                    <button class="bg-[#545523] text-white px-6 py-3 rounded-lg mt-8 hover:bg-[#3f401a] transition-colors duration-300">
+                    <a href="{{ route('merchant.application') }}"
+                        class="bg-[#545523] text-white px-6 py-3 rounded-lg mt-8 inline-block">
                         Explore Merchant
-                    </button>
+                    </a>
                 </div>
 
                 <div class="lg:w-1/2 flex flex-wrap gap-4 justify-center">

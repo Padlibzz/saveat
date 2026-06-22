@@ -73,7 +73,8 @@ class AuthController extends Controller
             } else {
                 $request->session()->regenerate();
 
-                return redirect()->route('dashboard')->with('success', 'Login berhasil.');
+                return redirect()->intended(route('dashboard'))
+                    ->with('success', 'Login berhasil.');
             }
         }
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category; // Pastikan model ini sudah ada
+use App\Models\Category; 
 
 class CategoryController extends Controller
 {

@@ -107,14 +107,9 @@
             <button
                 type="submit"
                 class="w-full bg-[#6D6B2E] hover:bg-[#545523] text-white py-4 rounded-full font-semibold transition">
-
                 Ajukan Menjadi Merchant
-
             </button>
-
         </form>
-
     </section>
-
 </body>
 </html>

@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [LandingController::class, 'index']);
 Route::get('/listing-makanan', [ListingController::class, 'index'])->name('listing-makanan');
 
+Route::get('/merchant-application', function () {
+    return view('merchant-application');
+})->name('merchant.application');
+
 // Guest Routes
 Route::middleware('guest')->group(function () {
     Route::get('/auth/login', function () { return view('auth.login'); })->name('login');
@@ -53,7 +57,6 @@ Route::middleware('auth')->group(function () {
     });
 
     // Merchant Application Routes
-    Route::get('/merchant-application', function () { return view('merchant-application'); })->name('merchant.application');
     Route::post('/merchant-application', [ProfilController::class, 'applyMerchant'])->name('merchant.application.submit');
 
     // Merchant Routes

@@ -16,7 +16,6 @@ use App\Http\Controllers\RecommendationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-
 // Route Publik (Tanpa Autentikasi)
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
