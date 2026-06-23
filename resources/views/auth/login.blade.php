@@ -33,7 +33,7 @@
         <form action="/auth/login" method="POST" class="space-y-4">
             @csrf
             <h3 class="text-[#6D6B2E] text-lg">
-                Mohon masukkan username atau email/email dan password 
+                Mohon masukkan username atau email dan password 
             </h3>
             <div class="space-y-4">
 
@@ -48,7 +48,7 @@
                         <input
                             type="text"
                             id="username"
-                            name="login"
+                            name="login_identifier"
                             placeholder="Masukkan username atau email Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"
@@ -82,7 +82,7 @@
                         </button>
                     </div>
 
-                    <a href="{{ route('password.request') }}" class="text-blue-500 hover:underline mt-2 inline-block">
+                    <a href="lupa-password.html" class="text-blue-500 hover:underline mt-2 inline-block">
                         Lupa Password?
                     </a>
                 </div>
@@ -100,7 +100,7 @@
 
     <div class="text-center mt-6">
         <span class="text-gray-600">Belum punya akun?</span>
-        <a href="/auth/register" class="text-blue-500 hover:underline">Daftar di sini</a>
+        <a href="register.html" class="text-blue-500 hover:underline">Daftar di sini</a>
     </div>
 </body>
 

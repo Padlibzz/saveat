@@ -35,14 +35,10 @@
                 <x-alert type="error" :message="session('error')" />
             @endif
                 <!-- Search -->
-                <form action="{{ route('listing-makanan') }}" method="GET" class="mb-8">
-                    <input
-                        type="text"
-                        name="search"
-                        placeholder="Temukan Makananmu"
-                        value="{{ request('search') }}"
-                        class="w-full p-4 rounded-full shadow-md bg-white outline-none focus:ring-2 focus:ring-[#6D6B2E]">
-                </form>
+                <input
+                    type="text"
+                    placeholder="Temukan Makananmu"
+                    class="w-full p-4 rounded-full shadow-md bg-white outline-none focus:ring-2 focus:ring-[#6D6B2E]">
 
                 {{-- kategori ceklis --}}
 
@@ -80,7 +76,7 @@
                     </div>
 
                     <div class="mt-8">
-                        {{ $listings->appends(request()->query())->links() }}
+                        {{ $listings->links() }}
                     </div>
 
                 </div>

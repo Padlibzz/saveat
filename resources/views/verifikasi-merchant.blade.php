@@ -118,7 +118,7 @@
                                 <div>
                                     <div class="flex justify-between items-start mb-1">
                                         <h4 class="font-bold text-gray-800 text-lg leading-tight">
-                                            {{ $m->nama_usaha ?? $m->user->name ?? 'Nama Toko Tidak Set' }}
+                                            {{ $m->nama_toko ?? $m->user->name ?? 'Nama Toko Tidak Set' }}
                                         </h4>
                                         @if($m->status_verifikasi === 'disetujui')
                                             <i class="fa-solid fa-circle-check text-emerald-500 mt-1"></i>
