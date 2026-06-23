@@ -46,14 +46,26 @@ $config = [
 ];
 @endphp
 
-<div class="flex items-start gap-3 p-4 rounded-xl border-l-4 shadow-sm {{ $config[$type]['bg'] }} {{ $config[$type]['border'] }}">
+{{-- Tambahkan x-data, x-show, dan x-transition di bungkus utamanya --}}
+<div x-data="{ show: true }"
+     x-show="show"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100 scale-100"
+     x-transition:leave-end="opacity-0 scale-95"
+     class="flex items-start gap-3 p-4 rounded-xl border-l-4 shadow-sm {{ $config[$type]['bg'] }} {{ $config[$type]['border'] }}">
+    
     <div class="{{ $config[$type]['text'] }}">
         {!! $config[$type]['icon'] !!}
     </div>
 
     <div class="flex-1">
-        <p class="font-medium {{ $config[$type]['text'] }}">
+        <p class="font-medium text-sm {{ $config[$type]['text'] }}">
             {{ $message }}
         </p>
     </div>
+
+    {{-- TOMBOL CLOSE BARU --}}
+    <button @click="show = false" class="text-gray-400 hover:text-gray-600 transition ml-auto active:scale-90 p-0.5">
+        <i class="fa-solid fa-xmark text-sm"></i>
+    </button>
 </div>

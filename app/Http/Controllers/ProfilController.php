@@ -155,7 +155,7 @@ class ProfilController extends Controller
 
     public function applyMerchant(Request $request)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        // Bersihkan duplikasi assignment user
         $user = Auth::user();
         if (!$user) {
             return back()->with('error', 'User belum login.');
@@ -171,7 +171,17 @@ class ProfilController extends Controller
             'tipe_profil' => 'merchant'
         ]);
 
-        return $this->update($request, $profil->id);
+        // 1. Jalankan fungsi update seperti biasa dan tampung hasilnya ke variabel
+        $response = $this->update($request, $profil->id);
+
+        // 2. Jika request meminta JSON (misal dari aplikasi Mobile/AJAX), berikan JSON asli
+        if ($request->wantsJson() || $request->ajax()) {
+            return $response;
+        }
+
+        // 3. KUNCI UTAMA: Jika dari form web biasa, alihkan (redirect) ke halaman dashboard
+        return redirect()->to('/dashboard') // <--- Sesuaikan dengan URL dashboard konsumen kamu
+            ->with('success', 'Profil berhasil diperbarui! Pengajuan merchant Anda sedang menunggu verifikasi admin.');
     }
 
     public function verifikasiMerchant(Request $request, $id)

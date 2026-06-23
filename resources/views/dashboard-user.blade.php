@@ -1,11 +1,11 @@
-@section('page_title', 'Listing Makanan')
+@section('page_title', 'Dashboard')
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <title>Makanan</title>
+    <title>User Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
@@ -25,7 +25,6 @@
             <!-- Navbar -->
             <x-navbar />
 
-            <!-- Content -->
             <section class="p-6 mb-2 lg:ml-64">
             @if(session('success'))
                 <x-alert type="success" :message="session('success')" />
@@ -40,22 +39,19 @@
                         type="text"
                         name="search"
                         placeholder="Temukan Makananmu"
-                        value="{{ request('search') }}"
                         class="w-full p-4 rounded-full shadow-md bg-white outline-none focus:ring-2 focus:ring-[#6D6B2E]">
                 </form>
-
-                {{-- kategori ceklis --}}
 
                 <!-- Recommendation -->
                 <div class="mt-8">
 
                     <h2 class="text-2xl font-semibold text-[#545523] mb-5">
-                        Temukan Makanan Favorit mu
+                        Rekomendasi Untukmu
                     </h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-                        @forelse ($listings as $listing)
+                       @foreach($listings as $listing)
                             <x-food-card
                                 data-url="/checkout/{{ $listing->id }}" :foto="$listing->foto"
                                 :nama="$listing->nama"
@@ -66,27 +62,40 @@
                                 :harga_asli="$listing->harga_normal"
                                 :tersisa="$listing->stok_sisa"
                             />
-                        @empty
-                            <div class="col-span-full">
-                                <div class="bg-white rounded-xl p-8 text-center shadow">
-                                    <i class="fa-solid fa-utensils text-4xl text-gray-400 mb-3"></i>
-                                    <p class="text-gray-500">
-                                        Belum ada makanan tersedia saat ini.
-                                    </p>
-                                </div>
-                            </div>
-                        @endforelse
+                        @endforeach
 
-                    </div>
-
-                    <div class="mt-8">
-                        {{ $listings->appends(request()->query())->links() }}
                     </div>
 
                 </div>
 
+                <!-- Join Merchant -->
+                @if(Auth::user()->peran !== 'merchant')
+
+                <div class="mt-10 bg-white rounded-3xl shadow-md p-6">
+
+                    <h3 class="text-xl font-semibold text-[#545523]">
+                        Mulai Jual Makanan Anda
+                    </h3>
+
+                    <p class="text-gray-500 mt-2">
+                        Lengkapi data usaha Anda dan ajukan verifikasi merchant.
+                    </p>
+
+                    <a
+                        href="{{ route('merchant.application') }}"
+                        class="inline-block mt-4 bg-[#6D6B2E] text-white px-6 py-3 rounded-xl hover:bg-[#545523]">
+
+                        Daftar Merchant
+
+                    </a>
+
+                </div>
+
+                @endif
+
             </section>
 
+            <x-footer/>
         </div>
 
     </div>

@@ -23,6 +23,6 @@ class LandingController extends Controller
             ->getData()
             ->data;
 
-        return view('landing', compact('listings', 'stats'));
+        return view('main.landing', compact('listings', 'stats'));
     }
 }

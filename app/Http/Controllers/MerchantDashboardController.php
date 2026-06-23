@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 
 class MerchantDashboardController extends Controller
 {
+    /**
+     * ====================================================================
+     * FUNGSI BAWAAN BACKEND: STATISTIK TOKO (API JSON)
+     * ====================================================================
+     */
     public function statistik(Request $request)
     {
         $merchant = $request->user()->merchant;
@@ -44,6 +49,11 @@ class MerchantDashboardController extends Controller
         ], 200);
     }
 
+    /**
+     * ====================================================================
+     * FUNGSI BAWAAN BACKEND: KLAIM/PESANAN MASUK (API JSON)
+     * ====================================================================
+     */
     public function klaimMasuk(Request $request)
     {
         $merchant = $request->user()->merchant;
@@ -76,18 +86,13 @@ class MerchantDashboardController extends Controller
             'data' => $klaims,
         ], 200);
     }
-
-    // ============================================================
-    // ===================  WEB (BLADE) METHODS  ===================
-    // ============================================================
-
     public function index(Request $request)
     {
-        $merchant = $request->user()->merchant;
-
-        if (! $merchant) {
-            return redirect()->route('merchant.application')->with('error', 'Lengkapi profil merchant Anda terlebih dahulu.');
+        if ($request->user()->peran !== 'merchant' || ! $request->user()->merchant) {
+            return redirect()->route('dashboard')->with('error', 'Anda belum terdaftar sebagai merchant resmi.');
         }
+
+        $merchant = $request->user()->merchant;
 
         $listingIds = Listing::where('merchant_id', $merchant->id)->pluck('id');
 
@@ -100,6 +105,8 @@ class MerchantDashboardController extends Controller
         $makananTerjualHariIni = (clone $claimsValid)
             ->whereDate('created_at', today())
             ->sum('jumlah');
+
+        $totalPorsiTerjual = $makananTerjualHariIni;
 
         // Total pembeli unik (all-time) + pembeli baru minggu ini
         $totalPembeliUnik = (clone $claimsValid)->distinct('user_id')->count('user_id');
@@ -114,9 +121,10 @@ class MerchantDashboardController extends Controller
         // Aktivitas Terkini — gabungan klaim masuk, ulasan baru, listing segera berakhir
         $aktivitasTerkini = $this->aktivitasTerkini($merchant, $listingIds);
 
-        return view('merchant.dashboard', compact(
+        return view('dashboard-merchant', compact(
             'totalPendapatan',
             'makananTerjualHariIni',
+            'totalPorsiTerjual',
             'totalPembeliUnik',
             'pembeliBaruMingguIni',
             'grafikPenjualan',
