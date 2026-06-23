@@ -8,9 +8,9 @@
 <div class="space-y-6">
     <!-- Period Tabs (Simplified for now - can be made dynamic later) -->
     <div class="flex gap-2 bg-white rounded-2xl p-1.5 w-fit shadow-sm border border-gray-100">
-        <button class="bg-olive text-white px-4 py-1.5 rounded-xl text-[13px] font-semibold">7 Hari terakhir</button>
-        <button class="bg-white text-olive px-4 py-1.5 rounded-xl text-[13px] font-semibold hover:bg-sage/20">Bulan ini</button>
-        <button class="bg-white text-olive px-4 py-1.5 rounded-xl text-[13px] font-semibold hover:bg-sage/20">Tahun Ini</button>
+        <a href="{{ route('admin.analisis', ['filter' => '7hari']) }}" class="{{ $filter === '7hari' ? 'bg-olive text-white' : 'bg-white text-olive hover:bg-sage/20' }} px-4 py-1.5 rounded-xl text-[13px] font-semibold">7 Hari terakhir</a>
+        <a href="{{ route('admin.analisis', ['filter' => 'bulanini']) }}" class="{{ $filter === 'bulanini' ? 'bg-olive text-white' : 'bg-white text-olive hover:bg-sage/20' }} px-4 py-1.5 rounded-xl text-[13px] font-semibold hover:bg-sage/20">Bulan ini</a>
+        <a href="{{ route('admin.analisis', ['filter' => 'tahunini']) }}" class="{{ $filter === 'tahunini' ? 'bg-olive text-white' : 'bg-white text-olive hover:bg-sage/20' }} px-4 py-1.5 rounded-xl text-[13px] font-semibold hover:bg-sage/20">Tahun Ini</a>
     </div>
 
     <!-- Stat Cards -->

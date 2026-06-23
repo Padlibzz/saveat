@@ -158,15 +158,26 @@ class AdminController extends Controller
 
         return redirect()->back()->with('success', 'Status listing berhasil diperbarui.');
     }
-public function analisisPenjualan()
+public function analisisPenjualan(Request $request)
 {
-    $totalPendapatan = Claim::where('status', 'selesai')->sum('total_harga');
-    $totalMakananHemat = Claim::where('status', 'selesai')->sum('jumlah');
+    $filter = $request->input('filter', '7hari');
+    
+    $query = Claim::where('status', 'selesai');
+
+    if ($filter === 'bulanini') {
+        $query->whereMonth('created_at', now()->month);
+    } elseif ($filter === 'tahunini') {
+        $query->whereYear('created_at', now()->year);
+    } else {
+        $query->where('created_at', '>=', now()->subDays(7));
+    }
+
+    $totalPendapatan = (clone $query)->sum('total_harga');
+    $totalMakananHemat = (clone $query)->sum('jumlah');
     $totalListingAktif = Listing::where('status', 'aktif')->count();
 
-    // Get daily sales for the last 7 days
-    $salesData = Claim::where('status', 'selesai')
-        ->where('created_at', '>=', now()->subDays(7))
+    // Data grafik disesuaikan berdasarkan filter (default 7 hari)
+    $salesData = (clone $query)
         ->selectRaw('DATE(created_at) as date, sum(total_harga) as total')
         ->groupBy('date')
         ->orderBy('date', 'asc')
@@ -174,13 +185,33 @@ public function analisisPenjualan()
 
     $chartLabels = [];
     $chartData = [];
-    for ($i = 6; $i >= 0; $i--) {
-        $date = now()->subDays($i)->format('Y-m-d');
-        $chartLabels[] = now()->subDays($i)->format('D');
-        $chartData[] = $salesData->get($date, 0);
+    
+    if ($filter === 'bulanini') {
+        $daysInMonth = now()->daysInMonth;
+        for ($i = 1; $i <= $daysInMonth; $i++) {
+            $date = now()->format('Y-m-').str_pad($i, 2, '0', STR_PAD_LEFT);
+            $chartLabels[] = $i;
+            $chartData[] = $salesData->get($date, 0);
+        }
+    } elseif ($filter === 'tahunini') {
+        $months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        for ($i = 1; $i <= 12; $i++) {
+            $chartLabels[] = $months[$i-1];
+            $monthSales = Claim::where('status', 'selesai')
+                ->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', $i)
+                ->sum('total_harga');
+            $chartData[] = $monthSales;
+        }
+    } else {
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $chartLabels[] = now()->subDays($i)->format('D');
+            $chartData[] = $salesData->get($date, 0);
+        }
     }
 
-    return view('admin.analisis_pen', compact('totalPendapatan', 'totalMakananHemat', 'totalListingAktif', 'chartLabels', 'chartData'));
+    return view('admin.analisis_pen', compact('totalPendapatan', 'totalMakananHemat', 'totalListingAktif', 'chartLabels', 'chartData', 'filter'));
 }
 
 public function merchantMenunggu()
