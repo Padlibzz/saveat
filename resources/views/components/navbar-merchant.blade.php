@@ -11,7 +11,7 @@
 
         <div class="flex items-center gap-3">
             <!-- Diarahkan ke route profile khusus Merchant -->
-            <a href="{{ route('merchant.profile') }}" class="flex items-center gap-3 border border-gray-200 rounded-full px-4 py-2 bg-white hover:bg-gray-50 transition">
+            <a href="{{ route('profile') }}" class="flex items-center gap-3 border border-gray-200 rounded-full px-4 py-2 bg-white hover:bg-gray-50 transition">
                 <img src="{{ asset('svg/user-icon.png') }}" alt="Merchant" class="w-10 h-10 rounded-full object-cover">
                 <div class="leading-tight">
                     <p class="text-xs text-emerald-600 font-medium">Mitra Toko,</p>
