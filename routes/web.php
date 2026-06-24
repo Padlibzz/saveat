@@ -52,7 +52,7 @@ Route::middleware('auth')->group(function () {
 
     // ================= AREA KONSUMEN =================
     Route::middleware(['role:konsumen'])->group(function () {
-        Route::get('/dashboard-konsumen', [RecommendationController::class, 'dashboard'])->name('dashboard.konsumen');
+        Route::get('/dashboard-konsumen', function () { return view('dashboard-user'); })->name('dashboard.konsumen');
     });
     Route::get('/api/recommendations', [RecommendationController::class, 'index']);
     Route::get('/claim/success/{id}', [ListingController::class, 'claimSuccess'])->name('claim.success');
