@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <title>Checkout - {{ $listing->nama }}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Poppins', sans-serif; }
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-[#E2E4B1]/40 min-h-screen flex items-center justify-center p-0 md:p-6"
-      x-data="checkoutComponent()">
+<body class="bg-[#E2E4B1]/40 min-h-screen flex items-center justify-center p-0 md:p-6">
 
-    <div class="w-full max-w-5xl bg-[#E2E4B1]/30 md:bg-white rounded-none md:rounded-3xl shadow-none md:shadow-lg overflow-hidden min-h-screen md:min-h-0">
+    <div class="w-full max-w-5xl bg-[#E2E4B1]/30 md:bg-white rounded-none md:rounded-3xl shadow-none md:shadow-lg overflow-hidden min-h-screen md:min-h-0"
+         x-data="checkoutComponent()">
         
         <div class="bg-white md:bg-gray-50/50 px-6 py-4 flex items-center gap-4 border-b border-gray-100">
             <a href="javascript:history.back()" class="text-[#545523] hover:opacity-75 transition">
@@ -152,58 +153,61 @@
                 get total() { return this.subtotal + this.pajak },
 
                 async prosesPembayaran() {
-                    this.loading = true;
-                    this.errorMessage = '';
+                this.loading = true;
+                this.errorMessage = '';
 
-                    try {
-                        let responseClaim = await fetch('/api/claim/store', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                listing_id: {{ $listing->id }},
-                                jumlah: this.qty,
-                                total_harga: this.total
-                            })
-                        });
+                try {
+                    // LANGKAH 1: Buat order data (Claim) di database internal aplikasi
+                    let responseClaim = await fetch('/api/claim/store', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            listing_id: {{ $listing->id }},
+                            jumlah: this.qty,
+                            total_harga: this.total
+                        })
+                    });
 
-                        let dataClaim = await responseClaim.json();
+                    let dataClaim = await responseClaim.json();
 
-                        if (!responseClaim.ok || dataClaim.status !== 'success') {
-                            throw new Error(dataClaim.message || 'Gagal membuat invoice pesanan.');
-                        }
-
-                        const claimId = dataClaim.claim_id;
-
-                        let responseSimulasi = await fetch(`/api/payment/create/${claimId}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                metode_pembayaran: this.metodePilihan
-                            })
-                        });
-
-                        let dataSimulasi = await responseSimulasi.json();
-
-                        if (!responseSimulasi.ok || dataSimulasi.status !== 'success') {
-                            throw new Error(dataSimulasi.message || 'Gagal memproses simulasi pembayaran.');
-                        }
-
-                        window.location.href = `/claim/success/${claimId}`;
-
-                    } catch (error) {
-                        this.errorMessage = error.message;
-                    } finally {
-                        this.loading = false;
+                    if (!responseClaim.ok || dataClaim.status !== 'success') {
+                        throw new Error(dataClaim.message || 'Gagal membuat invoice pesanan.');
                     }
+
+                    const claimId = dataClaim.claim_id;
+
+                    // LANGKAH 2: Eksekusi bypass/simulasi pembayaran langsung lunas di backend
+                    let responseSimulasi = await fetch(`/api/payment/create/${claimId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            metode_pembayaran: this.metodePilihan
+                        })
+                    });
+
+                    let dataSimulasi = await responseSimulasi.json();
+
+                    if (!responseSimulasi.ok || dataSimulasi.status !== 'success') {
+                        throw new Error(dataSimulasi.message || 'Gagal memproses simulasi pembayaran.');
+                    }
+
+                    // LANGKAH 3: Langsung arahkan ke halaman baru "Barcode Pengambilan" membawa ID klaim
+                    window.location.href = `/claim/success/${claimId}`;
+
+                } catch (error) {
+                    this.errorMessage = error.message;
+                } finally {
+                    this.loading = false;
                 }
+            }
             }
         }
     </script>
