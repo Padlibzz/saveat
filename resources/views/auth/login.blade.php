@@ -30,7 +30,7 @@
                 {{ session('success') }}
             </div>
         @endif
-        <form action="/auth/login" method="POST" class="space-y-4">
+        <form action="{{ route('login') }}" method="POST" class="space-y-4">
             @csrf
             <h3 class="text-[#6D6B2E] text-lg">
                 Mohon masukkan username atau email dan password 
