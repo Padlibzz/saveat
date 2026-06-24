@@ -235,7 +235,7 @@ class MerchantListingController extends Controller
         $merchant = $request->user()->merchant;
         $kategoris = \App\Models\Category::orderBy('nama')->get();
 
-        return view('merchant.upload', compact('kategoris', 'merchant'));
+        return view('upload-makanan', compact('kategoris', 'merchant'));
     }
 
     public function storeWeb(Request $request)
