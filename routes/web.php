@@ -22,7 +22,7 @@ Route::get('/listing-makanan', [ListingController::class, 'index'])->name('listi
 Route::middleware('guest')->group(function () {
     Route::get('/auth/login', function () { return view('auth.login'); })->name('login');
     Route::post('/auth/login', [AuthController::class, 'login']);
-    Route::get('/auth/register', function () { return view('auth.register'); });
+    Route::get('/auth/register', function () { return view('auth.register'); })->name('register');
     Route::post('/auth/register', [AuthController::class, 'register']);
     
     // Password reset routes
