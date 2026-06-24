@@ -19,13 +19,7 @@ class ClaimController extends Controller
 {
     public function pesananAktif(Request $request)
     {
-        $claims = Claim::with(['listing.merchant'])
-            ->where('user_id', $request->user()->id)
-            ->where('status', '!=', ClaimStatus::DIAMBIL->value) // Filter bukan yang sudah selesai
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('dashboard-user', compact('claims'));
+        return redirect()->route('dashboard');
     }
 
     public function riwayat(Request $request)
