@@ -289,7 +289,7 @@ class MerchantListingController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('merchant.listing', compact('listings'));
+        return view('produk-aktif', compact('listings'));
     }
 
     public function edit(Request $request, $id)
