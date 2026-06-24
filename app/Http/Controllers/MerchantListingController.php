@@ -181,26 +181,16 @@ class MerchantListingController extends Controller
             ->first();
 
         if (! $listing) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Listing tidak ditemukan atau bukan milik Anda.',
-            ], 404);
+            return redirect()->route('merchant.produk-aktif')->with('error', 'Listing tidak ditemukan atau bukan milik Anda.');
         }
 
         if ($listing->status === ListingStatus::TUTUP) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Listing ini sudah ditutup.',
-            ], 400);
+            return redirect()->route('merchant.produk-aktif')->with('error', 'Listing ini sudah ditutup.');
         }
 
         $listing->update(['status' => ListingStatus::TUTUP->value]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Listing berhasil ditutup.',
-            'data' => $listing,
-        ], 200);
+        return redirect()->route('merchant.produk-aktif')->with('success', 'Listing berhasil ditutup.');
     }
 
     /**
