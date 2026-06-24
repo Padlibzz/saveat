@@ -26,7 +26,7 @@ class RecommendationController extends Controller
     {
         $listings = $this->getRecommendations($request->user(), 6);
 
-        return view('dashboard-konsumen', compact('listings'));
+        return view('dashboard-user', compact('listings'));
     }
 
     private function getRecommendations($user, $limit = 20)
