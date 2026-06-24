@@ -224,6 +224,6 @@ class MerchantDashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('merchant.klaim-masuk', compact('klaims'));
+        return view('claim-masuk', compact('klaims'));
     }
 }
