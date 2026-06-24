@@ -143,7 +143,7 @@ class AdminController extends Controller
         $listing->update(['status' => $statusBaru]);
 
         if ($request->aksi === 'arsipkan') {
-            AbuseReport::where('listing_id', $id)
+            $blur = AbuseReport::where('listing_id', $id)
                 ->where('status', 'menunggu')
                 ->update(['status' => 'selesai']);
         }
@@ -158,50 +158,164 @@ class AdminController extends Controller
 
         return redirect()->back()->with('success', 'Status listing berhasil diperbarui.');
     }
-public function analisisPenjualan()
-{
-    $totalPendapatan = Claim::where('status', 'selesai')->sum('total_harga');
-    $totalMakananHemat = Claim::where('status', 'selesai')->sum('jumlah');
-    $totalListingAktif = Listing::where('status', 'aktif')->count();
 
-    // Get daily sales for the last 7 days
-    $salesData = Claim::where('status', 'selesai')
-        ->where('created_at', '>=', now()->subDays(7))
-        ->selectRaw('DATE(created_at) as date, sum(total_harga) as total')
-        ->groupBy('date')
-        ->orderBy('date', 'asc')
-        ->pluck('total', 'date');
+    public function analisisPenjualan(Request $request)
+    {
+        $filter = $request->input('filter', '7hari');
+        
+        $query = Claim::where('status', 'selesai');
 
-    $chartLabels = [];
-    $chartData = [];
-    for ($i = 6; $i >= 0; $i--) {
-        $date = now()->subDays($i)->format('Y-m-d');
-        $chartLabels[] = now()->subDays($i)->format('D');
-        $chartData[] = $salesData->get($date, 0);
+        if ($filter === 'bulanini') {
+            $query->whereMonth('created_at', now()->month);
+        } elseif ($filter === 'tahunini') {
+            $query->whereYear('created_at', now()->year);
+        } else {
+            $query->where('created_at', '>=', now()->subDays(7));
+        }
+
+        $totalPendapatan = (clone $query)->sum('total_harga');
+        $totalMakananHemat = (clone $query)->sum('jumlah');
+        $totalListingAktif = Listing::where('status', 'aktif')->count();
+
+        // Data grafik disesuaikan berdasarkan filter (default 7 hari)
+        $salesData = (clone $query)
+            ->selectRaw('DATE(created_at) as date, sum(total_harga) as total')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->pluck('total', 'date');
+
+        $chartLabels = [];
+        $chartData = [];
+        
+        if ($filter === 'bulanini') {
+            $daysInMonth = now()->daysInMonth;
+            for ($i = 1; $i <= $daysInMonth; $i++) {
+                $date = now()->format('Y-m-').str_pad($i, 2, '0', STR_PAD_LEFT);
+                $chartLabels[] = $i;
+                $chartData[] = $salesData->get($date, 0);
+            }
+        } elseif ($filter === 'tahunini') {
+            $months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            for ($i = 1; $i <= 12; $i++) {
+                $chartLabels[] = $months[$i-1];
+                $monthSales = Claim::where('status', 'selesai')
+                    ->whereYear('created_at', now()->year)
+                    ->whereMonth('created_at', $i)
+                    ->sum('total_harga');
+                $chartData[] = $monthSales;
+            }
+        } else {
+            for ($i = 6; $i >= 0; $i--) {
+                $date = now()->subDays($i)->format('Y-m-d');
+                $chartLabels[] = now()->subDays($i)->format('D');
+                $chartData[] = $salesData->get($date, 0);
+            }
+        }
+
+        return view('admin.analisis_pen', compact('totalPendapatan', 'totalMakananHemat', 'totalListingAktif', 'chartLabels', 'chartData', 'filter'));
     }
 
-    return view('admin.analisis_pen', compact('totalPendapatan', 'totalMakananHemat', 'totalListingAktif', 'chartLabels', 'chartData'));
-}
+    public function merchantMenunggu()
+    {
+        $merchants = Profil::with('user:id,name,email')
+            ->where('tipe_profil', 'merchant')
+            ->where('status_verifikasi', 'menunggu')
+            ->get();
 
-public function merchantMenunggu()
-{
-    $merchants = Profil::with('user:id,name,email')
-        ->where('tipe_profil', 'merchant')
-        ->where('status_verifikasi', 'menunggu')
-        ->get();
+        $stats = [
+            'ditunda' => $merchants->count(),
+            'disetujui' => Profil::where('tipe_profil', 'merchant')->where('status_verifikasi', 'disetujui')->where('updated_at', '>=', now()->startOfWeek())->count(),
+            'ditolak' => Profil::where('tipe_profil', 'merchant')->where('status_verifikasi', 'ditolak')->where('updated_at', '>=', now()->startOfWeek())->count(),
+        ];
 
-    $stats = [
-        'ditunda' => $merchants->count(),
-        'disetujui' => Profil::where('tipe_profil', 'merchant')->where('status_verifikasi', 'disetujui')->where('updated_at', '>=', now()->startOfWeek())->count(),
-        'ditolak' => Profil::where('tipe_profil', 'merchant')->where('status_verifikasi', 'ditolak')->where('updated_at', '>=', now()->startOfWeek())->count(),
-    ];
+        return view('admin.merchant-menunggu', compact('merchants', 'stats'));
+    }
 
-    return view('admin.merchant-menunggu', compact('merchants', 'stats'));
-}
+    public function merchantDetail($id)
+    {
+        $merchant = Profil::with('user')->findOrFail($id);
+        return view('admin.merchant-detail', compact('merchant'));
+    }
 
-public function detailMerchant($id)
-{
-    $merchant = Profil::with('user')->findOrFail($id);
-    return view('admin.merchant-detail', compact('merchant'));
-}
+    public function detailMerchant($id)
+    {
+        $merchant = Profil::with('user')->findOrFail($id);
+        return view('admin.merchant-detail', compact('merchant'));
+    }
+
+    public function halamanVerifikasi(Request $request)
+    {
+        // 1. Data Statistik Riil dari Database
+        $totalDitunda = Profil::where('tipe_profil', 'merchant')
+            ->where('status_verifikasi', 'menunggu')
+            ->count();
+
+        $totalDisetujuiMingguIni = Profil::where('tipe_profil', 'merchant')
+            ->where('status_verifikasi', 'disetujui')
+            ->whereBetween('updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            ->count();
+
+        $totalDitolakMingguIni = Profil::where('tipe_profil', 'merchant')
+            ->where('status_verifikasi', 'ditolak')
+            ->whereBetween('updated_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+            ->count();
+
+        // 2. Query List Merchant + Fitur Pencarian (Search)
+        $query = Profil::with('user')->where('tipe_profil', 'merchant');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                // Menggunakan kolom database 'nama_usaha' yang sesuai schema
+                $q->where('nama_usaha', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($u) use ($search) {
+                      $u->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        $merchants = $query->orderByRaw("FIELD(status_verifikasi, 'menunggu', 'disetujui', 'ditolak') ASC")
+            ->orderBy('created_at', 'desc')
+            ->paginate(6); // 6 item per halaman sangat pas untuk grid desktop
+
+        return view('verifikasi-merchant', compact(
+            'totalDitunda',
+            'totalDisetujuiMingguIni',
+            'totalDitolakMingguIni',
+            'merchants'
+        ));
+    }
+
+    public function setujuiMerchant(Request $request, $id)
+    {
+        $profil = Profil::find($id);
+        if (! $profil) {
+            return $request->wantsJson() ? response()->json(['status' => 'error', 'message' => 'Tidak ditemukan'], 404) : back()->with('error', 'Data tidak ditemukan.');
+        }
+
+        $profil->update(['status_verifikasi' => 'disetujui']);
+
+        if ($profil->user_id) {
+            User::where('id', $profil->user_id)->update(['peran' => 'merchant']);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['status' => 'success', 'message' => 'Pengajuan disetujui!'], 200);
+        }
+        return back()->with('success', 'Merchant berhasil disetujui.');
+    }
+
+    public function tolakMerchant(Request $request, $id)
+    {
+        $profil = Profil::find($id);
+        if (! $profil) {
+            return $request->wantsJson() ? response()->json(['status' => 'error', 'message' => 'Tidak ditemukan'], 404) : back()->with('error', 'Data tidak ditemukan.');
+        }
+
+        $profil->update(['status_verifikasi' => 'ditolak']);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['status' => 'success', 'message' => 'Pengajuan ditolak.'], 200);
+        }
+        return back()->with('error', 'Pengajuan merchant ditolak.');
+    }
 }

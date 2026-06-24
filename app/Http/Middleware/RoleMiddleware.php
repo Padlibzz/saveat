@@ -13,8 +13,12 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, $role): Response
     {
-        // Mengecek apakah user sudah login dan perannya (kolom 'peran') sesuai dengan yang diminta di route
         if (! $request->user() || $request->user()->peran !== $role) {
+            \Illuminate\Support\Facades\Log::warning('Role access denied', [
+                'user_id' => $request->user()?->id,
+                'user_role' => $request->user()?->peran,
+                'required_role' => $role
+            ]);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Akses ditolak. Anda tidak memiliki izin untuk mengakses fitur ini.',

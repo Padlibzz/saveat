@@ -131,7 +131,7 @@
                         </button>
                     </div>
 
-                    <a href="{{ route('password.request') }}" class="text-blue-500 hover:underline mt-2 inline-block">
+                    <a href="lupa-password.html" class="text-blue-500 hover:underline mt-2 inline-block">
                         Lupa Password?
                     </a>
                 </div>
@@ -146,11 +146,6 @@
         </form>
 
     </section>
-
-    <div class="text-center mt-6">
-        <span class="text-gray-600">Sudah punya akun?</span>
-        <a href="/auth/login" class="text-blue-500 hover:underline">Login di sini</a>
-    </div>
 </body>
 
 <script>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ListingStatus;
 use App\Helpers\GeoHelper; // Pastikan helper ini tetap ada
 use App\Models\Listing;
+use App\Models\Claim;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -147,5 +148,13 @@ class ListingController extends Controller
         }
 
         return view('checkout', compact('listing'));
+    }
+
+    public function claimSuccess($id)
+    {
+        // Mengambil data klaim beserta relasi makanan dan tokonya
+        $claim = Claim::with('listing.merchant')->findOrFail($id);
+
+        return view('claim-success', compact('claim'));
     }
 }

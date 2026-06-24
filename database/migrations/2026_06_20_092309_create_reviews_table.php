@@ -13,14 +13,15 @@ return new class extends Migration
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('listing_id')->constrained()->cascadeOnDelete();
-
-            $table->unsignedTinyInteger('rating');
+            $table->foreignId('claim_id')->constrained('claims')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('listing_id')->constrained('listings')->cascadeOnDelete();
+            $table->unsignedTinyInteger('rating'); 
             $table->text('komentar')->nullable();
-
             $table->timestamps();
+
+            // Satu klaim hanya boleh direview sekali
+            $table->unique('claim_id');
         });
     }
 

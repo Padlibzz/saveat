@@ -19,13 +19,7 @@ class ClaimController extends Controller
 {
     public function pesananAktif(Request $request)
     {
-        $claims = Claim::with(['listing.merchant'])
-            ->where('user_id', $request->user()->id)
-            ->where('status', '!=', ClaimStatus::DIAMBIL->value) // Filter bukan yang sudah selesai
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('pesanan', compact('claims'));
+        return redirect()->route('dashboard');
     }
 
     public function riwayat(Request $request)
@@ -55,7 +49,24 @@ class ClaimController extends Controller
                 return $klaim;
             });
 
-        return response()->json(['status' => 'success', 'data' => $claims], 200);
+        // Ringkasan untuk dashboard konsumen
+        $klaimValid = $claims->where('status', '!=', 'batal');
+
+        $totalHemat = $klaimValid->sum(function ($klaim) {
+            $hargaNormal = $klaim->listing->harga_normal ?? 0;
+
+            return ($hargaNormal - ($klaim->total_harga / max($klaim->jumlah, 1))) * $klaim->jumlah;
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $claims,
+            'summary' => [
+                'total_klaim' => $klaimValid->count(),
+                'makanan_terselamatkan' => (int) $klaimValid->sum('jumlah'),
+                'total_hemat' => (float) max($totalHemat, 0),
+            ],
+        ], 200);
     }
 
     private function resolveStatusRiwayat(Claim $klaim): string
@@ -285,5 +296,63 @@ class ClaimController extends Controller
             'message' => 'Pesanan berhasil diselesaikan.',
             'data' => $claim,
         ], 200);
+    }
+
+    // ============================================================
+    // ===================  WEB (BLADE) METHODS  ===================
+    // ============================================================
+
+    /**
+     * Render halaman scan/verifikasi pesanan (scan QR atau input kode manual)
+     */
+    public function scanForm()
+    {
+        return view('merchant.scan-qr');
+    }
+
+    /**
+     * Proses verifikasi pesanan dari Blade — dipakai baik untuk scan QR
+     * (kode_klaim dikirim otomatis via JS hasil scan) maupun input manual.
+     * Endpoint sama persis untuk dua mode, karena keduanya cuma kirim 'kode_klaim'.
+     */
+    public function verifikasiWeb(Request $request)
+    {
+        $merchant = $request->user()->merchant;
+
+        if (! $merchant || $merchant->status_verifikasi !== 'disetujui') {
+            return redirect()->back()->with('error', 'Akun Merchant Anda belum diverifikasi.');
+        }
+
+        $request->validate([
+            'kode_klaim' => 'required|string',
+        ]);
+
+        $claim = Claim::with('listing.merchant')
+            ->where('kode_klaim', trim($request->kode_klaim))
+            ->first();
+
+        if (! $claim) {
+            return redirect()->back()->with('error', 'Kode tidak ditemukan. Pastikan kode yang diinput benar.')->withInput();
+        }
+
+        if ($claim->listing->merchant_id !== $merchant->id) {
+            return redirect()->back()->with('error', 'Pesanan ini bukan untuk toko Anda.')->withInput();
+        }
+
+        if ($claim->status_pembayaran !== 'sudah_dibayar') {
+            return redirect()->back()->with('error', 'Konsumen belum menyelesaikan pembayaran untuk pesanan ini.')->withInput();
+        }
+
+        if ($claim->status === 'diambil') {
+            return redirect()->back()->with('error', 'Kode ini sudah pernah digunakan (pesanan sudah selesai).')->withInput();
+        }
+
+        $claim->update(['status' => 'diambil']);
+
+        NotificationService::pesananSelesai($claim->user_id, $claim->id, $claim->listing->nama);
+
+        return redirect()->route('merchant.scan-qr')->with('success',
+            'Berhasil! Pesanan "'.$claim->listing->nama.'" ('.$claim->jumlah.'x) atas nama '.($claim->user->name ?? 'konsumen').' telah selesai diserahkan.'
+        );
     }
 }

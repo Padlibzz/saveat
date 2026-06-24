@@ -13,6 +13,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\PublicStatsController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +27,8 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/payment-methods', [ClaimController::class, 'paymentMethods']);
 
 Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
+
+Route::get('/stats', [PublicStatsController::class, 'index']);
 
 // Route Terproteksi (Memerlukan Autentikasi Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
@@ -65,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/profil/lokasi', [ProfilController::class, 'updateLokasi']);
     Route::get('/recommendations', [RecommendationController::class, 'index']);
 
+    Route::post('/reviews', [ReviewController::class, 'store']);
 });
 
 // Route Khusus Merchant

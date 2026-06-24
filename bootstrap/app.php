@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Request;
+use App\Http\Middleware\Authenticate;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,8 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Aktifkan CORS untuk semua request (termasuk preflight OPTIONS)
         $middleware->prepend(HandleCors::class);
 
+        $middleware->statefulApi();
+
         // Mendaftarkan alias untuk middleware role
         $middleware->alias([
+            'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
             'role' => RoleMiddleware::class,
         ]);
     })

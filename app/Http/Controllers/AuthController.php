@@ -77,11 +77,15 @@ class AuthController extends Controller
             }
         }
 
+        $errorMessage = ($loginType === 'email') 
+            ? 'Email atau password salah.' 
+            : 'Username atau password salah.';
+
         if ($request->wantsJson()) {
-            return response()->json(['pesan' => 'Login gagal, periksa kembali kredensial Anda.'], 401);
+            return response()->json(['pesan' => $errorMessage], 401);
         } else {
             return back()->withErrors([
-                'login' => 'Login gagal, periksa kembali username/email dan password Anda.',
+                'login' => $errorMessage,
             ])->onlyInput('login');
         }
     }
@@ -94,6 +98,9 @@ class AuthController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
             'no_telphone' => 'required|string|max:20',
+        ], [
+            'username.unique' => 'Username sudah digunakan.',
+            'email.unique' => 'Email sudah digunakan.',
         ]);
 
         $user = User::create([

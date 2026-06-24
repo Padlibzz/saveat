@@ -15,21 +15,18 @@ class MerchantListingController extends Controller
         $merchant = $request->user()->merchant;
 
         if (! $merchant) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Profil merchant tidak ditemukan.',
-            ], 404);
+            return redirect()->route('dashboard')->with('error', 'Profil merchant tidak ditemukan.');
         }
 
+        // Mengambil semua produk aktif milik merchant ini
         $listings = Listing::with('kategori')
             ->where('merchant_id', $merchant->id)
+            ->whereIn('status', ['aktif', 'hampir_habis']) // Hanya tampilkan yang aktif
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $listings,
-        ], 200);
+        // Mengembalikan ke halaman blade produk-aktif
+        return view('produk-aktif', compact('listings'));
     }
 
     public function store(Request $request)
@@ -184,26 +181,16 @@ class MerchantListingController extends Controller
             ->first();
 
         if (! $listing) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Listing tidak ditemukan atau bukan milik Anda.',
-            ], 404);
+            return redirect()->route('merchant.produk-aktif')->with('error', 'Listing tidak ditemukan atau bukan milik Anda.');
         }
 
         if ($listing->status === ListingStatus::TUTUP) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Listing ini sudah ditutup.',
-            ], 400);
+            return redirect()->route('merchant.produk-aktif')->with('error', 'Listing ini sudah ditutup.');
         }
 
         $listing->update(['status' => ListingStatus::TUTUP->value]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Listing berhasil ditutup.',
-            'data' => $listing,
-        ], 200);
+        return redirect()->route('merchant.produk-aktif')->with('success', 'Listing berhasil ditutup.');
     }
 
     /**
@@ -238,7 +225,7 @@ class MerchantListingController extends Controller
         $merchant = $request->user()->merchant;
         $kategoris = \App\Models\Category::orderBy('nama')->get();
 
-        return view('merchant.upload', compact('kategoris', 'merchant'));
+        return view('upload-makanan', compact('kategoris', 'merchant'));
     }
 
     public function storeWeb(Request $request)
@@ -288,11 +275,11 @@ class MerchantListingController extends Controller
 
         $listings = Listing::with('kategori')
             ->where('merchant_id', $merchant->id)
-            ->where('status', '!=', 'dihapus')
+            ->whereIn('status', ['aktif', 'hampir_habis'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('merchant.listing', compact('listings'));
+        return view('produk-aktif', compact('listings'));
     }
 
     public function edit(Request $request, $id)

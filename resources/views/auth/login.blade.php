@@ -30,11 +30,18 @@
                 {{ session('success') }}
             </div>
         @endif
-        <form action="/auth/login" method="POST" class="space-y-4">
+        <form action="{{ route('login') }}" method="POST" class="space-y-4">
             @csrf
             <h3 class="text-[#6D6B2E] text-lg">
-                Mohon masukkan username atau email/email dan password 
+                Mohon masukkan username atau email dan password 
             </h3>
+
+            @if($errors->has('login') || $errors->any())
+                <div class="bg-red-100 text-red-700 px-4 py-3 rounded-2xl text-xs font-semibold border border-red-200">
+                    {{ $errors->first('login') ?: 'Login gagal, silakan periksa kredensial Anda.' }}
+                </div>
+            @endif
+
             <div class="space-y-4">
 
                 <div>
@@ -49,6 +56,7 @@
                             type="text"
                             id="username"
                             name="login"
+                            value="{{ old('login') }}"
                             placeholder="Masukkan username atau email Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"
@@ -82,7 +90,7 @@
                         </button>
                     </div>
 
-                    <a href="{{ route('password.request') }}" class="text-blue-500 hover:underline mt-2 inline-block">
+                    <a href="lupa-password.html" class="text-blue-500 hover:underline mt-2 inline-block">
                         Lupa Password?
                     </a>
                 </div>
@@ -100,7 +108,7 @@
 
     <div class="text-center mt-6">
         <span class="text-gray-600">Belum punya akun?</span>
-        <a href="/auth/register" class="text-blue-500 hover:underline">Daftar di sini</a>
+        <a href="register.html" class="text-blue-500 hover:underline">Daftar di sini</a>
     </div>
 </body>
 

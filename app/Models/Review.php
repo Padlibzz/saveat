@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Review extends Model
 {
     protected $fillable = [
+        'claim_id',
         'user_id',
         'listing_id',
         'rating',
@@ -15,11 +16,16 @@ class Review extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function listing()
     {
-        return $this->belongsTo(Listing::class);
+        return $this->belongsTo(Listing::class, 'listing_id');
+    }
+
+    public function claim()
+    {
+        return $this->belongsTo(Claim::class, 'claim_id');
     }
 }
