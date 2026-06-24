@@ -1,4 +1,4 @@
-@extends('layouts.landing')
+@extends('layout.landing')
 
 @section('page_title', 'SaveEat - Save Food, Save Money, Save Earth')
 
