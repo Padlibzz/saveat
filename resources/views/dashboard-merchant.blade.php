@@ -87,79 +87,50 @@
 
                         </div>
 
+                        <!-- Grafik Penjualan Dinamis -->
                         <div class="bg-[#FDFDF5] p-6 rounded-2xl shadow-sm border border-[#545523]/10">
                             <div class="flex justify-between items-center mb-6">
                                 <h4 class="text-sm font-bold text-[#545523]">Kurs Penjualan</h4>
-                                <select class="text-xs font-medium text-gray-600 bg-gray-100 border-none rounded-lg px-3 py-1.5 focus:outline-none">
-                                    <option>7 Hari Terakhir</option>
-                                </select>
                             </div>
                             
                             <div class="flex items-end justify-between gap-2 pt-4 px-2 h-48 border-b border-gray-100">
-                                <div class="flex flex-col items-center flex-1 gap-2 group">
-                                    <div class="w-8 md:w-10 bg-[#A3A463] rounded-t-lg h-16 transition-all group-hover:bg-[#545523]"></div>
-                                    <span class="text-[11px] font-medium text-gray-500">Sen</span>
-                                </div>
-                                <div class="flex flex-col items-center flex-1 gap-2 group">
-                                    <div class="w-8 md:w-10 bg-[#A3A463] rounded-t-lg h-28 transition-all group-hover:bg-[#545523]"></div>
-                                    <span class="text-[11px] font-medium text-gray-500">Sel</span>
-                                </div>
-                                <div class="flex flex-col items-center flex-1 gap-2 group">
-                                    <div class="w-8 md:w-10 bg-[#A3A463] rounded-t-lg h-20 transition-all group-hover:bg-[#545523]"></div>
-                                    <span class="text-[11px] font-medium text-gray-500">Rab</span>
-                                </div>
-                                <div class="flex flex-col items-center flex-1 gap-2 group">
-                                    <div class="w-8 md:w-10 bg-[#A3A463] rounded-t-lg h-32 transition-all group-hover:bg-[#545523]"></div>
-                                    <span class="text-[11px] font-medium text-gray-500">Kam</span>
-                                </div>
-                                <div class="flex flex-col items-center flex-1 gap-2 group">
-                                    <div class="w-8 md:w-10 bg-[#A3A463] rounded-t-lg h-36 transition-all group-hover:bg-[#545523]"></div>
-                                    <span class="text-[11px] font-medium text-gray-500">Jum</span>
-                                </div>
-                                <div class="flex flex-col items-center flex-1 gap-2 group">
-                                    <div class="w-8 md:w-10 bg-[#A3A463] rounded-t-lg h-24 transition-all group-hover:bg-[#545523]"></div>
-                                    <span class="text-[11px] font-medium text-gray-500">Sab</span>
-                                </div>
-                                <div class="flex flex-col items-center flex-1 gap-2 group">
-                                    <div class="w-8 md:w-10 bg-[#545523] rounded-t-lg h-34"></div>
-                                    <span class="text-[11px] font-bold text-[#545523]">Min</span>
-                                </div>
+                                @php
+                                    $maxTotal = collect($grafikPenjualan ?? [])->max('total') ?: 1;
+                                @endphp
+                                @foreach($grafikPenjualan ?? [] as $item)
+                                    @php
+                                        $heightPercent = ($item['total'] / $maxTotal) * 100;
+                                        $heightPercent = max(5, $heightPercent); 
+                                    @endphp
+                                    <div class="flex flex-col items-center flex-1 gap-2 group">
+                                        <span class="text-[10px] font-bold text-[#545523] opacity-0 group-hover:opacity-100">
+                                            {{ $item['total'] }}
+                                        </span>
+                                        <div class="w-8 md:w-10 bg-[#A3A463] rounded-t-lg group-hover:bg-[#545523]" style="height: {{ $heightPercent }}%;"></div>
+                                        <span class="text-[11px] font-medium text-gray-500">{{ $item['label'] }}</span>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
 
+                        <!-- Aktivitas Terkini Dinamis -->
                         <div class="bg-[#FDFDF5] p-6 rounded-2xl shadow-sm border border-[#545523]/10 space-y-4">
                             <h4 class="text-sm font-bold text-[#545523] mb-2">Aktivitas Terkini</h4>
                             
                             <div class="space-y-3">
-                                <div class="flex items-center gap-4 p-2 rounded-xl hover:bg-gray-50 transition">
-                                    <div class="bg-[#545523] text-white p-2.5 rounded-full flex items-center justify-center w-10 h-10">
-                                        <i class="fa-solid fa-bag-shopping text-sm"></i>
+                                @forelse($aktivitasTerkini ?? [] as $act)
+                                    <div class="flex items-center gap-4 p-2 rounded-xl hover:bg-gray-50 transition">
+                                        <div class="bg-[#545523]/10 text-[#545523] p-2.5 rounded-full flex items-center justify-center w-10 h-10">
+                                            <i class="fa-solid fa-{{ $act['icon'] }} text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h5 class="text-xs font-bold text-gray-800">{{ $act['judul'] }}</h5>
+                                            <p class="text-[11px] text-gray-400 mt-0.5">{{ $act['keterangan'] }}</p>
+                                        </div>
                                     </div>
-                                    <div class="flex-1">
-                                        <h5 class="text-xs font-bold text-gray-800">2x Nasi Bungkus diklaim</h5>
-                                        <p class="text-[11px] text-gray-400 mt-0.5">Oleh Budi S. &bull; 2 menit lalu</p>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-4 p-2 rounded-xl hover:bg-gray-50 transition">
-                                    <div class="bg-[#CFD086] text-[#545523] p-2.5 rounded-full flex items-center justify-center w-10 h-10">
-                                        <i class="fa-solid fa-star text-sm"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <h5 class="text-xs font-bold text-gray-800">Ulasan Bintang 5 Baru</h5>
-                                        <p class="text-[11px] text-gray-400 mt-0.5">"Makanannya masih enak banget!" &bull; 15 menit lalu</p>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-4 p-2 rounded-xl hover:bg-gray-50 transition">
-                                    <div class="bg-amber-100 text-amber-700 p-2.5 rounded-full flex items-center justify-center w-10 h-10">
-                                        <i class="fa-solid fa-clock text-sm"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <h5 class="text-xs font-bold text-gray-800">Listing Segera Berakhir</h5>
-                                        <p class="text-[11px] text-gray-400 mt-0.5">Roti Tawar &bull; Sisa 10 menit</p>
-                                    </div>
-                                </div>
+                                @empty
+                                    <p class="text-xs text-gray-500 text-center py-4">Belum ada aktivitas saat ini.</p>
+                                @endforelse
                             </div>
                         </div>
 
