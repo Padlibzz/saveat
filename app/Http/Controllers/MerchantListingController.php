@@ -275,7 +275,7 @@ class MerchantListingController extends Controller
 
         $listings = Listing::with('kategori')
             ->where('merchant_id', $merchant->id)
-            ->where('status', '!=', 'dihapus')
+            ->whereIn('status', ['aktif', 'hampir_habis'])
             ->orderBy('created_at', 'desc')
             ->get();
 
