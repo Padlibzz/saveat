@@ -101,7 +101,11 @@
                                                 Edit
                                             </a>
 
-                                            <form action="/merchant/listing/{{ $item->id }}/tutup" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menutup listing makanan ini?')">
+                                            <form action="/merchant/listing/{{ $item->id }}/tutup" method="POST" 
+                                                  x-data 
+                                                  @submit.prevent="fetch($el.action, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } })
+                                                      .then(response => { if (response.ok) { window.location.reload(); } else { alert('Gagal menutup listing'); } })"
+                                                  onsubmit="return confirm('Apakah Anda yakin ingin menutup listing makanan ini?')">
                                                 @csrf
                                                 <button type="submit" class="border border-red-200 text-red-500 hover:bg-red-50 p-2 rounded-xl transition-all w-9 h-9 flex items-center justify-center" title="Tutup Listing">
                                                     <i class="fa-regular fa-trash-can text-sm"></i>
