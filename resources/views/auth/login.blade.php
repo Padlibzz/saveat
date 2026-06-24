@@ -30,15 +30,24 @@
                 {{ session('success') }}
             </div>
         @endif
-        <form action="/auth/login" method="POST" class="space-y-4">
+        <form action="{{ route('login') }}" method="POST" class="space-y-4">
             @csrf
             <h3 class="text-[#6D6B2E] text-lg">
                 Mohon masukkan username atau email dan password 
             </h3>
+            @if($errors->any())
+                <div class="bg-red-100 text-red-700 px-4 py-3 rounded-lg mb-4">
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="space-y-4">
 
                 <div>
-                    <label for="username" class="block text-md text-[#6D6B2E] mb-2">
+                    <label for="login" class="block text-md text-[#6D6B2E] mb-2">
                         Username atau Email
                     </label>
 
@@ -47,8 +56,9 @@
 
                         <input
                             type="text"
-                            id="username"
-                            name="login_identifier"
+                            id="login"
+                            name="login"
+                            value="{{ old('login') }}"
                             placeholder="Masukkan username atau email Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"
@@ -82,25 +92,20 @@
                         </button>
                     </div>
 
-                    <a href="lupa-password.html" class="text-blue-500 hover:underline mt-2 inline-block">
+                    <a href="{{ route('password.request') }}" class="text-blue-500 hover:underline mt-2 inline-block">
                         Lupa Password?
                     </a>
                 </div>
 
             </div>
             <button type="submit" class="w-full bg-[#E4E180] hover:bg-[#6D6B2E] text-white py-2 px-4 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Masuk</button>
-            <span class="center">atau</span>
-            <button type="button" class="w-full bg-[#3D3D3D] text-white py-2 px-4 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <img src="svg/google.png" alt="Google Icon" class="w-5 h-5 inline-block mr-2">
-                Login dengan Google
-            </button>
         </form>
 
     </section>
 
     <div class="text-center mt-6">
         <span class="text-gray-600">Belum punya akun?</span>
-        <a href="register.html" class="text-blue-500 hover:underline">Daftar di sini</a>
+        <a href="{{ route('register') }}" class="text-blue-500 hover:underline">Daftar di sini</a>
     </div>
 </body>
 

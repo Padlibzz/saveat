@@ -26,11 +26,20 @@
     <section class="bg-[#FFFFFA] p-8 rounded-3xl shadow-lg max-w-md mx-auto mt-10">
         <h2 class="text-2xl font-bold mb-6 text-center text-[#6D6B2E]">Sign-Up</h2>
 
-        <form action="/auth/register" method="POST" class="space-y-4">
+        <form action="{{ route('register') }}" method="POST" class="space-y-4">
             @csrf
+            @if($errors->any())
+                <div class="bg-red-100 text-red-700 px-4 py-3 rounded-lg mb-4">
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <div class="space-y-4">
                 <div>
-                    <label for="nama" class="block text-md text-[#6D6B2E] mb-2">
+                    <label for="name" class="block text-md text-[#6D6B2E] mb-2">
                         Nama
                     </label>
 
@@ -41,6 +50,7 @@
                             type="text"
                             id="name"
                             name="name"
+                            value="{{ old('name') }}"
                             placeholder="Masukkan nama Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"
@@ -54,12 +64,13 @@
                     </label>
 
                     <div class="relative">
-                        <i class="fa-regular fa-user absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <i class="fa-regular fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"></i>
 
                         <input
-                            type="text"
+                            type="email"
                             id="email"
                             name="email"
+                            value="{{ old('email') }}"
                             placeholder="Masukkan alamat email Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"
@@ -79,6 +90,7 @@
                             type="text"
                             id="no_telphone"
                             name="no_telphone"
+                            value="{{ old('no_telphone') }}"
                             placeholder="Masukkan nomor telepon Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"
@@ -98,6 +110,7 @@
                             type="text"
                             id="username"
                             name="username"
+                            value="{{ old('username') }}"
                             placeholder="Masukkan username Anda"
                             required
                             class="w-full bg-[#F2F3F7] rounded-full py-4 pl-14 pr-4 shadow-md outline-none focus:ring-2 focus:ring-[#6D6B2E]"
@@ -130,38 +143,15 @@
                             <i id="eyeIcon" class="fa-regular fa-eye"></i>
                         </button>
                     </div>
-
-                    <a href="lupa-password.html" class="text-blue-500 hover:underline mt-2 inline-block">
-                        Lupa Password?
-                    </a>
                 </div>
 
             </div>
             <button type="submit" class="w-full bg-[#E4E180] hover:bg-[#6D6B2E] text-white py-2 px-4 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Daftar</button>
-            <span class="center">atau</span>
-            <button type="button" class="w-full bg-[#3D3D3D] text-white py-2 px-4 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <img src="svg/google.png" alt="Google Icon" class="w-5 h-5 inline-block mr-2">
-                Daftar dengan Google
-            </button>
         </form>
 
     </section>
-</body>
 
-<script>
-function togglePassword() {
-    const password = document.getElementById('password');
-    const eyeIcon = document.getElementById('eyeIcon');
-
-    if (password.type === 'password') {
-        password.type = 'text';
-        eyeIcon.classList.remove('fa-eye');
-        eyeIcon.classList.add('fa-eye-slash');
-    } else {
-        password.type = 'password';
-        eyeIcon.classList.remove('fa-eye-slash');
-        eyeIcon.classList.add('fa-eye');
-    }
-}
-</script>
-</html>
+    <div class="text-center mt-6">
+        <span class="text-gray-600">Sudah punya akun?</span>
+        <a href="{{ route('login') }}" class="text-blue-500 hover:underline">Masuk di sini</a>
+    </div>
