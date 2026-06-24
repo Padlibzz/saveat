@@ -20,9 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Aktifkan CORS untuk semua request (termasuk preflight OPTIONS)
         $middleware->prepend(HandleCors::class);
 
+        $middleware->statefulApi();
+
         // Mendaftarkan alias untuk middleware role
         $middleware->alias([
-            'auth' => Authenticate::class,
+            'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
             'role' => RoleMiddleware::class,
         ]);
     })
