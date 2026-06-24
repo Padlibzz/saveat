@@ -3,7 +3,7 @@
 @section('page_title', 'SaveEat - Save Food, Save Money, Save Earth')
 
 @section('content')
-    {{-- 1. HERO SECTION --}}
+    {{-- HERO SECTION --}}
     <section class="bg-[#EEE0E0] m-4 md:m-6 rounded-3xl shadow-sm">
         <div class="container mx-auto px-6 py-12 md:py-20">
             <div class="flex flex-col lg:flex-row items-center gap-12">
@@ -37,7 +37,7 @@
         </div>
     </section>
 
-    {{-- 2. STATISTIK SECTION --}}
+    {{-- STATISTIK SECTION --}}
     <section class="bg-white m-4 md:m-6 rounded-3xl shadow-sm">
         <div class="container mx-auto px-6 py-12 md:py-16">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
@@ -56,7 +56,7 @@
             </div>
         </div>
 
-        {{-- 3. CARA KERJA SECTION --}}
+        {{-- CARA KERJA SECTION --}}
         <div class="container mx-auto px-6 py-12 md:py-16 text-center border-t border-gray-50">
             <h2 class="text-2xl md:text-4xl font-bold text-[#545523]">
                 Menyelamatkan makanan itu mudah
@@ -98,7 +98,7 @@
             </div>
         </div>
 
-        {{-- 4. LISTING MAKANAN --}}
+        {{-- LISTING MAKANAN --}}
         <div class="pb-16 px-4">
             <h2 class="text-2xl md:text-3xl font-bold text-[#545523] text-center">Tersedia di sekitar Anda</h2>
             <p class="mt-2 text-sm text-gray-500 text-center">Segera dapatkan sebelum kehabisan!</p>
@@ -150,7 +150,7 @@
         </div>
     </section>
 
-    {{-- 6. FOOTER SECTION --}}
+    {{-- FOOTER SECTION --}}
     <footer class="bg-white border-t border-gray-100 mx-4 md:m-6 rounded-3xl shadow-xs">
         <div class="max-w-7xl mx-auto px-6 py-12">
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-10">
