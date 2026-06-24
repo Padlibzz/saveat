@@ -106,7 +106,7 @@
             <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto px-4">
                 @foreach($listings as $listing)
                     <x-food-card
-                        data-url="/checkout/{{ $listing->id }}" :foto="$listing->foto"
+                        :id="$listing->id" :foto="$listing->foto"
                         :nama="$listing->nama"
                         :merchant="$listing->merchant?->nama_usaha ?? 'Merchant'"
                         :alamat="$listing->merchant?->alamat ?? '-'"

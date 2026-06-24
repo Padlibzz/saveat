@@ -66,7 +66,7 @@
 
         </div>
 
-        <a href="{{ $attributes['data-url'] ?? '#' }}" 
+        <a href="{{ route('checkout', $id) }}" 
         class="block text-center bg-[#545523] text-white py-2 m-2 rounded-xl font-medium hover:bg-[#43441c] transition">
         Beli Sekarang
         </a>

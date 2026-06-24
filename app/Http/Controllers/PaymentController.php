@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentStatus;
+use App\Enums\ClaimStatus;
 use App\Models\Claim;
 use App\Services\NotificationService;
 use Carbon\Carbon;
@@ -34,56 +35,37 @@ class PaymentController extends Controller
     public function createTransaction(Request $request, $claimId)
     {
         try {
-            // 1. Cari data klaim
-            $claim = Claim::findOrFail($claimId);
+            $claim = Claim::with('user')->findOrFail($claimId);
 
-            // 2. DETEKSI ENUM OTOMATIS: 
-            // Kita coba ambil dari Enum Class yang kamu punya di aplikasi.
-            $statusLunas = 'pending'; // Fallback paling aman jika semua gagal
+            $params = [
+                'transaction_details' => [
+                    'order_id' => $claim->kode_klaim,
+                    'gross_amount' => (int) $claim->total_harga,
+                ],
+                'customer_details' => [
+                    'first_name' => $claim->user->name,
+                    'email' => $claim->user->email,
+                ],
+                'enabled_payments' => $this->mapPaymentMethod($request->input('metode_pembayaran', 'qris')),
+            ];
 
-            if (defined('\App\Enums\ClaimStatus::PENDING')) {
-                // Jika status lunas di tempatmu menggunakan nama lain selain PENDING,
-                // silakan ganti kata PENDING di bawah dengan case yang ada di Enum kamu (misal: APPROVED, SUKSES, atau COMPLETED)
-                $statusLunas = ClaimStatus::PENDING->value; 
-            }
-
-            // Eksekusi update ke database
+            $snapToken = \Midtrans\Snap::getSnapToken($params);
+            
             $claim->update([
-                'status' => $statusLunas, 
-                'status_pembayaran' => PaymentStatus::SUDAH_DIBAYAR->value,
+                'midtrans_snap_token' => $snapToken,
                 'metode_pembayaran' => $request->input('metode_pembayaran', 'qris'),
-                'waktu_pembayaran' => now()
             ]);
 
-            // 3. TRIGGER NOTIFIKASI OTOMATIS
-            NotificationService::klaimBerhasil(
-                $claim->user_id,
-                $claim->id,
-                $claim->listing ? $claim->listing->nama : 'Pesanan',
-                $claim->listing ? Carbon::parse($claim->listing->batas_waktu)->format('H:i, d M Y') : '-'
-            );
-
-            $claim->loadMissing('listing.merchant');
-
-            if ($claim->listing && $claim->listing->merchant && $claim->listing->merchant->user_id) {
-                NotificationService::klaimMasuk(
-                    $claim->listing->merchant->user_id,
-                    $claim->id,
-                    $claim->listing->nama
-                );
-            }
-
             return response()->json([
-                'status' => 'success',
-                'message' => 'Simulasi pembayaran berhasil diproses!',
-                'kode_klaim' => $claim->kode_klaim
+                'status' => 'midtrans',
+                'snap_token' => $snapToken
             ], 200);
 
         } catch (\Exception $e) {
-            Log::error('Gagal memproses simulasi pembayaran: ' . $e->getMessage());
+            Log::error('Gagal membuat transaksi Midtrans: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memproses transaksi simulasi: ' . $e->getMessage()
+                'message' => 'Gagal memproses transaksi: ' . $e->getMessage()
             ], 500);
         }
     }

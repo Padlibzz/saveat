@@ -153,61 +153,68 @@
                 get total() { return this.subtotal + this.pajak },
 
                 async prosesPembayaran() {
-                this.loading = true;
-                this.errorMessage = '';
+                    this.loading = true;
+                    this.errorMessage = '';
 
-                try {
-                    // LANGKAH 1: Buat order data (Claim) di database internal aplikasi
-                    let responseClaim = await fetch('/api/claim/store', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            listing_id: {{ $listing->id }},
-                            jumlah: this.qty,
-                            total_harga: this.total
-                        })
-                    });
+                    try {
+                        // LANGKAH 1: Buat order data (Claim) di database
+                        let responseClaim = await fetch('/api/claim/store', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                listing_id: {{ $listing->id }},
+                                jumlah: this.qty,
+                                total_harga: this.total
+                            })
+                        });
 
-                    let dataClaim = await responseClaim.json();
+                        let dataClaim = await responseClaim.json();
+                        if (!responseClaim.ok || dataClaim.status !== 'success') {
+                            throw new Error(dataClaim.message || 'Gagal membuat invoice pesanan.');
+                        }
+                        const claimId = dataClaim.claim_id;
 
-                    if (!responseClaim.ok || dataClaim.status !== 'success') {
-                        throw new Error(dataClaim.message || 'Gagal membuat invoice pesanan.');
+                        // LANGKAH 2: Minta Snap Token ke Backend
+                        let responseSnap = await fetch(`/api/payment/create/${claimId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                metode_pembayaran: this.metodePilihan
+                            })
+                        });
+
+                        let dataSnap = await responseSnap.json();
+                        if (!responseSnap.ok || dataSnap.status !== 'midtrans') {
+                            throw new Error(dataSnap.message || 'Gagal menyiapkan pembayaran.');
+                        }
+
+                        // LANGKAH 3: Jalankan Midtrans Snap Popup
+                        snap.pay(dataSnap.snap_token, {
+                            onSuccess: function(result){
+                                window.location.href = `/claim/success/${claimId}`;
+                            },
+                            onPending: function(result){
+                                alert("Menunggu pembayaran Anda!");
+                            },
+                            onError: function(result){
+                                alert("Pembayaran gagal!");
+                            }
+                        });
+
+                    } catch (error) {
+                        this.errorMessage = error.message;
+                    } finally {
+                        this.loading = false;
                     }
-
-                    const claimId = dataClaim.claim_id;
-
-                    // LANGKAH 2: Eksekusi bypass/simulasi pembayaran langsung lunas di backend
-                    let responseSimulasi = await fetch(`/api/payment/create/${claimId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            metode_pembayaran: this.metodePilihan
-                        })
-                    });
-
-                    let dataSimulasi = await responseSimulasi.json();
-
-                    if (!responseSimulasi.ok || dataSimulasi.status !== 'success') {
-                        throw new Error(dataSimulasi.message || 'Gagal memproses simulasi pembayaran.');
-                    }
-
-                    // LANGKAH 3: Langsung arahkan ke halaman baru "Barcode Pengambilan" membawa ID klaim
-                    window.location.href = `/claim/success/${claimId}`;
-
-                } catch (error) {
-                    this.errorMessage = error.message;
-                } finally {
-                    this.loading = false;
                 }
-            }
             }
         }
     </script>

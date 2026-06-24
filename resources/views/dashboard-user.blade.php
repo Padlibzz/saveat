@@ -50,7 +50,7 @@
 
                        @foreach($listings as $listing)
                             <x-food-card
-                                data-url="/checkout/{{ $listing->id }}" :foto="$listing->foto"
+                                :id="$listing->id" :foto="$listing->foto"
                                 :nama="$listing->nama"
                                 :merchant="$listing->merchant?->nama_usaha ?? 'Merchant'"
                                 :alamat="$listing->merchant?->alamat ?? '-'"
