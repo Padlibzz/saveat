@@ -101,7 +101,7 @@
                                                 Edit
                                             </a>
 
-                                            <form action="/merchant/listing/{{ $item->id }}/tutup" method="POST" 
+                                            <form action="{{ route('merchant.listing.tutup', $item->id) }}" method="POST" 
                                                   x-data 
                                                   @submit.prevent="fetch($el.action, { 
                                                       method: 'POST', 
