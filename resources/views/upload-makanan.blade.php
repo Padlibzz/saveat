@@ -199,7 +199,7 @@
                     }
 
                     try {
-                        const response = await fetch('/merchant/listing', {
+                        const response = await fetch('/api/merchant/listings', {
                             method: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
