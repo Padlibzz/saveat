@@ -47,6 +47,11 @@ class PaymentController extends Controller
                     'email' => $claim->user->email,
                 ],
                 'enabled_payments' => $this->mapPaymentMethod($request->input('metode_pembayaran', 'qris')),
+                'callbacks' => [
+                    'finish' => url('/claim/success/' . $claim->id),
+                    'error' => url('/checkout/' . $claim->listing_id),
+                    'pending' => url('/checkout/' . $claim->listing_id),
+                ],
             ];
 
             $snapToken = \Midtrans\Snap::getSnapToken($params);
