@@ -25,7 +25,7 @@ class ClaimController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('pesanan', compact('claims'));
+        return view('dashboard-user', compact('claims'));
     }
 
     public function riwayat(Request $request)
