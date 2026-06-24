@@ -216,14 +216,9 @@ class MerchantDashboardController extends Controller
 
     public function klaimMasukWeb(Request $request)
     {
-        $merchant = $request->user()->merchant;
-        $listingIds = Listing::where('merchant_id', $merchant->id)->pluck('id');
-
-        $klaims = Claim::with(['user:id,name', 'listing:id,nama'])
-            ->whereIn('listing_id', $listingIds)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('claim-masuk', compact('klaims'));
+        // Karena tidak ada view khusus 'claim-masuk' di branch frontend,
+        // kita arahkan ke dashboard merchant sebagai fallback atau bisa diimplementasi ulang
+        // menggunakan data yang sudah ada di dashboard.
+        return redirect()->route('merchant.dashboard')->with('info', 'Halaman klaim masuk belum tersedia di desain baru.');
     }
 }
