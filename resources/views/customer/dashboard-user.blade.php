@@ -31,8 +31,8 @@
     {{-- KONTEN REKOMENDASI MAKANAN --}}
     <div class="space-y-5">
         <div class="border-b border-[#545523]/10 pb-2">
-            <h2 class="text-xl font-bold text-[#545523]">Rekomendasi Untukmu ✨</h2>
-            <p class="text-xs text-gray-400 font-medium">Makanan lezat yang siap diselamatkan hari ini dengan harga miring.</p>
+            <h2 class="text-xl font-bold text-[#545523]">Rekomendasi Untukmu</h2>
+            <p class="text-xs text-white font-medium">Makanan lezat yang siap diselamatkan hari ini dengan harga miring.</p>
         </div>
 
         @if($listings->isEmpty())

@@ -1,30 +1,29 @@
-<nav class="bg-white shadow-md p-4 lg:ml-64">
-    <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <button @click="sidebarOpen = true" class="lg:hidden">
-                <i class="fa-solid fa-bars text-xl"></i>
+<nav class="flex items-center justify-between w-full mb-6 md:mb-8">
+    {{-- Bagian Kiri: Tombol Menu Mobile & Judul Halaman --}}
+    <div class="flex items-center gap-3">
+        <button @click="sidebarOpen = true" class="lg:hidden text-[#545523] hover:text-[#7A7A33] transition cursor-pointer">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+        <h2 class="text-xl md:text-2xl font-extrabold text-[#545523]">
+            @yield('page_title', 'Dashboard') 
+        </h2>
+    </div>
+
+    {{-- Bagian Kanan: Profil & Logout --}}
+    <div class="flex items-center gap-3 md:gap-4">
+        <a href="{{ route('user.profile') }}" class="flex items-center gap-2.5 bg-white border border-[#545523]/10 rounded-full pl-2 pr-4 py-1.5 shadow-sm hover:shadow-md transition-all">
+            <img src="{{ asset('svg/user-icon.png') }}" alt="User" class="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover border border-gray-100">
+            <div class="leading-tight hidden sm:block">
+                <p class="text-[10px] text-gray-500 font-medium">Hi,</p>
+                <p class="text-xs font-bold text-[#545523]">{{ Auth::user()->name }}</p>
+            </div>
+        </a>
+
+        <form action="{{ route('logout') }}" method="POST" class="m-0">
+            @csrf
+            <button type="submit" class="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full border border-red-200 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm cursor-pointer" title="Keluar">
+                <i class="fa-solid fa-right-from-bracket text-sm md:text-base"></i>
             </button>
-            <h2 class="text-xl font-semibold text-[#545523]">
-                @yield('page_title', 'Dashboard') 
-            </h2>
-        </div>
-
-        <div class="flex items-center gap-3">
-            <!-- Diarahkan ke route profile khusus User/Customer -->
-            <a href="{{ route('user.profile') }}" class="flex items-center gap-3 border border-gray-200 rounded-full px-4 py-2 bg-white hover:bg-gray-50 transition">
-                <img src="{{ asset('svg/user-icon.png') }}" alt="User" class="w-10 h-10 rounded-full object-cover">
-                <div class="leading-tight">
-                    <p class="text-xs text-gray-500">Hi,</p>
-                    <p class="font-semibold text-gray-800">{{ Auth::user()->name }}</p>
-                </div>
-            </a>
-
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="flex items-center justify-center w-11 h-11 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
-            </form>
-        </div>
+        </form>
     </div>
 </nav>
