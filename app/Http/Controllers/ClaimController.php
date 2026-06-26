@@ -13,13 +13,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Midtrans\Config;
-use Midtrans\CoreApi;
+use Midtrans\Snap;
 
 class ClaimController extends Controller
 {
     public function pesananAktif(Request $request)
     {
-        return redirect()->route('dashboard');
+        $claims = Claim::with(['listing.merchant', 'listing.kategori'])
+            ->where('user_id', $request->user()->id)
+            ->where('status', '!=', 'diambil')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $riwayatPesanan = Claim::with(['listing.merchant', 'listing.kategori'])
+            ->where('user_id', $request->user()->id)
+            ->whereIn('status', [ClaimStatus::DIAMBIL->value, ClaimStatus::BATAL->value])
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return view('customer.pesanan-detail', compact('riwayatPesanan', 'claims'));
     }
 
     public function riwayat(Request $request)
@@ -30,7 +42,7 @@ class ClaimController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('riwayat-pesanan', compact('claims'));
+        return view('customer.riwayat-pesanan', compact('claims'));
     }
 
     public function index(Request $request)
@@ -117,7 +129,7 @@ class ClaimController extends Controller
             $pajak = 2000; // Sesuai view
             $totalHarga = $subtotal + $pajak;
 
-            $kodeKlaim = 'CLM-' . strtoupper(Str::random(8));
+            $kodeKlaim = 'CLM-'.strtoupper(Str::random(8));
 
             $claim = Claim::create([
                 'user_id' => $request->user()->id,
@@ -133,33 +145,35 @@ class ClaimController extends Controller
             $listing->decrement('stok_sisa', $request->jumlah);
 
             // Midtrans Logic
-            \Midtrans\Config::$serverKey = config('midtrans.server_key');
-            \Midtrans\Config::$isProduction = config('midtrans.is_production');
-            \Midtrans\Config::$isSanitized = true;
-            \Midtrans\Config::$is3ds = true;
+            Config::$serverKey = config('midtrans.server_key');
+            Config::$isProduction = config('midtrans.is_production');
+            Config::$isSanitized = true;
+            Config::$is3ds = true;
 
             $params = [
                 'transaction_details' => [
                     'order_id' => $kodeKlaim,
-                    'gross_amount' => (int)$totalHarga,
+                    'gross_amount' => (int) $totalHarga,
                 ],
                 'customer_details' => [
                     'first_name' => $request->user()->name,
                     'email' => $request->user()->email,
                 ],
                 'callbacks' => [
-                    'finish' => route('pesanan.detail', ['id' => $claim->id])
+                    'finish' => route('pesanan.detail', ['id' => $claim->id]),
                 ],
             ];
 
-            $snapToken = \Midtrans\Snap::getSnapToken($params);
+            $snapToken = Snap::getSnapToken($params);
             $claim->update(['midtrans_snap_token' => $snapToken]);
 
             DB::commit();
+
             return response()->json(['status' => 'midtrans', 'snap_token' => $snapToken]);
 
         } catch (Exception $e) {
             DB::rollBack();
+
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
@@ -175,7 +189,7 @@ class ClaimController extends Controller
             ], 403);
         }
 
-        $claim = Claim::where('id', $id)->whereHas('listing', function($query) use ($merchant) {
+        $claim = Claim::where('id', $id)->whereHas('listing', function ($query) use ($merchant) {
             $query->where('merchant_id', $merchant->id);
         })->firstOrFail();
 

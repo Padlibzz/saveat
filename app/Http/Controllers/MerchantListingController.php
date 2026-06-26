@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Listing;
 use App\Enums\ListingStatus;
+use App\Models\Category;
+use App\Models\Listing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -18,15 +19,15 @@ class MerchantListingController extends Controller
             return redirect()->route('dashboard')->with('error', 'Profil merchant tidak ditemukan.');
         }
 
-        // Mengambil semua produk aktif milik merchant ini
+        // Mengambil semua dashboardk aktif milik merchant ini
         $listings = Listing::with('kategori')
             ->where('merchant_id', $merchant->id)
             ->whereIn('status', ['aktif', 'hampir_habis']) // Hanya tampilkan yang aktif
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Mengembalikan ke halaman blade produk-aktif
-        return view('produk-aktif', compact('listings'));
+        // Mengembalikan ke halaman blade dashboardk-aktif
+        return view('merchant.dashboardk-aktif', compact('listings'));
     }
 
     public function store(Request $request)
@@ -202,7 +203,7 @@ class MerchantListingController extends Controller
     {
         $merchant = $request->user()->merchant;
 
-        $listing = \App\Models\Listing::where('id', $id)
+        $listing = Listing::where('id', $id)
             ->where('merchant_id', $merchant->id)
             ->first();
 
@@ -223,9 +224,9 @@ class MerchantListingController extends Controller
     public function create(Request $request)
     {
         $merchant = $request->user()->merchant;
-        $kategoris = \App\Models\Category::orderBy('nama')->get();
+        $kategoris = Category::orderBy('nama')->get();
 
-        return view('upload-makanan', compact('kategoris', 'merchant'));
+        return view('merchant.upload-makanan', compact('kategoris', 'merchant'));
     }
 
     public function storeWeb(Request $request)
@@ -279,7 +280,7 @@ class MerchantListingController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('produk-aktif', compact('listings'));
+        return view('merchant.produk-aktif', compact('listings'));
     }
 
     public function edit(Request $request, $id)
@@ -290,7 +291,7 @@ class MerchantListingController extends Controller
             ->where('merchant_id', $merchant->id)
             ->firstOrFail();
 
-        $kategoris = \App\Models\Category::orderBy('nama')->get();
+        $kategoris = Category::orderBy('nama')->get();
 
         return view('merchant.edit-listing', compact('listing', 'kategoris'));
     }
@@ -367,6 +368,6 @@ class MerchantListingController extends Controller
 
         $listing->update($input);
 
-        return redirect()->route('merchant.produk-aktif')->with('success', 'Listing berhasil diperbarui.');
+        return redirect()->route('merchant.dashboardk-aktif')->with('success', 'Listing berhasil diperbarui.');
     }
 }

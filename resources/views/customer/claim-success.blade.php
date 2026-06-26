@@ -32,7 +32,12 @@
                     <div class="bg-gray-50 p-4 rounded-2xl inline-block border border-gray-100 mb-6">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data={{ $claim->kode_klaim }}" 
                              alt="QR Code Pengambilan" 
-                             class="w-44 h-44 mx-auto mix-blend-multiply">
+                             class="w-44 h-44 mx-auto mix-blend-multiply mb-3">
+                        
+                        {{-- KODE KLAIM TEKS --}}
+                        <div class="bg-white py-1.5 px-4 rounded-lg border border-gray-200 shadow-sm inline-block">
+                            <span class="text-sm font-mono font-bold text-gray-800 tracking-widest">{{ $claim->kode_klaim }}</span>
+                        </div>
                     </div>
 
                     <div class="mb-4">

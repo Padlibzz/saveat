@@ -9,28 +9,29 @@
     </div>
 
     <nav class="p-4 space-y-2">
-        <a href="/merchant/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('merchant/dashboard') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
+        <a href="{{ route('merchant.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->routeIs('merchant.dashboard') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
             <i class="fa-solid fa-store w-5"></i>
             <span>Dashboard</span>
         </a>
 
-        <a href="/merchant/upload-makanan" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('merchant/upload-makanan') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
+        <a href="{{ route('merchant.upload') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->routeIs('merchant.upload') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
             <i class="fa-solid fa-cloud-arrow-up w-5"></i>
             <span>Upload Makanan</span>
         </a>
 
-        <a href="/merchant/klaim-masuk" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('merchant/klaim-masuk') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
+        {{-- PERBAIKAN: Disamakan menggunakan route() agar aktifnya sinkron --}}
+        <a href="{{ route('merchant.klaim-masuk') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->routeIs('merchant.klaim-masuk') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
             <i class="fa-solid fa-bell w-5"></i>
             <span>Klaim Masuk</span>
         </a>
 
-        <a href="/merchant/produk-aktif" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('merchant/produk-aktif') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
+        <a href="{{ route('merchant.produk-aktif') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->routeIs('merchant.produk-aktif') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
             <i class="fa-solid fa-boxes-stacked w-5"></i>
             <span>Produk Aktif</span>
         </a>
 
         <div class="pt-4 my-4 border-t border-gray-100">
-            <a href="/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl transition bg-amber-500 text-white font-semibold hover:bg-amber-600 shadow-sm">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition bg-amber-500 text-white font-semibold hover:bg-amber-600 shadow-sm">
                 <i class="fa-solid fa-arrow-left-long w-5"></i>
                 <span>Menu Konsumen</span>
             </a>

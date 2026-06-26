@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Claim;
 use App\Models\Listing;
+use App\Models\Review;
 use Illuminate\Http\Request;
 
 class MerchantDashboardController extends Controller
@@ -54,38 +55,40 @@ class MerchantDashboardController extends Controller
      * FUNGSI BAWAAN BACKEND: KLAIM/PESANAN MASUK (API JSON)
      * ====================================================================
      */
-    public function klaimMasuk(Request $request)
+    public function klaimMasukWeb(Request $request)
     {
         $merchant = $request->user()->merchant;
 
+        // Pastikan user memiliki profil merchant
         if (! $merchant) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Profil merchant tidak ditemukan.',
-            ], 404);
+            return redirect()->route('dashboard')->with('error', 'Profil merchant tidak ditemukan.');
         }
 
-        $listingIds = Listing::where('merchant_id', $merchant->id)->pluck('id');
+        // Ambil data claim dari database untuk toko ini
+        $rawClaims = Claim::with(['listing', 'user'])
+            ->whereHas('listing', function ($query) use ($merchant) {
+                // Filter hanya pesanan untuk merchant yang sedang login
+                $query->where('merchant_id', $merchant->id);
+            })
+            // Filter hanya pesanan yang aktif / belum selesai / belum batal
+            ->whereNotIn('status', ['diambil', 'batal'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        $query = Claim::with(['user:id,name,username', 'listing:id,nama'])
-            ->whereIn('listing_id', $listingIds)
-            ->orderBy('created_at', 'desc');
+        // Mapping (ubah format) data agar sesuai dengan variabel yang diminta di Blade Anda
+        $claims = $rawClaims->map(function ($claim) {
+            return (object) [
+                'id' => $claim->id,
+                'id_pesanan' => $claim->kode_klaim, // Menyesuaikan dengan {{ $item->id_pesanan }}
+                'nama_pelanggan' => $claim->user->name ?? 'Pelanggan Tidak Diketahui', // Menyesuaikan dengan {{ $item->nama_pelanggan }}
+                'nama_menu' => $claim->jumlah.'x '.($claim->listing->nama ?? 'Produk Dihapus'), // Menyesuaikan dengan {{ $item->nama_menu }}
+            ];
+        });
 
-        if ($request->filled('listing_id')) {
-            $query->where('listing_id', $request->listing_id);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $klaims = $query->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $klaims,
-        ], 200);
+        // Tampilkan halaman merchant.claim-masuk dengan data $claims
+        return view('merchant.claim-masuk', compact('claims'));
     }
+
     public function index(Request $request)
     {
         if ($request->user()->peran !== 'merchant' || ! $request->user()->merchant) {
@@ -98,7 +101,7 @@ class MerchantDashboardController extends Controller
 
         $claimsValid = Claim::whereIn('listing_id', $listingIds)->where('status', '!=', 'batal');
 
-        // Penghasilan total 
+        // Penghasilan total
         $totalPendapatan = (clone $claimsValid)->where('status_pembayaran', 'sudah_dibayar')->sum('total_harga');
 
         // Makanan terjual HARI INI
@@ -121,7 +124,7 @@ class MerchantDashboardController extends Controller
         // Aktivitas Terkini — gabungan klaim masuk, ulasan baru, listing segera berakhir
         $aktivitasTerkini = $this->aktivitasTerkini($merchant, $listingIds);
 
-        return view('dashboard-merchant', compact(
+        return view('merchant.dashboard', compact(
             'totalPendapatan',
             'makananTerjualHariIni',
             'totalPorsiTerjual',
@@ -178,7 +181,7 @@ class MerchantDashboardController extends Controller
             ]);
         }
 
-        $ulasanTerbaru = \App\Models\Review::whereIn('listing_id', $listingIds)
+        $ulasanTerbaru = Review::whereIn('listing_id', $listingIds)
             ->where('rating', 5)
             ->orderBy('created_at', 'desc')
             ->take(5)
@@ -212,13 +215,5 @@ class MerchantDashboardController extends Controller
         }
 
         return $aktivitas->sortByDesc('waktu')->take(6)->values()->all();
-    }
-
-    public function klaimMasukWeb(Request $request)
-    {
-        // Karena tidak ada view khusus 'claim-masuk' di branch frontend,
-        // kita arahkan ke dashboard merchant sebagai fallback atau bisa diimplementasi ulang
-        // menggunakan data yang sudah ada di dashboard.
-        return redirect()->route('merchant.dashboard')->with('info', 'Halaman klaim masuk belum tersedia di desain baru.');
     }
 }
