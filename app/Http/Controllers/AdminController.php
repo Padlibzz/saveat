@@ -6,8 +6,8 @@ use App\Models\AbuseReport;
 use App\Models\Claim;
 use App\Models\Listing;
 use App\Models\Profil;
-use Carbon\Carbon;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -105,7 +105,7 @@ class AdminController extends Controller
             return response()->json([
                 'status' => 'success',
                 'data' => $users,
-                'stats' => $stats
+                'stats' => $stats,
             ], 200);
         }
 
@@ -173,7 +173,7 @@ class AdminController extends Controller
     public function analisisPenjualan(Request $request)
     {
         $filter = $request->input('filter', '7hari');
-        
+
         $query = Claim::where('status', 'selesai');
 
         if ($filter === 'bulanini') {
@@ -197,7 +197,7 @@ class AdminController extends Controller
 
         $chartLabels = [];
         $chartData = [];
-        
+
         if ($filter === 'bulanini') {
             $daysInMonth = now()->daysInMonth;
             for ($i = 1; $i <= $daysInMonth; $i++) {
@@ -208,7 +208,7 @@ class AdminController extends Controller
         } elseif ($filter === 'tahunini') {
             $months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
             for ($i = 1; $i <= 12; $i++) {
-                $chartLabels[] = $months[$i-1];
+                $chartLabels[] = $months[$i - 1];
                 $monthSales = Claim::where('status', 'selesai')
                     ->whereYear('created_at', now()->year)
                     ->whereMonth('created_at', $i)
@@ -245,12 +245,14 @@ class AdminController extends Controller
     public function merchantDetail($id)
     {
         $merchant = Profil::with('user')->findOrFail($id);
+
         return view('admin.merchant-detail', compact('merchant'));
     }
 
     public function detailMerchant($id)
     {
         $merchant = Profil::with('user')->findOrFail($id);
+
         return view('admin.merchant-detail', compact('merchant'));
     }
 
@@ -279,16 +281,16 @@ class AdminController extends Controller
             $query->where(function ($q) use ($search) {
                 // Menggunakan kolom database 'nama_usaha' yang sesuai schema
                 $q->where('nama_usaha', 'like', "%{$search}%")
-                  ->orWhereHas('user', function ($u) use ($search) {
-                      $u->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('user', function ($u) use ($search) {
+                        $u->where('name', 'like', "%{$search}%");
+                    });
             });
         }
         $merchants = $query->orderByRaw("FIELD(status_verifikasi, 'menunggu', 'disetujui', 'ditolak') ASC")
             ->orderBy('created_at', 'desc')
             ->paginate(6); // 6 item per halaman sangat pas untuk grid desktop
 
-        return view('verifikasi-merchant', compact(
+        return view('admin.verifikasi-merchant', compact(
             'totalDitunda',
             'totalDisetujuiMingguIni',
             'totalDitolakMingguIni',
@@ -312,6 +314,7 @@ class AdminController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['status' => 'success', 'message' => 'Pengajuan disetujui!'], 200);
         }
+
         return back()->with('success', 'Merchant berhasil disetujui.');
     }
 
@@ -327,6 +330,7 @@ class AdminController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['status' => 'success', 'message' => 'Pengajuan ditolak.'], 200);
         }
+
         return back()->with('error', 'Pengajuan merchant ditolak.');
     }
 }
