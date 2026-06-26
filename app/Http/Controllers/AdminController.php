@@ -20,7 +20,7 @@ class AdminController extends Controller
         $makananTerselamatkan = Claim::where('status', '!=', 'batal')->sum('jumlah');
         $totalDilaporkan = AbuseReport::count();
 
-        return view('dashboard-admin', compact(
+        return view('admin.dashboard', compact(
             'totalPengguna',
             'aktifHariIni',
             'baruDaftar',
@@ -31,6 +31,12 @@ class AdminController extends Controller
 
     public function statistik(Request $request)
     {
+        $totalPengguna = User::count();
+        $aktifHariIni = User::where('status', 'aktif')->count();
+        $baruDaftar = User::whereDate('created_at', Carbon::today())->count();
+        $makananTerselamatkan = Claim::where('status', '!=', 'batal')->sum('jumlah');
+        $totalDilaporkan = AbuseReport::count();
+
         $totalMerchantAktif = Profil::where('tipe_profil', 'merchant')
             ->where('status_verifikasi', 'disetujui')
             ->count();
@@ -39,7 +45,7 @@ class AdminController extends Controller
             ->count();
         $totalListing = Listing::count();
         $totalKlaim = Claim::where('status', '!=', 'batal')->count();
-        $totalMakananTerselamatkan = Claim::where('status', '!=', 'batal')->sum('jumlah');
+        $totalMakananTerselamatkan = $makananTerselamatkan; // Using the same value as $makananTerselamatkan
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -54,7 +60,12 @@ class AdminController extends Controller
             ], 200);
         }
 
-        return view('dashboard-admin', compact(
+        return view('admin.dashboard', compact(
+            'totalPengguna',
+            'aktifHariIni',
+            'baruDaftar',
+            'makananTerselamatkan',
+            'totalDilaporkan',
             'totalMerchantAktif',
             'totalKonsumenAktif',
             'totalListing',
