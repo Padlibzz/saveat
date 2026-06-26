@@ -1,4 +1,4 @@
-<nav class="bg-white shadow-md p-4 lg:ml-64">
+<nav class="bg-white shadow-md p-4">
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
             <button @click="sidebarOpen = true" class="lg:hidden">
@@ -10,6 +10,27 @@
         </div>
 
         <div class="flex items-center gap-3">
+            {{-- Notification --}}
+            <a href="{{ route('customer.notifikasi') }}"
+            class="relative flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white hover:bg-gray-50">
+
+                <i class="fa-solid fa-bell text-[#545523]"></i>
+
+                @php
+                    $jumlahNotif = \App\Models\Notification::where('user_id', auth()->id())
+                        ->where('is_read', false)
+                        ->count();
+                @endphp
+
+                @if($jumlahNotif > 0)
+                    <span class="absolute -top-1 -right-1
+                        bg-red-500 text-white text-[10px]
+                        w-5 h-5 rounded-full flex items-center justify-center">
+                        {{ $jumlahNotif }}
+                    </span>
+                @endif
+
+            </a>
             <!-- Diarahkan ke route profile khusus User/Customer -->
             <a href="{{ route('profile') }}" class="flex items-center gap-3 border border-gray-200 rounded-full px-4 py-2 bg-white hover:bg-gray-50 transition">
                 <img src="{{ asset('svg/user-icon.png') }}" alt="User" class="w-10 h-10 rounded-full object-cover">

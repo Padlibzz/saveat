@@ -42,16 +42,30 @@
         <div class="container mx-auto px-6 py-12 md:py-16">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
                 <div class="py-4 sm:py-0">
-                    <h2 class="text-4xl md:text-5xl font-extrabold text-[#545523]">10,000+</h2>
-                    <p class="mt-2 text-base md:text-lg font-medium text-gray-600">Makanan Terselamatkan</p>
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-[#545523]">
+                        {{ number_format($stats->makanan_terselamatkan) }}+
+                    </h2>
+                    <p class="mt-2 text-base md:text-lg font-medium text-gray-600">
+                        Makanan Terselamatkan
+                    </p>
                 </div>
+
                 <div class="py-4 sm:py-0">
-                    <h2 class="text-4xl md:text-5xl font-extrabold text-[#545523]">500+</h2>
-                    <p class="mt-2 text-base md:text-lg font-medium text-gray-600">Merchant</p>
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-[#545523]">
+                        {{ number_format($stats->total_merchant) }}+
+                    </h2>
+                    <p class="mt-2 text-base md:text-lg font-medium text-gray-600">
+                        Merchant
+                    </p>
                 </div>
+
                 <div class="py-4 sm:py-0">
-                    <h2 class="text-4xl md:text-5xl font-extrabold text-[#545523]">4.8/5</h2>
-                    <p class="mt-2 text-base md:text-lg font-medium text-gray-600">Rating Pengguna</p>
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-[#545523]">
+                        {{ $stats->rating_pengguna }}/5
+                    </h2>
+                    <p class="mt-2 text-base md:text-lg font-medium text-gray-600">
+                        Rating Pengguna
+                    </p>
                 </div>
             </div>
         </div>

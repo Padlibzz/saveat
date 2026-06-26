@@ -7,6 +7,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\MerchantDashboardController;
 use App\Http\Controllers\MerchantListingController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RecommendationController;
@@ -57,9 +58,14 @@ Route::middleware('auth')->group(function () {
     // Proses Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    Route::post('/notifikasi/{id}/read', [NotificationController::class, 'readWeb'])->name('notifikasi.read');
+    Route::post('/notifikasi/read-all', [NotificationController::class, 'readAllWeb'])->name('notifikasi.read-all');
+    Route::get('/api/notifikasi/unread-count', [NotificationController::class, 'unreadCount'])->name('notifikasi.unread-count');
+
     // ================= AREA KONSUMEN =================
     Route::middleware(['role:konsumen'])->group(function () {
         Route::get('/dashboard-konsumen', [RecommendationController::class, 'dashboard'])->name('dashboard.konsumen');
+        Route::get('/notifikasi', [NotificationController::class, 'konsumenIndex'])->name('customer.notifikasi');
     });
 
     Route::get('/api/recommendations', [RecommendationController::class, 'index']);
@@ -102,8 +108,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/produk-aktif/{id}', [MerchantListingController::class, 'destroy'])->name('merchant.listing.destroy');
         Route::post('/listing/{id}/tutup', [MerchantListingController::class, 'tutup'])->name('merchant.listing.tutup');
 
-        // --- TAMBAHAN BARU: KLAIM MASUK & VERIFIKASI MERCHANT ---
-        // DI DALAM GROUP MERCHANT:
+        Route::get('/notifikasi', [NotificationController::class, 'merchantIndex'])->name('merchant.notifikasi');
+        
         Route::get('/claim-masuk', [MerchantDashboardController::class, 'klaimMasukWeb'])->name('merchant.klaim-masuk');
         Route::post('/claim/{id}/verifikasi', function (Request $request, $id) {
             $claim = Claim::findOrFail($id);

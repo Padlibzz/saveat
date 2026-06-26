@@ -30,4 +30,14 @@ class Notification extends Model
     {
         return $this->belongsTo(Claim::class, 'claim_id');
     }
+
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    public function scopeUnread($query)
+    {
+        return $query->where('is_read', false);
+    }
 }
