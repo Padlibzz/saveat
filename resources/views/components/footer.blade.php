@@ -1,4 +1,4 @@
-<footer class="bg-white border-t border-gray-100 rounded-lg shadow-sm lg:ml-64">
+<footer class="bg-white border-t border-gray-100 rounded-lg shadow-sm">
     <div class="max-w-7xl mx-auto px-6 py-12">
         <div class="flex flex-col lg:flex-row items-start justify-between gap-10">
             
