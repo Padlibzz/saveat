@@ -24,12 +24,12 @@ class RecommendationController extends Controller
 
     public function dashboard(Request $request)
     {
-        $listings = $this->getRecommendations($request->user(), 6);
+        $listings = $this->getRecommendations($request->user(), 6, $request->search);
 
         return view('customer.dashboard', compact('listings'));
     }
 
-    private function getRecommendations($user, $limit = 20)
+    private function getRecommendations($user, $limit = 20, $search = null)
     {
         $profil = $user->profil;
 
@@ -46,6 +46,15 @@ class RecommendationController extends Controller
             ->whereIn('status', [ListingStatus::AKTIF->value, ListingStatus::HAMPIR_HABIS->value])
             ->where('batas_waktu', '>', now())
             ->with(['merchant', 'kategori']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', '%' . $search . '%')
+                  ->orWhereHas('merchant', function ($m) use ($search) {
+                      $m->where('nama_usaha', 'like', '%' . $search . '%');
+                  });
+            });
+        }
 
         if ($kategoriFavorit->isNotEmpty()) {
             $query->orderByRaw(

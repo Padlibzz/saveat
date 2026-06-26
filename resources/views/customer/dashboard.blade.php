@@ -34,10 +34,14 @@
                 <x-alert type="error" :message="session('error')" />
             @endif
                 <!-- Search -->
-                <input
-                    type="text"
-                    placeholder="Temukan Makananmu"
-                    class="w-full p-4 rounded-full shadow-md bg-white outline-none focus:ring-2 focus:ring-[#6D6B2E]">
+                <form action="{{ route('dashboard.konsumen') }}" method="GET">
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Temukan Makananmu"
+                        class="w-full p-4 rounded-full shadow-md bg-white outline-none focus:ring-2 focus:ring-[#6D6B2E]">
+                </form>
 
                 <!-- Recommendation -->
                 <div class="mt-8">

@@ -43,6 +43,10 @@ Route::middleware('guest')->group(function () {
     })->name('password.reset');
 });
 
+// Google Auth
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+
 // ================= AUTH MIDDLEWARE (Sudah Login) =================
 Route::get('/dashboard', function () {
     $user = auth()->user();

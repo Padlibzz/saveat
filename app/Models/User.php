@@ -21,6 +21,7 @@ class User extends Authenticatable
         'peran',
         'status',
         'profil_image',
+        'google_id',
     ];
 
     protected $hidden = [

@@ -96,12 +96,18 @@
                 </div>
 
             </div>
-            <button type="submit" class="w-full bg-[#E4E180] hover:bg-[#6D6B2E] text-white py-2 px-4 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Masuk</button>
-            <span class="center">atau</span>
-            <button type="button" class="w-full bg-[#3D3D3D] text-white py-2 px-4 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                <img src="svg/google.png" alt="Google Icon" class="w-5 h-5 inline-block mr-2">
+            <button type="submit" class="w-full bg-[#E4E180] hover:bg-[#6D6B2E] text-white py-4 px-4 rounded-full font-bold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Masuk</button>
+            
+            <div class="relative flex items-center py-2">
+                <div class="flex-grow border-t border-gray-300"></div>
+                <span class="flex-shrink mx-4 text-gray-500 text-sm">atau</span>
+                <div class="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <a href="{{ route('google.login') }}" class="block text-center w-full bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 py-4 px-4 rounded-full font-bold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <i class="fa-brands fa-google text-red-500 mr-2"></i>
                 Login dengan Google
-            </button>
+            </a>
         </form>
 
     </section>

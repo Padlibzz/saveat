@@ -35,10 +35,19 @@
                 <x-alert type="error" :message="session('error')" />
             @endif
                 <!-- Search -->
-                <input
-                    type="text"
-                    placeholder="Temukan Makananmu"
-                    class="w-full p-4 rounded-full shadow-md bg-white outline-none focus:ring-2 focus:ring-[#6D6B2E]">
+                <form action="{{ route('listing-makanan') }}" method="GET" class="mb-4">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ request('search') }}"
+                            placeholder="Temukan Makananmu"
+                            class="w-full p-4 rounded-full shadow-md bg-white outline-none focus:ring-2 focus:ring-[#6D6B2E]">
+                        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-[#6D6B2E]">
+                            <i class="fa-solid fa-search"></i>
+                        </button>
+                    </div>
+                </form>
 
                 {{-- kategori ceklis --}}
 

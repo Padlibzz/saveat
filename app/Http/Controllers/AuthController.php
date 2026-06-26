@@ -11,8 +11,51 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Support\Str;
+
 class AuthController extends Controller
 {
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (\Exception $e) {
+            return redirect()->route('login')->withErrors(['error' => 'Gagal login dengan Google.']);
+        }
+
+        $user = User::where('email', $googleUser->getEmail())->first();
+
+        if ($user) {
+            $user->update(['google_id' => $googleUser->getId()]);
+        } else {
+            $user = User::create([
+                'name' => $googleUser->getName(),
+                'username' => 'user_' . Str::random(8),
+                'email' => $googleUser->getEmail(),
+                'password' => Hash::make(Str::random(16)),
+                'no_telphone' => '000000000000', // Default phone
+                'peran' => 'konsumen',
+                'status' => UserStatus::AKTIF->value,
+                'google_id' => $googleUser->getId(),
+            ]);
+
+            Profil::create([
+                'user_id' => $user->id,
+                'tipe_profil' => 'konsumen',
+            ]);
+        }
+
+        Auth::login($user);
+        ActivityLog::catat($user->id, 'login', 'User login via Google.');
+
+        return redirect()->route('dashboard')->with('success', 'Login dengan Google berhasil.');
+    }
     public function resetPassword(Request $request)
     {
         $request->validate([
