@@ -148,4 +148,15 @@ class ListingController extends Controller
 
         return view('checkout', compact('listing'));
     }
+
+    public function show($id)
+    {
+        $listing = Listing::with(['merchant', 'kategori'])
+            ->whereIn('status', ['aktif', 'hampir_habis'])
+            ->where('stok_sisa', '>', 0)
+            ->where('batas_waktu', '>', now())
+            ->findOrFail($id);
+
+        return view('listing-detail', compact('listing'));
+    }
 }

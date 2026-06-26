@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.public')
 
 @section('title', 'Makanan')
 
@@ -22,7 +22,8 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         @forelse ($listings as $listing)
             <x-food-card
-                data-url="/checkout/{{ $listing->id }}" :foto="$listing->foto"
+                data-url="{{ route('listing.show', $listing->id) }}"
+                :foto="$listing->foto"
                 :nama="$listing->nama"
                 :merchant="$listing->merchant?->nama_usaha ?? 'Merchant'"
                 :alamat="$listing->merchant?->alamat ?? '-'"

@@ -12,25 +12,25 @@
 </head>
 <body class="bg-gradient-to-r from-[#CFD086] to-[#F1F2CF] min-h-screen font-[Poppins]">
     <nav class="container mx-auto px-4 py-6 flex items-center justify-between">
-
         <div class="flex items-center gap-3">
             <img src="{{ asset('img/logo-saveat.png') }}" alt="SaveEat Logo" class="w-10 h-10">
-
-            <h1 class="text-3xl font-bold text-[#545523]">
-                SaveEat
-            </h1>
+            <h1 class="text-3xl font-bold text-[#545523]">SaveEat</h1>
         </div>
 
         <div class="flex items-center gap-4">
-            <a href="{{ route('listing-makanan') }}" class="py-2 px-6 text-[#545523]">
-                Masuk
-            </a>
-
-            <a href="auth/register" class="bg-[#545523] py-2 px-6 text-white rounded-lg">
-                Daftar
-            </a>
+            @auth
+                <a href="{{ route('dashboard') }}" class="py-2 px-6 text-[#545523] font-semibold">
+                    Dashboard
+                </a>
+            @else
+                <a href="{{ route('login') }}" class="py-2 px-6 text-[#545523]">
+                    Masuk
+                </a>
+                <a href="/auth/register" class="bg-[#545523] py-2 px-6 text-white rounded-lg">
+                    Daftar
+                </a>
+            @endauth
         </div>
-
     </nav>
     <section class="bg-[#EEE0E0] m-6 rounded-lg">
         <div class="container mx-auto px-6 py-20">
@@ -78,7 +78,7 @@
 
                 <div>
                     <h2 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#545523]">
-                        {{ number_format($totalFoodSaved) }}+
+                        {{ number_format($makananTerselamatkan) }}+
                     </h2>
 
                     <p class="mt-3 text-lg md:text-xl font-semibold text-gray-700">
@@ -88,7 +88,7 @@
 
                 <div>
                     <h2 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#545523]">
-                        {{ number_format($totalMerchant) }}+
+                        {{ number_format($jumlahMerchant) }}+
                     </h2>
 
                     <p class="mt-3 text-lg md:text-xl font-semibold text-gray-700">
@@ -98,7 +98,7 @@
 
                 <div>
                     <h2 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#545523]">
-                        {{ $averageRating }}/5
+                        {{ $ratingPengguna }}/5
                     </h2>
 
                     <p class="mt-3 text-lg md:text-xl font-semibold text-gray-700">
@@ -194,7 +194,7 @@
             @foreach($listings as $listing)
                 <x-food-card
                     :id="$listing->id"
-                    data-url="{{ route('checkout', $listing->id) }}"
+                    data-url="{{ route('listing.show', $listing->id) }}"
                     :nama="$listing->nama"
                     :merchant="$listing->merchant?->nama_usaha ?? 'Merchant'"
                     :alamat="$listing->merchant?->alamat ?? '-'"

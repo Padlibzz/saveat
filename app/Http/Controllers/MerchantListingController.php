@@ -206,11 +206,6 @@ class MerchantListingController extends Controller
         ], 200);
     }
 
-    /**
-     * Soft-delete listing dari sisi merchant (modal "Anda yakin menghapus listing ini?")
-     * Data tetap ada di DB agar riwayat klaim & ulasan konsumen tidak rusak,
-     * tapi listing langsung hilang dari semua tampilan publik & dashboard merchant.
-     */
     public function destroy(Request $request, $id)
     {
         $merchant = $request->user()->merchant;
