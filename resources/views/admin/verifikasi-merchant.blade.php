@@ -28,7 +28,6 @@
 
     {{-- STATISTIK VERIFIKASI (RESPONSIVE GRID) --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-        
         <div class="bg-[#545523] text-[#F1F2CF] rounded-2xl p-6 shadow-xs flex flex-col justify-between relative overflow-hidden">
             <div>
                 <p class="text-sm font-medium opacity-80">Verifikasi Ditunda</p>
@@ -140,10 +139,136 @@
                             </div>
                         @endif
                         
-                        <a href="#" class="w-full bg-gray-50 text-gray-600 py-2.5 rounded-xl text-[11px] md:text-xs font-semibold text-center hover:bg-gray-100 border border-gray-200 transition-colors flex items-center justify-center gap-2">
-                            <span>Detail Dokumen</span>
-                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                        </a>
+                        {{-- TOMBOL UTAMA: MEMBUKA MODAL DETAIL --}}
+                        <button type="button" onclick="openMerchantModal('{{ $m->id }}')" 
+                            class="w-full bg-gray-50 text-gray-600 py-2.5 rounded-xl text-[11px] md:text-xs font-semibold text-center hover:bg-gray-100 border border-gray-200 transition-all flex items-center justify-center gap-2 active:scale-98">
+                            <span>Detail Merchant</span>
+                            <i class="fa-solid fa-eye text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="modal-merchant-{{ $m->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+                    {{-- Overlay Hitam Transparan --}}
+                    <div class="fixed inset-0 bg-black/50 transition-opacity" onclick="closeMerchantModal('{{ $m->id }}')"></div>
+
+                    {{-- Kontainer Konten --}}
+                    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+                        <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 w-full sm:max-w-xl animate-fade-in-up">
+                            
+                            {{-- Modal Header --}}
+                            <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-base font-bold text-[#545523]">Detail Informasi Merchant</h3>
+                                    <p class="text-xs text-gray-400 mt-0.5">Tinjau profil usaha dan lokasi sebelum konfirmasi.</p>
+                                </div>
+                                <button type="button" onclick="closeMerchantModal('{{ $m->id }}')" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+                                    <i class="fa-solid fa-xmark text-lg"></i>
+                                </button>
+                            </div>
+
+                            {{-- Modal Body --}}
+                            <div class="px-6 py-5 space-y-5 max-h-[75vh] overflow-y-auto">
+                                
+                                {{-- Header Profil --}}
+                                <div class="flex items-center gap-4">
+                                    <div class="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 overflow-hidden shrink-0">
+                                        {{-- Menggunakan profil_image sesuai rules, fallback ke avatar default --}}
+                                        <img src="{{ $m->profil_image ? asset('storage/'.$m->profil_image) : 'https://ui-avatars.com/api/?name='.urlencode($m->nama_usaha ?? 'Merchant').'&color=545523&background=F1F2CF' }}" 
+                                             alt="Profil Merchant" class="w-full h-full object-cover">
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-800 text-sm md:text-base">{{ $m->nama_usaha ?? 'Nama Usaha Belum Diset' }}</h4>
+                                        <p class="text-xs font-medium text-gray-500">{{ $m->name ?? $m->user->name ?? 'Nama Pemilik' }}</p>
+                                    </div>
+                                </div>
+
+                                {{-- Grid Informasi Detail --}}
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                    
+                                    {{-- Kontak Telepon --}}
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">No. Telepon / WA</label>
+                                        <p class="text-sm font-semibold text-gray-700 mt-0.5">{{ $m->no_telphone ?? '-' }}</p>
+                                    </div>
+                                    
+                                    {{-- Tipe Profil --}}
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Tipe Profil</label>
+                                        <span class="inline-block bg-[#545523]/10 text-[#545523] text-[10px] font-bold px-2 py-0.5 rounded capitalize mt-0.5">
+                                            {{ $m->tipe_profil ?? 'merchant' }}
+                                        </span>
+                                    </div>
+
+                                    {{-- Deskripsi Usaha --}}
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Deskripsi Usaha</label>
+                                        <p class="text-xs font-medium text-gray-600 mt-0.5 leading-relaxed bg-white p-2.5 rounded border border-gray-100">
+                                            {{ $m->deskripsi ?? 'Tidak ada deskripsi yang ditambahkan.' }}
+                                        </p>
+                                    </div>
+
+                                    {{-- Alamat --}}
+                                    <div class="sm:col-span-2 border-t border-gray-200 pt-3 mt-1">
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Alamat Lengkap</label>
+                                        <p class="text-xs font-medium text-gray-700 mt-0.5 leading-relaxed">{{ $m->alamat ?? '-' }}</p>
+                                    </div>
+
+                                    {{-- Titik Koordinat --}}
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Titik Lokasi (Lat, Lng)</label>
+                                        <p class="text-xs font-semibold text-gray-600 mt-0.5 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-location-crosshairs text-[#545523]"></i>
+                                            @if($m->latitude && $m->longitude)
+                                                {{ $m->latitude }}, {{ $m->longitude }}
+                                            @else
+                                                <span class="text-amber-500 italic">Koordinat belum diatur</span>
+                                            @endif
+                                        </p>
+                                    </div>
+
+                                    {{-- Link Gmaps --}}
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Tautan G-Maps</label>
+                                        <div class="mt-0.5">
+                                            @if($m->link_map)
+                                                <a href="{{ $m->link_map }}" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 transition-colors">
+                                                    <i class="fa-solid fa-map-location-dot"></i> Buka di Maps
+                                                </a>
+                                            @else
+                                                <span class="text-xs text-gray-400 italic">-</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            {{-- Modal Footer --}}
+                            <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:justify-end gap-2">
+                                @if($m->status_verifikasi === 'menunggu')
+                                    <div class="flex gap-2 w-full sm:w-auto">
+                                        <form action="{{ route('admin.merchant.setujui', $m->id) }}" method="POST" class="flex-1 sm:flex-none">
+                                            @csrf
+                                            <button type="submit" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-colors">
+                                                Setujui Sekarang
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('admin.merchant.tolak', $m->id) }}" method="POST" class="flex-1 sm:flex-none">
+                                            @csrf
+                                            <button type="submit" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-colors">
+                                                Tolak
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
+                                <button type="button" onclick="closeMerchantModal('{{ $m->id }}')" 
+                                    class="w-full sm:w-auto bg-white border border-gray-200 text-gray-500 px-5 py-2 rounded-xl text-xs font-semibold hover:bg-gray-50 transition-colors">
+                                    Tutup
+                                </button>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
             </div>
@@ -166,3 +291,22 @@
     @endif
 
 </div>
+
+<script>
+    function openMerchantModal(id) {
+        const modal = document.getElementById('modal-merchant-' + id);
+        if(modal) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+    }
+
+    function closeMerchantModal(id) {
+        const modal = document.getElementById('modal-merchant-' + id);
+        if(modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+</script>
+@endsection
