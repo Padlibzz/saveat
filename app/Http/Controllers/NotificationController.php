@@ -105,21 +105,22 @@ class NotificationController extends Controller
         return redirect()->back();
     }
 
-    public function readAllWeb($id)
+    public function readAllWeb()
     {
-        Notification::where('user_id', auth()->id())
-            ->where('is_read', false)
+        Notification::forUser(auth()->id())
+            ->unread()
             ->update(['is_read' => true]);
         
         return redirect()->back()->with('success', 'Semua notifikasi ditandai sudah dibaca.');
     }
 
-    public function unreadCount($id)
+    public function unreadCount()
     {
-        $count = Notification::where('user_id', auth()->id())
-            ->where('is_read', false)
+        $count = Notification::forUser(auth()->id())
+            ->unread()
             ->count();
         
         return response()->json(['count' => $count]);
     }
+
 }
