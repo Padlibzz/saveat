@@ -30,6 +30,11 @@
             <span>Produk Aktif</span>
         </a>
 
+        <a href="{{ route('chat.index') }}" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-[#415B4E]/10 hover:text-[#415B4E] rounded-xl transition font-medium text-xs {{ Request::is('chat*') ? 'bg-[#415B4E]/10 text-[#415B4E] font-bold' : '' }}">
+            <i class="fa-regular fa-comments text-base"></i>
+            <span>Chat Konsumen</span>
+        </a>
+
         <div class="pt-4 my-4 border-t border-gray-100">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition bg-amber-500 text-white font-semibold hover:bg-amber-600 shadow-sm">
                 <i class="fa-solid fa-arrow-left-long w-5"></i>

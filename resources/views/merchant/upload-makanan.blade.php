@@ -102,6 +102,47 @@
                                             <input type="datetime-local" x-model="formData.batas_waktu"
                                                 class="w-full border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#545523] focus:bg-white transition-all text-gray-500">
                                             <span class="text-[11px] text-red-500 font-medium" x-text="errors.batas_waktu" x-show="errors.batas_waktu"></span>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                                {{-- Pickup Date --}}
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Tanggal Pengambilan
+                                                    </label>
+
+                                                    <input type="date" x-model="formData.pickup_date" min="{{ date('Y-m-d') }}" class="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-[#545523] focus:border-[#545523]">
+                                                </div>
+
+                                                {{-- Interval --}}
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Interval Pickup
+                                                    </label>
+
+                                                    <select x-model="formData.pickup_interval" required class="w-full rounded-xl border border-gray-300 px-4 py-3">
+                                                        <option value="15">15 Menit</option>
+                                                        <option value="30" selected>30 Menit</option>
+                                                        <option value="60">60 Menit</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-2 gap-6 mt-6">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Jam Mulai Pickup
+                                                    </label>
+
+                                                    <input type="time" x-model="formData.pickup_start" required class="w-full rounded-xl border border-gray-300 px-4 py-3">
+                                                </div>
+
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Jam Selesai Pickup
+                                                    </label>
+
+                                                    <input type="time" x-model="formData.pickup_end" required class="w-full rounded-xl border border-gray-300 px-4 py-3">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -168,7 +209,12 @@
                     harga_diskon: '',
                     stok_total: '5',
                     batas_waktu: '',
-                    deskripsi: ''
+                    deskripsi: '',
+
+                    pickup_date: '',
+                    pickup_start: '',
+                    pickup_end: '',
+                    pickup_interval: '30'
                 },
                 fileFoto: null,
                 imagePreview: null,

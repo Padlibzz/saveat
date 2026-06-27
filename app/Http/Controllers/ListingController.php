@@ -111,7 +111,6 @@ class ListingController extends Controller
 
     public function checkout(Request $request, $id)
     {
-        // dd($id) SUDAH DIHAPUS AGAR PROSES JALAN TERUS
         $listing = Listing::with('merchant', 'kategori')->findOrFail($id);
 
         $userLat = $request->input('lat');
@@ -125,7 +124,6 @@ class ListingController extends Controller
             }
         }
 
-        // PENGAMAN BERLAPIS UNTUK PERHITUNGAN JARAK DI HALAMAN CHECKOUT
         $listing->jarak_km = null;
         if (
             $userLat && $userLng &&
@@ -147,7 +145,32 @@ class ListingController extends Controller
             }
         }
 
-        return view('customer.checkout', compact('listing'));
+        $pickupSlots = [];
+
+        $bookedSlots = Claim::where('listing_id', $listing->id)
+            ->pluck('pickup_time')
+            ->map(function ($time) {
+                return \Carbon\Carbon::parse($time)->format('H:i');
+            })
+            ->toArray();
+
+        if ($listing->batas_waktu) {
+            $endTime = \Carbon\Carbon::parse($listing->batas_waktu);
+            
+            $start = $endTime->copy()->subHours(2); 
+
+            while ($start <= $endTime) {
+                $currentSlot = $start->format('H:i');
+
+                if (!in_array($currentSlot, $bookedSlots)) {
+                    $pickupSlots[] = $currentSlot;
+                }
+
+                $start->addMinutes(30); 
+            }
+        }
+
+        return view('customer.checkout', compact('listing', 'pickupSlots'));
     }
 
     public function claimSuccess($id)

@@ -194,11 +194,6 @@ class MerchantListingController extends Controller
         return redirect()->route('merchant.produk-aktif')->with('success', 'Listing berhasil ditutup.');
     }
 
-    /**
-     * Soft-delete listing dari sisi merchant (modal "Anda yakin menghapus listing ini?")
-     * Data tetap ada di DB agar riwayat klaim & ulasan konsumen tidak rusak,
-     * tapi listing langsung hilang dari semua tampilan publik & dashboard merchant.
-     */
     public function destroy(Request $request, $id)
     {
         $merchant = $request->user()->merchant;
@@ -246,6 +241,11 @@ class MerchantListingController extends Controller
             'stok_total' => 'required|integer|min:1',
             'batas_waktu' => 'required|date|after:now',
             'deskripsi' => 'nullable|string',
+            'pickup_date' => 'required|date',
+            'pickup_start' => 'required|date_format:H:i',
+            'pickup_end' => 'required|date_format:H:i|after:pickup_start',
+            'pickup_interval' => 'required|integer|in:15,30,60',
+
         ]);
 
         if ($validator->fails()) {
@@ -253,6 +253,14 @@ class MerchantListingController extends Controller
         }
 
         $input = $validator->validated();
+        
+        if ($request->pickup_date < now()->toDateString()) {
+            return back()
+                ->withErrors([
+                    'pickup_date' => 'Tanggal pickup tidak boleh sebelum hari ini.'
+                ])
+                ->withInput();
+        }
 
         if ($request->hasFile('foto')) {
             $file = $request->file('foto');

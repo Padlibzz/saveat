@@ -64,24 +64,25 @@ class MerchantDashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Profil merchant tidak ditemukan.');
         }
 
-        // Ambil data claim dari database untuk toko ini
-        $rawClaims = Claim::with(['listing', 'user'])
+        $rawClaims = Claim::with(['listing','user'])
             ->whereHas('listing', function ($query) use ($merchant) {
-                // Filter hanya pesanan untuk merchant yang sedang login
                 $query->where('merchant_id', $merchant->id);
             })
-            // Filter hanya pesanan yang aktif / belum selesai / belum batal
             ->whereNotIn('status', ['diambil', 'batal'])
-            ->orderBy('created_at', 'desc')
+            ->orderBy('pickup_date')
+            ->orderBy('pickup_time')
             ->get();
 
         // Mapping (ubah format) data agar sesuai dengan variabel yang diminta di Blade Anda
         $claims = $rawClaims->map(function ($claim) {
-            return (object) [
+            return (object)[
                 'id' => $claim->id,
-                'id_pesanan' => $claim->kode_klaim, // Menyesuaikan dengan {{ $item->id_pesanan }}
-                'nama_pelanggan' => $claim->user->name ?? 'Pelanggan Tidak Diketahui', // Menyesuaikan dengan {{ $item->nama_pelanggan }}
-                'nama_menu' => $claim->jumlah.'x '.($claim->listing->nama ?? 'Produk Dihapus'), // Menyesuaikan dengan {{ $item->nama_menu }}
+                'id_pesanan' => $claim->kode_klaim,
+                'nama_pelanggan' => $claim->user->name ?? '-',
+                'nama_menu' => $claim->jumlah.'x '.($claim->listing->nama ?? '-'),
+                'pickup_date' => optional($claim->pickup_date)->format('d M Y'),
+                'pickup_time' => \Carbon\Carbon::parse($claim->pickup_time)->format('H:i'),
+                'status' => $claim->status,
             ];
         });
 

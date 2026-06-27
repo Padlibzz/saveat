@@ -113,6 +113,21 @@ class ClaimController extends Controller
             'listing_id' => 'required|exists:listings,id',
             'jumlah' => 'required|integer|min:1',
             'metode_pembayaran' => 'required|in:midtrans',
+            'pickup_time' => 'required|date_format:H:i',
+        ]);
+
+        $fullPickupDateTime = \Carbon\Carbon::parse($listing->pickup_date->format('Y-m-d') . ' ' . $request->pickup_time);
+
+        $claim = Claim::create([
+            'user_id' => $request->user()->id,
+            'listing_id' => $listing->id,
+            'jumlah' => $request->jumlah,
+            'total_harga' => $totalHarga,
+            'kode_klaim' => $kodeKlaim,
+            'metode_pembayaran' => $request->metode_pembayaran,
+            'status_pembayaran' => PaymentStatus::BELUM_DIBAYAR->value,
+            'status' => ClaimStatus::PENDING->value,
+            'pickup_time' => $fullPickupDateTime, // Masuk ke Database
         ]);
 
         DB::beginTransaction();
@@ -126,10 +141,12 @@ class ClaimController extends Controller
 
             $hargaSatuan = $listing->harga_diskon ?? 0;
             $subtotal = $hargaSatuan * $request->jumlah;
-            $pajak = 2000; // Sesuai view
+            $pajak = 2000; 
             $totalHarga = $subtotal + $pajak;
 
             $kodeKlaim = 'CLM-'.strtoupper(Str::random(8));
+
+            $fullPickupDateTime = \Carbon\Carbon::parse($listing->pickup_date->format('Y-m-d') . ' ' . $request->pickup_time);
 
             $claim = Claim::create([
                 'user_id' => $request->user()->id,
@@ -140,6 +157,7 @@ class ClaimController extends Controller
                 'metode_pembayaran' => $request->metode_pembayaran,
                 'status_pembayaran' => PaymentStatus::BELUM_DIBAYAR->value,
                 'status' => ClaimStatus::PENDING->value,
+                'pickup_time' => $fullPickupDateTime,
             ]);
 
             $listing->decrement('stok_sisa', $request->jumlah);

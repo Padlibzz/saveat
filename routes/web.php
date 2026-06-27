@@ -12,6 +12,8 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RecommendationController;
 use App\Models\Claim;
+use App\Http\Controllers\SecurityController;
+use App\Http\Controllers\ChatController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -66,6 +68,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifikasi/read-all', [NotificationController::class, 'readAllWeb'])->name('notifikasi.read-all');
     Route::get('/api/notifikasi/unread-count', [NotificationController::class, 'unreadCount'])->name('notifikasi.unread-count');
 
+    Route::get('/pengaturan/keamanan', [SecurityController::class, 'index'])->name('keamanan.index');
+    Route::put('/pengaturan/keamanan/password', [SecurityController::class, 'updatePassword'])->name('keamanan.password.update');
+    
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    
+    // API internal untuk di-fetch oleh JavaScript di Blade
+    Route::get('/chat/messages/{receiverId}', [ChatController::class, 'getMessages']);
+    Route::post('/chat/send', [ChatController::class, 'sendMessage']);
+    
     // ================= AREA KONSUMEN =================
     Route::middleware(['role:konsumen'])->group(function () {
         Route::get('/dashboard-konsumen', [RecommendationController::class, 'dashboard'])->name('dashboard.konsumen');
@@ -77,11 +88,33 @@ Route::middleware('auth')->group(function () {
 
     // API Endpoints for Frontend Integration
     Route::post('/api/claim/store', function (Request $request) {
+        $request->validate([
+            'listing_id'   => 'required|exists:listings,id',
+            'jumlah'       => 'required|integer|min:1',
+            'total_harga'  => 'required|numeric|min:0',
+            'pickup_date'  => 'required|date',
+            'pickup_time'  => 'required',
+        ]);
+
+        $exists = Claim::where('listing_id', $request->listing_id)
+            ->where('pickup_date', $request->pickup_date)
+            ->where('pickup_time', $request->pickup_time)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Waktu pengambilan tersebut sudah dipilih pelanggan lain. Silakan pilih jam yang lain.'
+            ], 422);
+        }
+
         $claim = Claim::create([
             'user_id' => auth()->id(),
             'listing_id' => $request->listing_id,
             'jumlah' => $request->jumlah,
             'total_harga' => $request->total_harga,
+            'pickup_date' => $request->pickup_date,
+            'pickup_time' => $request->pickup_time,
             'status' => 'pending',
             'status_pembayaran' => 'belum_dibayar',
             'kode_klaim' => 'SVAT-'.strtoupper(Str::random(6)),
@@ -163,5 +196,10 @@ Route::middleware('auth')->group(function () {
 
     // Shared Routes
     Route::get('/profile', [ProfilController::class, 'index'])->name('profile');
+    Route::get('/profile/edit', [ProfilController::class, 'edit'])
+        ->name('profile.edit');
+    Route::put('/profile/update', [ProfilController::class, 'updateProfile'])
+        ->name('profile.update');
+
     Route::get('/checkout/{id}', [ListingController::class, 'checkout'])->name('checkout');
 });
