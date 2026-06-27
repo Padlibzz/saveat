@@ -25,7 +25,16 @@ class ProfilController extends Controller
             return view('admin.profil', compact('profil'));
         }
 
-        return view('profile', compact('profil'));
+        return view('layouts.profile', compact('profil'));
+    }
+
+    public function edit()
+    {
+        $user = Auth::user();
+
+        $profil = Profil::where('user_id', $user->id)->first();
+
+        return view('customer.edit-profile', compact('user', 'profil'));
     }
 
     public function store(Request $request)
@@ -88,7 +97,8 @@ class ProfilController extends Controller
         }
 
         $rules = [
-            'name' => 'sometimes|string|max:255',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $profil->user_id,
             'no_telphone' => 'sometimes|string',
             'profil_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'tipe_profil' => 'sometimes|in:konsumen,merchant,admin',
@@ -110,12 +120,11 @@ class ProfilController extends Controller
 
         $user = $profil->user;
         if ($user) {
-            if ($request->filled('name')) {
-                $user->name = $request->name;
-            }
-            if ($request->filled('no_telphone')) {
-                $user->no_telphone = $request->no_telphone;
-            }
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+                'no_telphone' => $request->no_telphone,
+            ]);
 
             if ($request->hasFile('profil_image')) {
                 if ($user->profil_image && Storage::disk('public')->exists($user->profil_image)) {
@@ -151,6 +160,51 @@ class ProfilController extends Controller
         }
 
         return redirect()->route('profile')->with('success', 'Profil dan data user berhasil diperbarui.');
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $profil = $user->profil;
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'alamat' => 'required|string|max:255',
+            'profil_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        if ($request->hasFile('profil_image')) {
+
+            if ($user->profil_image &&
+                Storage::disk('public')->exists($user->profil_image)) {
+
+                Storage::disk('public')->delete($user->profil_image);
+            }
+
+            $path = $request->file('profil_image')
+                ->store('profiles', 'public');
+
+            $user->profil_image = $path;
+        }
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
+        $user->refresh();
+        Auth::setUser($user);
+
+        if ($profil) {
+
+            $profil->alamat = $request->alamat;
+            $profil->save();
+
+        }
+
+        return redirect()
+            ->route('profile')
+            ->with('success', 'Profil berhasil diperbarui.');
     }
 
     public function applyMerchant(Request $request)

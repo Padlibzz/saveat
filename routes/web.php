@@ -159,5 +159,10 @@ Route::middleware('auth')->group(function () {
 
     // Shared Routes
     Route::get('/profile', [ProfilController::class, 'index'])->name('profile');
+    Route::get('/profile/edit', [ProfilController::class, 'edit'])
+        ->name('profile.edit');
+    Route::put('/profile/update', [ProfilController::class, 'updateProfile'])
+        ->name('profile.update');
+
     Route::get('/checkout/{id}', [ListingController::class, 'checkout'])->name('checkout');
 });

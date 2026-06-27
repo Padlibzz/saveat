@@ -34,7 +34,9 @@
             
             <div class="flex flex-col items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
                 <div class="relative w-32 h-32 mb-4">
-                    <img src="{{ Auth::user()->foto_profil ?? asset('img/default-avatar.png') }}" 
+                    <img src="{{ Auth::user()->profil_image
+                        ? asset('storage/' . Auth::user()->profil_image)
+                        : asset('img/default-avatar.png') }}" 
                          onerror="this.src='https://ui-avatars.com/api/?name=Xaviera+Putri&background=F1F2CF&color=545523'"
                          alt="Foto Profil" 
                          class="w-full h-full object-cover rounded-full border-2 border-gray-200">
@@ -69,7 +71,7 @@
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
                     
-                    <a href="#" class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
+                    <a href="{{ route('profile.edit') }}" class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-600 group-hover:bg-[#F1F2CF] group-hover:text-[#545523] transition">
                                 <i class="fa-solid fa-user-pen"></i>
