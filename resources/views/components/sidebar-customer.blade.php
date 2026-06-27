@@ -29,6 +29,13 @@
             <span>Riwayat Pesanan</span>
         </a>
 
+        <a href="{{ route('chat.index') }}" class="relative p-2 text-[#545523] hover:opacity-80 transition flex items-center gap-2">
+            <i class="fa-regular fa-comment-dots text-xl"></i>
+            <span class="hidden md:inline text-xs font-bold">Chat</span>
+            
+            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        </a>
+
         @if(Auth::check() && Auth::user()->peran === 'merchant')
             <div class="pt-4 my-4 border-t border-gray-100">
                 <p class="text-[10px] font-bold tracking-wider uppercase text-gray-400 px-4 mb-2">Akses Toko</p>

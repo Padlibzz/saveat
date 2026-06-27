@@ -13,6 +13,7 @@ use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RecommendationController;
 use App\Models\Claim;
 use App\Http\Controllers\SecurityController;
+use App\Http\Controllers\ChatController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -65,6 +66,12 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/pengaturan/keamanan', [SecurityController::class, 'index'])->name('keamanan.index');
     Route::put('/pengaturan/keamanan/password', [SecurityController::class, 'updatePassword'])->name('keamanan.password.update');
+    
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    
+    // API internal untuk di-fetch oleh JavaScript di Blade
+    Route::get('/chat/messages/{receiverId}', [ChatController::class, 'getMessages']);
+    Route::post('/chat/send', [ChatController::class, 'sendMessage']);
     
     // ================= AREA KONSUMEN =================
     Route::middleware(['role:konsumen'])->group(function () {
