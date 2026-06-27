@@ -29,6 +29,7 @@ class Listing extends Model
 
     protected $casts = [
         'batas_waktu' => 'datetime',
+        'pickup_date' => 'date',
         'harga_normal' => 'float',
         'harga_diskon' => 'float',
     ];

@@ -154,36 +154,20 @@ class ListingController extends Controller
             })
             ->toArray();
 
-        if (
-            $listing->pickup_date &&
-            $listing->pickup_start &&
-            $listing->pickup_end
-        ) {
+        if ($listing->batas_waktu) {
+            $endTime = \Carbon\Carbon::parse($listing->batas_waktu);
+            
+            $start = $endTime->copy()->subHours(2); 
 
-            $start = \Carbon\Carbon::createFromFormat(
-                'H:i:s',
-                $listing->pickup_start
-            );
-
-            $end = \Carbon\Carbon::createFromFormat(
-                'H:i:s',
-                $listing->pickup_end
-            );
-
-            while ($start <= $end) {
-
+            while ($start <= $endTime) {
                 $currentSlot = $start->format('H:i');
 
                 if (!in_array($currentSlot, $bookedSlots)) {
                     $pickupSlots[] = $currentSlot;
                 }
 
-                $start->addMinutes(
-                    $listing->pickup_interval
-                );
-
+                $start->addMinutes(30); 
             }
-
         }
 
         return view('customer.checkout', compact('listing', 'pickupSlots'));
