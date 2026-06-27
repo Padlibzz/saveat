@@ -79,6 +79,40 @@
                         {{ \Carbon\Carbon::parse($listing->batas_waktu)->translatedFormat('d F Y, H:i') }} WIB
                     </p>
                 </div>
+
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-gray-100">
+                    <span class="text-xs font-bold text-gray-400 block uppercase tracking-wider mb-3">
+                        Jadwal Pengambilan
+                    </span>
+
+                    <div class="flex items-center gap-2 text-sm text-gray-700 mb-4">
+                        <i class="fa-solid fa-calendar text-[#545523]"></i>
+
+                        <span>
+                            {{ \Carbon\Carbon::parse($listing->pickup_date)->translatedFormat('d F Y') }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        @foreach($pickupSlots as $slot)
+                            <label
+                                class="cursor-pointer border rounded-xl p-3 text-center transition hover:border-[#545523]"
+                                :class="pickupTime=='{{ $slot }}'
+                                        ? 'border-[#545523] bg-[#F1F2CF]'
+                                        : 'border-gray-200'">
+                                <input
+                                    type="radio"
+                                    class="hidden"
+                                    x-model="pickupTime"
+                                    value="{{ $slot }}">
+
+                                <span class="text-sm font-semibold">
+                                    {{ $slot }}
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
             <div class="space-y-4">
@@ -142,6 +176,7 @@
         function checkoutComponent() {
             return {
                 qty: 1,
+                pickupTime: '',
                 maxStok: {{ $listing->stok_sisa ?? $listing->stok_total }},
                 hargaSatuan: {{ $listing->harga_diskon }},
                 pajak: 2000,
@@ -153,6 +188,10 @@
                 get total() { return this.subtotal + this.pajak },
 
                 async prosesPembayaran() {
+                    if(this.pickupTime==""){
+                        this.errorMessage="Silakan pilih waktu pengambilan.";
+                        return;
+                    }
                     this.loading = true;
                     this.errorMessage = '';
 
@@ -168,7 +207,9 @@
                             body: JSON.stringify({
                                 listing_id: {{ $listing->id }},
                                 jumlah: this.qty,
-                                total_harga: this.total
+                                total_harga: this.total,
+                                pickup_date: "{{ $listing->pickup_date }}",
+                                pickup_time: this.pickupTime
                             })
                         });
 

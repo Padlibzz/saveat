@@ -21,6 +21,10 @@ class Listing extends Model
         'stok_sisa',
         'batas_waktu',
         'status',
+        'pickup_date',
+        'pickup_start',
+        'pickup_end',
+        'pickup_interval',
     ];
 
     protected $casts = [

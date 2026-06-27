@@ -11,11 +11,14 @@ class Claim extends Model
         'listing_id',
         'jumlah',
         'total_harga',
+        'pickup_date',
+        'pickup_time',
         'kode_klaim',
         'metode_pembayaran',
         'status_pembayaran',
         'waktu_pembayaran',
         'status',
+        
         // Midtrans columns
         'midtrans_order_id',
         'midtrans_transaction_id',
@@ -27,6 +30,9 @@ class Claim extends Model
     ];
 
     protected $casts = [
+        'pickup_date' => 'date',
+        'pickup_time' => 'datetime:H:i',
+
         'midtrans_raw_response' => 'array',
         'waktu_pembayaran' => 'datetime',
     ];

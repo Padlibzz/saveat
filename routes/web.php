@@ -73,11 +73,33 @@ Route::middleware('auth')->group(function () {
 
     // API Endpoints for Frontend Integration
     Route::post('/api/claim/store', function (Request $request) {
+        $request->validate([
+            'listing_id'   => 'required|exists:listings,id',
+            'jumlah'       => 'required|integer|min:1',
+            'total_harga'  => 'required|numeric|min:0',
+            'pickup_date'  => 'required|date',
+            'pickup_time'  => 'required',
+        ]);
+
+        $exists = Claim::where('listing_id', $request->listing_id)
+            ->where('pickup_date', $request->pickup_date)
+            ->where('pickup_time', $request->pickup_time)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Waktu pengambilan tersebut sudah dipilih pelanggan lain. Silakan pilih jam yang lain.'
+            ], 422);
+        }
+
         $claim = Claim::create([
             'user_id' => auth()->id(),
             'listing_id' => $request->listing_id,
             'jumlah' => $request->jumlah,
             'total_harga' => $request->total_harga,
+            'pickup_date' => $request->pickup_date,
+            'pickup_time' => $request->pickup_time,
             'status' => 'pending',
             'status_pembayaran' => 'belum_dibayar',
             'kode_klaim' => 'SVAT-'.strtoupper(Str::random(6)),
