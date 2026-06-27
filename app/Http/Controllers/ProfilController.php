@@ -21,10 +21,6 @@ class ProfilController extends Controller
             ], 200);
         }
 
-        if ($user->peran === 'admin') {
-            return view('admin.profil', compact('profil'));
-        }
-
         return view('layouts.profile', compact('profil'));
     }
 

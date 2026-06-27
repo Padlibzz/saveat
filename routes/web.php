@@ -12,6 +12,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RecommendationController;
 use App\Models\Claim;
+use App\Http\Controllers\SecurityController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +63,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifikasi/read-all', [NotificationController::class, 'readAllWeb'])->name('notifikasi.read-all');
     Route::get('/api/notifikasi/unread-count', [NotificationController::class, 'unreadCount'])->name('notifikasi.unread-count');
 
+    Route::get('/pengaturan/keamanan', [SecurityController::class, 'index'])->name('keamanan.index');
+    Route::put('/pengaturan/keamanan/password', [SecurityController::class, 'updatePassword'])->name('keamanan.password.update');
+    
     // ================= AREA KONSUMEN =================
     Route::middleware(['role:konsumen'])->group(function () {
         Route::get('/dashboard-konsumen', [RecommendationController::class, 'dashboard'])->name('dashboard.konsumen');
