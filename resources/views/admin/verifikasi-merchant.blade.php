@@ -1,188 +1,311 @@
+@extends('layouts.dashboard')
+
 @section('page_title', 'Verifikasi Merchant')
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <title>Verifikasi Merchant - Admin</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-    </style>
-</head>
-<body
-    x-data="{ sidebarOpen: false }"
-    class="bg-gradient-to-r from-[#CFD086] to-[#F1F2CF] min-h-screen font-[Poppins] flex">
 
-    <x-sidebar />
+@section('content')
+<div class="space-y-6">
 
-    <div class="flex-1 flex flex-col min-h-screen">
+    {{-- BANNER NOTIFIKASI --}}
+    @if(session('success'))
+        <div class="mb-4">
+            <x-alert type="success" :message="session('success')" />
+        </div>
+    @endif
 
-        <x-navbar />
+    @if(session('error'))
+        <div class="mb-4">
+            <x-alert type="error" :message="session('error')" />
+        </div>
+    @endif
 
-        <section class="p-6 mb-10 lg:ml-64 flex-1">
-            
-            @if(session('success'))
-                <x-alert type="success" :message="session('success')" />
-            @endif
+    {{-- HEADER KEMBALI & JUDUL --}}
+    <div class="flex items-center gap-3">
+        <a href="{{ route('admin.dashboard') }}" class="text-[#545523] hover:text-gray-700 transition-colors p-2 -ml-2 rounded-lg">
+            <i class="fa-solid fa-arrow-left text-lg md:text-xl"></i>
+        </a>
+        <h2 class="text-xl md:text-2xl font-bold text-[#545523]">Verifikasi Merchant</h2>
+    </div>
 
-            @if(session('error'))
-                <x-alert type="error" :message="session('error')" />
-            @endif                
-            
-            {{-- HEADER HALAMAN --}}
-            <div class="flex items-center gap-3 mb-6">
-                <a href="{{ route('admin.dashboard') }}" class="text-[#545523] hover:text-gray-700 transition">
-                    <i class="fa-solid fa-arrow-left text-xl"></i>
-                </a>
-                <h2 class="text-2xl font-bold text-[#545523]">Verifikasi Merchant</h2>
+    {{-- STATISTIK VERIFIKASI (RESPONSIVE GRID) --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div class="bg-[#545523] text-[#F1F2CF] rounded-2xl p-6 shadow-xs flex flex-col justify-between relative overflow-hidden">
+            <div>
+                <p class="text-sm font-medium opacity-80">Verifikasi Ditunda</p>
+                <h3 class="text-3xl md:text-4xl font-extrabold mt-2">{{ $totalDitunda }}</h3>
             </div>
-
-            {{-- 3 KARTU STATISTIK ATAS --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-[#545523] text-[#F1F2CF] rounded-2xl p-6 shadow-md flex flex-col justify-between relative overflow-hidden">
-                    <div>
-                        <p class="text-sm font-medium opacity-80">Verifikasi Ditunda</p>
-                        <h3 class="text-4xl font-extrabold mt-2">{{ $totalDitunda }}</h3>
-                    </div>
-                    <div class="text-xs mt-4 flex items-center gap-1 opacity-90">
-                        <i class="fa-solid fa-clock"></i>
-                        <span>Butuh respon segera</span>
-                    </div>
-                    <i class="fa-solid fa-clock text-white/10 text-7xl absolute -right-4 -bottom-2 pointer-events-none"></i>
-                </div>
-
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">Disetujui Minggu Ini</p>
-                        <h3 class="text-4xl font-extrabold text-gray-800 mt-2">{{ $totalDisetujuiMingguIni }}</h3>
-                    </div>
-                    <div class="mt-4">
-                        <div class="w-full bg-gray-100 rounded-full h-2">
-                            <div class="bg-[#545523] h-2 rounded-full" style="width: 100%"></div>
-                        </div>
-                        <p class="text-right text-xs font-semibold text-gray-400 mt-1">Diperbarui Mingguan</p>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">Ditolak Minggu Ini</p>
-                        <h3 class="text-4xl font-extrabold text-red-600 mt-2">{{ $totalDitolakMingguIni }}</h3>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-4 leading-relaxed">
-                        Riwayat penolakan berdasarkan standarisasi berkas.
-                    </p>
-                </div>
+            <div class="text-xs mt-4 flex items-center gap-1.5 opacity-90">
+                <i class="fa-solid fa-clock"></i>
+                <span>Butuh respon segera</span>
             </div>
+            <i class="fa-solid fa-clock text-white/10 text-7xl absolute -right-4 -bottom-2 pointer-events-none"></i>
+        </div>
 
-            {{-- BARIS PENCARIAN & RESET --}}
-            <div class="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
-                <form action="{{ route('admin.verifikasi.index') }}" method="GET" class="relative w-full sm:w-96">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Nama Usaha atau Pemilik..." 
-                        class="w-full bg-white pl-4 pr-10 py-2.5 rounded-xl shadow-sm border border-transparent focus:border-[#545523] focus:outline-none text-sm text-gray-700">
-                    <button type="submit" class="absolute right-3.5 top-3.5 text-gray-400 hover:text-[#545523] cursor-pointer">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-                </form>
-                <a href="{{ route('admin.verifikasi.index') }}" class="bg-white text-gray-700 p-2.5 px-4 rounded-xl shadow-sm hover:bg-gray-50 border border-gray-100 active:scale-95 transition flex items-center justify-center text-sm font-bold gap-2">
-                    <i class="fa-solid fa-rotate-left"></i> Reset
-                </a>
+        <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-100 flex flex-col justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500">Disetujui Minggu ini</p>
+                <h3 class="text-3xl md:text-4xl font-extrabold text-gray-800 mt-2">{{ $totalDisetujuiMingguIni }}</h3>
             </div>
+            <div class="mt-4">
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                    <div class="bg-[#545523] h-2 rounded-full" style="width: 100%"></div>
+                </div>
+                <p class="text-right text-xs font-semibold text-gray-400 mt-1.5">Diperbarui mingguan</p>
+            </div>
+        </div>
 
-            {{-- GRID DAFTAR MERCHANT --}}
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-100 flex flex-col justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500">Ditolak Minggu ini</p>
+                <h3 class="text-3xl md:text-4xl font-extrabold text-red-600 mt-2">{{ $totalDitolakMingguIni }}</h3>
+            </div>
+            <p class="text-xs text-gray-400 mt-4 leading-relaxed">
+                Riwayat penolakan berdasarkan standarisasi berkas.
+            </p>
+        </div>
+    </div>
+
+    {{-- SEARCH BAR & FILTER --}}
+    <div class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-white p-3 rounded-2xl shadow-xs border border-gray-100">
+        <form action="{{ route('admin.verifikasi.index') }}" method="GET" class="relative w-full sm:w-96">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Merchant atau Pemilik..." 
+                class="w-full bg-gray-50 pl-4 pr-10 py-2.5 rounded-xl border border-transparent focus:border-[#545523] focus:ring-1 focus:ring-[#545523] focus:bg-white focus:outline-none text-sm text-gray-700 transition-all">
+            <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#545523] p-1">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </form>
+        <a href="{{ route('admin.verifikasi.index') }}" class="w-full sm:w-auto bg-gray-50 text-gray-600 px-4 py-2.5 rounded-xl hover:bg-gray-100 border border-gray-200 active:scale-95 transition-all flex items-center justify-center text-sm font-medium gap-2">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+        </a>
+    </div>
+
+    {{-- GRID DAFTAR MERCHANT --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+        
+        @forelse($merchants as $m)
+            <div class="bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between border border-gray-100">
                 
-                @forelse($merchants as $m)
-                    <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between border border-gray-100">
-                        
-                        {{-- GAMBAR TOKO & BADGE STATUS --}}
-                        <div class="relative h-48 w-full bg-gray-100 shrink-0">
-                            {{-- Menggunakan kolom yang benar, bisa jadi 'foto' atau disesuaikan --}}
-                            <img src="{{ $m->foto ? asset('storage/'.$m->foto) : 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=600' }}" alt="Merchant Image" class="w-full h-full object-cover">
-                            
-                            @if($m->status_verifikasi === 'menunggu')
-                                <span class="absolute top-3 right-3 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wider animate-pulse">Menunggu</span>
-                            @elseif($m->status_verifikasi === 'disetujui')
-                                <span class="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wider">Disetujui</span>
-                            @else
-                                <span class="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wider">Ditolak</span>
+                <div class="relative h-40 md:h-48 w-full bg-gray-100">
+                    <img src="{{ $m->foto ? asset('storage/'.$m->foto) : 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=600' }}" alt="Merchant Image" class="w-full h-full object-cover">
+                    
+                    {{-- Badge Status --}}
+                    @if($m->status_verifikasi === 'menunggu')
+                        <span class="absolute top-3 right-3 bg-amber-500 text-white text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full shadow-sm animate-pulse">Ditunda</span>
+                    @elseif($m->status_verifikasi === 'disetujui')
+                        <span class="absolute top-3 right-3 bg-emerald-500 text-white text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">Aktif</span>
+                    @else
+                        <span class="absolute top-3 right-3 bg-red-500 text-white text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">Ditolak</span>
+                    @endif
+                </div>
+                
+                <div class="p-4 md:p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-1 gap-2">
+                            <h4 class="font-bold text-gray-800 text-base md:text-lg leading-tight line-clamp-1">
+                                {{ $m->nama_usaha ?? $m->user?->name ?? 'Nama Toko Tidak Set' }}
+                            </h4>
+                            @if($m->status_verifikasi === 'disetujui')
+                                <i class="fa-solid fa-circle-check text-emerald-500 text-sm mt-1 shrink-0"></i>
                             @endif
                         </div>
+                        <p class="text-[11px] md:text-xs font-medium text-gray-400 mb-4">{{ $m->kategori ?? 'Kategori / Bisnis Kuliner' }}</p>
                         
-                        {{-- KONTEN & DETAIL MERCHANT --}}
-                        <div class="p-5 flex-1 flex flex-col justify-between">
-                            <div>
-                                <div class="flex justify-between items-start mb-1">
-                                    <h4 class="font-bold text-gray-800 text-lg leading-tight">
-                                        {{ $m->nama_usaha ?? $m->user->name ?? 'Usaha Tidak Bernama' }}
-                                    </h4>
-                                    @if($m->status_verifikasi === 'disetujui')
-                                        <i class="fa-solid fa-circle-check text-emerald-500 mt-1" title="Terverifikasi"></i>
-                                    @endif
+                        <div class="space-y-2.5 text-[11px] md:text-xs text-gray-600 mb-6">
+                            <div class="flex items-start gap-2.5">
+                                <i class="fa-regular fa-calendar mt-0.5 w-3 text-center text-gray-400"></i>
+                                <span>Mendaftar: {{ \Carbon\Carbon::parse($m->created_at)->format('d M Y') }}</span>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <i class="fa-solid fa-location-dot mt-0.5 w-3 text-center text-gray-400"></i>
+                                <span class="line-clamp-2 leading-relaxed">{{ $m->alamat ?? 'Alamat Belum Diisi' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 mt-auto">
+                        @if($m->status_verifikasi === 'menunggu')
+                            <div class="grid grid-cols-2 gap-2">
+                                <form action="{{ route('admin.merchant.setujui', $m->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-[11px] md:text-xs font-bold transition-colors active:scale-95">
+                                        <i class="fa-solid fa-check mr-1"></i> Setujui
+                                    </button>
+                                </form>
+                                <form action="{{ route('admin.merchant.tolak', $m->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-[11px] md:text-xs font-bold transition-colors active:scale-95">
+                                        <i class="fa-solid fa-xmark mr-1"></i> Tolak
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+                        
+                        {{-- TOMBOL UTAMA: MEMBUKA MODAL DETAIL --}}
+                        <button type="button" onclick="openMerchantModal('{{ $m->id }}')" 
+                            class="w-full bg-gray-50 text-gray-600 py-2.5 rounded-xl text-[11px] md:text-xs font-semibold text-center hover:bg-gray-100 border border-gray-200 transition-all flex items-center justify-center gap-2 active:scale-98">
+                            <span>Detail Merchant</span>
+                            <i class="fa-solid fa-eye text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="modal-merchant-{{ $m->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
+                    {{-- Overlay Hitam Transparan --}}
+                    <div class="fixed inset-0 bg-black/50 transition-opacity" onclick="closeMerchantModal('{{ $m->id }}')"></div>
+
+                    {{-- Kontainer Konten --}}
+                    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+                        <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 w-full sm:max-w-xl animate-fade-in-up">
+                            
+                            {{-- Modal Header --}}
+                            <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-base font-bold text-[#545523]">Detail Informasi Merchant</h3>
+                                    <p class="text-xs text-gray-400 mt-0.5">Tinjau profil usaha dan lokasi sebelum konfirmasi.</p>
                                 </div>
-                                <p class="text-xs font-bold text-[#545523] mb-4 uppercase tracking-wider">{{ $m->user->name ?? 'Pemilik Tidak Diketahui' }}</p>
+                                <button type="button" onclick="closeMerchantModal('{{ $m->id }}')" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+                                    <i class="fa-solid fa-xmark text-lg"></i>
+                                </button>
+                            </div>
+
+                            {{-- Modal Body --}}
+                            <div class="px-6 py-5 space-y-5 max-h-[75vh] overflow-y-auto">
                                 
-                                <div class="space-y-2 text-xs text-gray-600 mb-6">
-                                    <div class="flex items-center gap-2">
-                                        <i class="fa-regular fa-calendar w-4 text-gray-400"></i>
-                                        <span>Mendaftar: {{ \Carbon\Carbon::parse($m->created_at)->translatedFormat('d M Y') }}</span>
+                                {{-- Header Profil --}}
+                                <div class="flex items-center gap-4">
+                                    <div class="w-14 h-14 rounded-full bg-gray-100 border border-gray-200 overflow-hidden shrink-0">
+                                        <img src="{{ $m->profil_image ? asset('storage/'.$m->profil_image) : 'https://ui-avatars.com/api/?name='.urlencode($m->nama_usaha ?? 'Merchant').'&color=545523&background=F1F2CF' }}" 
+                                             alt="Profil Merchant" class="w-full h-full object-cover">
                                     </div>
-                                    <div class="flex items-start gap-2">
-                                        <i class="fa-solid fa-location-dot w-4 text-gray-400 mt-0.5"></i>
-                                        <span class="leading-relaxed">{{ $m->alamat ?? 'Alamat Belum Diisi' }}</span>
+                                    <div>
+                                        <h4 class="font-bold text-gray-800 text-sm md:text-base">{{ $m->nama_usaha ?? 'Nama Usaha Belum Diset' }}</h4>
+                                        <p class="text-xs font-medium text-gray-500">{{ $m->user?->name ?? 'Nama Pemilik' }}</p>
                                     </div>
+                                </div>
+
+                                {{-- Grid Informasi Detail --}}
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                    
+                                    {{-- Kontak Telepon --}}
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">No. Telepon / WA</label>
+                                        <p class="text-sm font-semibold text-gray-700 mt-0.5">{{ $m->user?->no_telphone ?? '-' }}</p>
+                                    </div>
+                                    
+                                    {{-- Tipe Profil --}}
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Tipe Profil</label>
+                                        <span class="inline-block bg-[#545523]/10 text-[#545523] text-[10px] font-bold px-2 py-0.5 rounded capitalize mt-0.5">
+                                            {{ $m->tipe_profil ?? 'merchant' }}
+                                        </span>
+                                    </div>
+
+                                    {{-- Deskripsi Usaha --}}
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Deskripsi Usaha</label>
+                                        <p class="text-xs font-medium text-gray-600 mt-0.5 leading-relaxed bg-white p-2.5 rounded border border-gray-100">
+                                            {{ $m->deskripsi ?? 'Tidak ada deskripsi yang ditambahkan.' }}
+                                        </p>
+                                    </div>
+
+                                    {{-- Alamat --}}
+                                    <div class="sm:col-span-2 border-t border-gray-200 pt-3 mt-1">
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Alamat Lengkap</label>
+                                        <p class="text-xs font-medium text-gray-700 mt-0.5 leading-relaxed">{{ $m->alamat ?? '-' }}</p>
+                                    </div>
+
+                                    {{-- Titik Koordinat --}}
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Titik Lokasi (Lat, Lng)</label>
+                                        <p class="text-xs font-semibold text-gray-600 mt-0.5 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-location-crosshairs text-[#545523]"></i>
+                                            @if($m->latitude && $m->longitude)
+                                                {{ $m->latitude }}, {{ $m->longitude }}
+                                            @else
+                                                <span class="text-amber-500 italic">Koordinat belum diatur</span>
+                                            @endif
+                                        </p>
+                                    </div>
+
+                                    {{-- Link Gmaps --}}
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Tautan G-Maps</label>
+                                        <div class="mt-0.5">
+                                            @if($m->link_map)
+                                                <a href="{{ $m->link_map }}" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 transition-colors">
+                                                    <i class="fa-solid fa-map-location-dot"></i> Buka di Maps
+                                                </a>
+                                            @else
+                                                <span class="text-xs text-gray-400 italic">-</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
 
-                            {{-- AKSI BUTTONS --}}
-                            <div class="space-y-2">
+                            {{-- Modal Footer --}}
+                            <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:justify-end gap-2">
                                 @if($m->status_verifikasi === 'menunggu')
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <form action="{{ route('admin.merchant.setujui', $m->id) }}" method="POST">
+                                    <div class="flex gap-2 w-full sm:w-auto">
+                                        <form action="{{ route('admin.merchant.setujui', $m->id) }}" method="POST" class="flex-1 sm:flex-none">
                                             @csrf
-                                            <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-sm">
-                                                <i class="fa-solid fa-check mr-1"></i> Setujui
+                                            <button type="submit" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-colors">
+                                                Setujui Sekarang
                                             </button>
                                         </form>
-                                        <form action="{{ route('admin.merchant.tolak', $m->id) }}" method="POST">
+                                        <form action="{{ route('admin.merchant.tolak', $m->id) }}" method="POST" class="flex-1 sm:flex-none">
                                             @csrf
-                                            <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-sm">
-                                                <i class="fa-solid fa-xmark mr-1"></i> Tolak
+                                            <button type="submit" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-colors">
+                                                Tolak
                                             </button>
                                         </form>
                                     </div>
                                 @endif
-                                
-                                {{-- Jika ada rute untuk melihat dokumen pendaftaran --}}
-                                <a href="#" class="w-full bg-gray-50 text-gray-600 py-2.5 rounded-xl text-xs font-bold border border-gray-100 text-center hover:bg-gray-100 transition flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-file-lines text-[10px]"></i>
-                                    <span>Lihat Dokumen</span>
-                                </a>
+                                <button type="button" onclick="closeMerchantModal('{{ $m->id }}')" 
+                                    class="w-full sm:w-auto bg-white border border-gray-200 text-gray-500 px-5 py-2 rounded-xl text-xs font-semibold hover:bg-gray-50 transition-colors">
+                                    Tutup
+                                </button>
                             </div>
+
                         </div>
                     </div>
-                @empty
-                    <div class="col-span-full bg-white/80 rounded-2xl p-12 text-center shadow-sm border border-gray-50">
-                        <i class="fa-solid fa-folder-open text-5xl text-gray-300 mb-4"></i>
-                        <h3 class="text-sm font-bold text-gray-600">Pencarian Tidak Ditemukan</h3>
-                        <p class="text-xs text-gray-400 mt-1">Tidak ada data pengajuan merchant yang sesuai dengan kriteria.</p>
-                    </div>
-                @endforelse
-
+                </div>
             </div>
-
-            {{-- PAGINATION BAWAAN LARAVEL (Jika menggunakan Tailwind, pastikan tailwind pagination dipublish) --}}
-            <div class="mt-6">
-                {{ $merchants->appends(request()->query())->links() }}
+        @empty
+            <div class="col-span-full bg-white rounded-2xl p-8 md:p-12 text-center shadow-xs border border-gray-100">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4">
+                    <i class="fa-solid fa-folder-open text-2xl text-gray-400"></i>
+                </div>
+                <p class="text-gray-500 font-medium text-sm">Tidak ada data pengajuan merchant yang ditemukan.</p>
             </div>
+        @endforelse
 
-        </section>
-
-        <x-footer/>
     </div>
 
-</body>
-</html>
+    {{-- PAGINASI --}}
+    @if($merchants->hasPages())
+        <div class="mt-6">
+            {{ $merchants->appends(request()->query())->links() }}
+        </div>
+    @endif
+
+</div>
+
+<script>
+    function openMerchantModal(id) {
+        const modal = document.getElementById('modal-merchant-' + id);
+        if(modal) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+    }
+
+    function closeMerchantModal(id) {
+        const modal = document.getElementById('modal-merchant-' + id);
+        if(modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    }
+</script>
+@endsection
