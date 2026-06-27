@@ -19,12 +19,13 @@
             <h1 class="text-2xl font-bold text-[#545523]">Selamat Datang, Merchant! 👋</h1>
             <p class="text-sm text-[#545523]/80 font-medium">Pantau dampak dan penjualan makanan Anda hari ini.</p>
         </div>
+        {{-- Menggunakan route dinamis Laravel --}}
         <a href="{{ route('merchant.upload') }}" class="inline-flex items-center justify-center bg-[#545523] text-[#F1F2CF] font-semibold px-6 py-3 rounded-xl shadow-sm hover:bg-[#43441c] transition-all gap-2 text-sm">
             <i class="fa-solid fa-plus text-xs"></i> Listing Makanan Baru
         </a>
     </div>
 
-    {{-- 3. STATS CARDS --}}
+    {{-- 3. STATS CARDS (Responsif Grid: 1 Kolom HP, 3 Kolom Desktop) --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         
         <div class="bg-[#FDFDF5] p-6 rounded-2xl shadow-xs flex flex-col justify-between border border-[#545523]/10 hover:shadow-md transition">
@@ -68,7 +69,7 @@
 
     </div>
 
-    {{-- 4. ANALYTICS & ACTIVITY SPLIT GRID --}}
+    {{-- 4. ANALYTICS & ACTIVITY SPLIT GRID (Responsif Stack di HP, Berdampingan di Desktop) --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <div class="bg-[#FDFDF5] p-6 rounded-2xl shadow-xs border border-[#545523]/10 lg:col-span-2 flex flex-col justify-between">
@@ -80,6 +81,7 @@
             </div>
             
             <div class="flex items-end justify-between gap-1 sm:gap-2 pt-4 h-48 border-b border-gray-100 px-2">
+                {{-- Logika Grafik Dinamis --}}
                 @php
                     $maxTotal = collect($grafikPenjualan ?? [])->max('total') ?: 1;
                 @endphp
@@ -89,7 +91,7 @@
                         $heightPercent = max(5, $heightPercent); 
                     @endphp
                     <div class="flex flex-col items-center flex-1 gap-2 group cursor-pointer">
-                        <div class="w-full max-w-[36px] bg-[#A3A463] rounded-t-md transition-all group-hover:bg-[#545523] duration-300" style="height: {{ $heightPercent }}%;"></div>
+                        <div class="w-full max-w-[36px] bg-[#A3A463] rounded-t-md transition-all group-hover:bg-[#545523] shadow-xs duration-300" style="height: {{ $heightPercent }}%;"></div>
                         <span class="text-[11px] font-medium text-gray-400 group-hover:text-gray-700">{{ $item['label'] }}</span>
                     </div>
                 @empty
@@ -103,9 +105,11 @@
                 <h4 class="text-sm font-bold text-[#545523] uppercase tracking-wider mb-4">Aktivitas Terkini</h4>
                 
                 <div class="space-y-4">
+                    {{-- Logika Aktivitas Dinamis --}}
                     @forelse($aktivitasTerkini ?? [] as $act)
                         <div class="flex items-start gap-4 p-2 rounded-xl hover:bg-gray-50/50 transition">
-                            <div class="bg-[#545523] text-white p-2.5 rounded-full flex items-center justify-center w-9 h-9 shrink-0">
+                            {{-- Jika Anda mengirim warna background dari Controller (misal 'bg_class' => 'bg-amber-100 text-amber-700'), akan dipakai. Jika tidak, pakai default --}}
+                            <div class="{{ $act['bg_class'] ?? 'bg-[#545523] text-white' }} p-2.5 rounded-full flex items-center justify-center w-9 h-9 shrink-0">
                                 <i class="fa-solid fa-{{ $act['icon'] ?? 'bag-shopping' }} text-xs"></i>
                             </div>
                             <div class="flex-1 min-w-0">

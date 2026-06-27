@@ -69,7 +69,7 @@
 
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
                     
-                    <a href="#" class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
+                    <a href="{{ route('profile.edit') }}" class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-600 group-hover:bg-[#F1F2CF] group-hover:text-[#545523] transition">
                                 <i class="fa-solid fa-user-pen"></i>
@@ -79,7 +79,7 @@
                         <i class="fa-solid fa-chevron-right text-gray-400 text-sm"></i>
                     </a>
 
-                    <a href="#" class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
+                    <a href="{{ route('profile.payment') }}" class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-600 group-hover:bg-[#F1F2CF] group-hover:text-[#545523] transition">
                                 <i class="fa-solid fa-credit-card"></i>
@@ -89,7 +89,7 @@
                         <i class="fa-solid fa-chevron-right text-gray-400 text-sm"></i>
                     </a>
 
-                    <a href="#" class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
+                    <a href="{{ route('profile.notifications') }}" class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-600 group-hover:bg-[#F1F2CF] group-hover:text-[#545523] transition">
                                 <i class="fa-solid fa-bell"></i>
@@ -99,7 +99,7 @@
                         <i class="fa-solid fa-chevron-right text-gray-400 text-sm"></i>
                     </a>
 
-                    <a href="#" class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
+                    <a href="{{ route('profile.security') }}" class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-600 group-hover:bg-[#F1F2CF] group-hover:text-[#545523] transition">
                                 <i class="fa-solid fa-shield-halved"></i>

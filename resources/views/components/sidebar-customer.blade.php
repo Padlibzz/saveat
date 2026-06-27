@@ -32,7 +32,7 @@
         @if(Auth::check() && Auth::user()->peran === 'merchant')
             <div class="pt-4 my-4 border-t border-gray-100">
                 <p class="text-[10px] font-bold tracking-wider uppercase text-gray-400 px-4 mb-2">Akses Toko</p>
-                <a href="/merchant/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl transition bg-[#545523] text-[#F1F2CF] font-semibold hover:bg-opacity-90 shadow-sm">
+                <a href="{{ route('merchant.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition bg-[#545523] text-[#F1F2CF] font-semibold hover:bg-opacity-90 shadow-sm">
                     <i class="fa-solid fa-store w-5"></i>
                     <span>Dashboard Merchant</span>
                 </a>

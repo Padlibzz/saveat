@@ -18,10 +18,10 @@
         </div>
 
         <div class="flex items-center gap-2 md:gap-4">
-            <a href="auth/login" class="py-2 px-4 md:px-6 text-[#545523] text-sm md:text-base font-medium">
+            <a href="/login" class="py-2 px-4 md:px-6 text-[#545523] text-sm md:text-base font-medium">
                 Masuk
             </a>
-            <a href="auth/register" class="bg-[#545523] py-2 px-4 md:px-6 text-white text-sm md:text-base rounded-xl shadow-sm hover:opacity-90 transition">
+            <a href="/register" class="bg-[#545523] py-2 px-4 md:px-6 text-white text-sm md:text-base rounded-xl shadow-sm hover:opacity-90 transition">
                 Daftar
             </a>
         </div>

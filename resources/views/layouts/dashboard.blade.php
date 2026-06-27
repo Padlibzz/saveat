@@ -12,15 +12,35 @@
 
     <div class="flex min-h-screen overflow-x-hidden">
         
-        {{-- Sidebar Component --}}
-        <x-sidebar />
+        {{-- Sidebar Component Dinamis Berdasarkan Role --}}
+        @auth
+            @if(auth()->user()->peran === 'admin')
+                @include('components.sidebar-admin')
+                
+            @elseif(auth()->user()->peran === 'merchant')
+                @include('components.sidebar-merchant')
+                
+            @else
+                @include('components.sidebar-customer')
+            @endif
+        @endauth
 
         {{-- Main Wrapper --}}
         <div class="flex-1 flex flex-col justify-between min-h-screen w-full lg:pl-64">
             
             <div>
-                {{-- Navbar Component --}}
-                <x-navbar />
+                {{-- Navbar Component Dinamis Berdasarkan Role --}}
+                @auth
+                    @if(auth()->user()->peran === 'admin')
+                        @include('components.navbar-admin')
+                        
+                    @elseif(auth()->user()->peran === 'merchant')
+                        @include('components.navbar-merchant')
+                        
+                    @else
+                        @include('components.navbar-customer')
+                    @endif
+                @endauth
 
                 {{-- Main Content Slot --}}
                 <main class="p-4 md:p-6 lg:p-8 flex justify-center">

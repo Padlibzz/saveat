@@ -30,17 +30,18 @@
                 name="search"
                 value="{{ request('search') }}"
                 placeholder="Mau menyelamatkan makanan apa hari ini?..."
-                class="w-full pl-11 pr-4 py-3.5 rounded-full bg-white text-sm text-gray-700 placeholder-gray-400 border border-gray-200 outline-none focus:border-[#6D6B2E]/50 focus:ring-4 focus:ring-[#6D6B2E]/10 transition-all">
-            <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-[#6D6B2E]">
+                class="w-full pl-11 pr-12 py-3.5 rounded-full bg-white text-sm text-gray-700 placeholder-gray-400 border border-gray-200 outline-none focus:border-[#6D6B2E]/50 focus:ring-4 focus:ring-[#6D6B2E]/10 transition-all">
+            
+            <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-[#6D6B2E] hover:text-[#545523] transition-colors cursor-pointer">
                 <i class="fa-solid fa-search"></i>
             </button>
         </div>
 
-        {{-- Filter Kategori (Substitusi komponen 'kategori ceklis') --}}
+        {{-- Filter Kategori --}}
         <div class="space-y-2">
             <label class="text-xs font-bold text-[#545523] uppercase tracking-wider block">Pilih Kategori:</label>
             
-            {{-- Scrollable Pills Kontainer (Sangat nyaman di HP) --}}
+            {{-- Scrollable Pills Kontainer --}}
             <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar [-webkit-overflow-scrolling:touch]">
                 
                 {{-- Opsi Semua --}}
@@ -91,12 +92,13 @@
     <div class="space-y-5">
         <div class="border-b border-[#545523]/10 pb-2">
             <h2 class="text-xl font-bold text-[#545523]">Temukan Makanan Favoritmu 🗺️</h2>
-            <p class="text-xs text-[#545523]/60 font-medium">Jelajahi pangan berharga dari berbagai mitra kuliner di sekitar lokasi Anda.</p>
+            <p class="text-xs text-gray-400 font-medium">Jelajahi pangan berharga dari berbagai mitra kuliner di sekitar lokasi Anda.</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             @forelse ($listings as $listing)
                 <x-food-card
+                    data-url="/checkout/{{ $listing->id }}" 
                     :id="$listing->id"
                     :foto="$listing->foto"
                     :nama="$listing->nama"

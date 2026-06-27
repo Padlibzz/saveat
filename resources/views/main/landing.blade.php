@@ -23,8 +23,8 @@
                         Temukan makanan layak konsumsi dengan harga lebih terjangkau sambil membantu mengurangi food waste untuk masa depan yang lebih baik.
                     </p>
 
-                    <a href="auth/login"
-                        class="inline-block mt-8 bg-[#545523] text-white px-8 py-3 rounded-xl font-semibold shadow-md hover:bg-opacity-90 transition w-full sm:w-auto">
+                    <a href="/login"
+                        class="inline-block mt-8 bg-[#545523] text-white px-8 py-3 rounded-xl font-semibold shadow-md hover:bg-[#43441c] transition w-full sm:w-auto">
                         Explore Now
                     </a>
                 </div>
@@ -37,13 +37,13 @@
         </div>
     </section>
 
-    {{-- 2. STATISTIK SECTION --}}
+    {{-- 2. STATISTIK SECTION (Menggunakan data dinamis) --}}
     <section class="bg-white m-4 md:m-6 rounded-3xl shadow-sm">
         <div class="container mx-auto px-6 py-12 md:py-16">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
                 <div class="py-4 sm:py-0">
                     <h2 class="text-4xl md:text-5xl font-extrabold text-[#545523]">
-                        {{ number_format($stats->makanan_terselamatkan) }}+
+                        {{ number_format($stats->makanan_terselamatkan ?? 0) }}+
                     </h2>
                     <p class="mt-2 text-base md:text-lg font-medium text-gray-600">
                         Makanan Terselamatkan
@@ -52,7 +52,7 @@
 
                 <div class="py-4 sm:py-0">
                     <h2 class="text-4xl md:text-5xl font-extrabold text-[#545523]">
-                        {{ number_format($stats->total_merchant) }}+
+                        {{ number_format($stats->total_merchant ?? 0) }}+
                     </h2>
                     <p class="mt-2 text-base md:text-lg font-medium text-gray-600">
                         Merchant
@@ -61,7 +61,7 @@
 
                 <div class="py-4 sm:py-0">
                     <h2 class="text-4xl md:text-5xl font-extrabold text-[#545523]">
-                        {{ $stats->rating_pengguna }}/5
+                        {{ number_format($stats->rating_pengguna ?? 0, 1) }}/5
                     </h2>
                     <p class="mt-2 text-base md:text-lg font-medium text-gray-600">
                         Rating Pengguna
@@ -120,7 +120,9 @@
             <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto px-4">
                 @foreach($listings as $listing)
                     <x-food-card
-                        :id="$listing->id" :foto="$listing->foto"
+                        :id="$listing->id"
+                        data-url="/checkout/{{ $listing->id }}" 
+                        :foto="$listing->foto"
                         :nama="$listing->nama"
                         :merchant="$listing->merchant?->nama_usaha ?? 'Merchant'"
                         :alamat="$listing->merchant?->alamat ?? '-'"
@@ -148,9 +150,9 @@
                     <p class="mt-4 text-sm md:text-base text-gray-600">
                         Bergabunglah dengan jaringan merchant Saveat dan temukan cara baru untuk menjual makanan surplus yang masih layak konsumsi.
                     </p>
-                    <button class="bg-[#545523] text-white px-6 py-3 rounded-xl mt-8 font-semibold shadow-md hover:bg-[#3f401a] transition w-full sm:w-auto">
+                    <a href="/register" class="inline-block bg-[#545523] text-white px-6 py-3 rounded-xl mt-8 font-semibold shadow-md hover:bg-[#3f401a] transition w-full sm:w-auto">
                         Explore Merchant
-                    </button>
+                    </a>
                 </div>
 
                 <div class="w-full lg:w-1/2 flex flex-wrap gap-3 justify-center">

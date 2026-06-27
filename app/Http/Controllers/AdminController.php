@@ -223,7 +223,7 @@ class AdminController extends Controller
             }
         }
 
-        return view('admin.analisis_pen', compact('totalPendapatan', 'totalMakananHemat', 'totalListingAktif', 'chartLabels', 'chartData', 'filter'));
+        return view('admin.analisis-penjualan', compact('totalPendapatan', 'totalMakananHemat', 'totalListingAktif', 'chartLabels', 'chartData', 'filter'));
     }
 
     public function merchantMenunggu()

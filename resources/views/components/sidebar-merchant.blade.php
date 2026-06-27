@@ -9,6 +9,7 @@
     </div>
 
     <nav class="p-4 space-y-2">
+        <p class="text-[10px] font-bold tracking-wider uppercase text-gray-400 px-4 mb-2">Manajemen Toko</p>
         <a href="{{ route('merchant.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->routeIs('merchant.dashboard') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
             <i class="fa-solid fa-store w-5"></i>
             <span>Dashboard</span>
@@ -19,7 +20,6 @@
             <span>Upload Makanan</span>
         </a>
 
-        {{-- PERBAIKAN: Disamakan menggunakan route() agar aktifnya sinkron --}}
         <a href="{{ route('merchant.klaim-masuk') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->routeIs('merchant.klaim-masuk') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
             <i class="fa-solid fa-bell w-5"></i>
             <span>Klaim Masuk</span>
@@ -31,9 +31,18 @@
         </a>
 
         <div class="pt-4 my-4 border-t border-gray-100">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl transition bg-amber-500 text-white font-semibold hover:bg-amber-600 shadow-sm">
-                <i class="fa-solid fa-arrow-left-long w-5"></i>
-                <span>Menu Konsumen</span>
+            <p class="text-[10px] font-bold tracking-wider uppercase text-gray-400 px-4 mb-2">Beli Makanan</p>
+            <a href="/listing-makanan" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('listing-makanan') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
+                <i class="fa-solid fa-utensils w-5"></i>
+                <span>Makanan</span>
+            </a>
+            <a href="/pesanan" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('pesanan') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
+                <i class="fa-solid fa-bag-shopping w-5"></i>
+                <span>Pesanan</span>
+            </a>
+            <a href="/riwayat-pesanan" class="flex items-center gap-3 px-4 py-3 rounded-xl transition {{ request()->is('riwayat-pesanan') ? 'bg-[#F1F2CF] text-[#545523] font-semibold' : 'text-gray-600 hover:bg-[#F1F2CF] hover:text-[#545523]' }}">
+                <i class="fa-solid fa-clock-rotate-left w-5"></i>
+                <span>Riwayat Pesanan</span>
             </a>
         </div>
     </nav>

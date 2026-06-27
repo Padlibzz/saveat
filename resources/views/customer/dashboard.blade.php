@@ -18,6 +18,7 @@
     @endif
 
     {{-- FORUM PENCARIAN (SEARCH BAR) --}}
+    {{-- Menggunakan <form> agar pencarian benar-benar berfungsi mengirim data ke controller --}}
     <form action="{{ route('dashboard.konsumen') }}" method="GET" class="relative w-full max-w-2xl mx-auto mb-8">
         <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-400">
             <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -51,6 +52,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 @foreach($listings as $listing)
                     <x-food-card
+                        data-url="/checkout/{{ $listing->id }}" 
                         :id="$listing->id"
                         :foto="$listing->foto"
                         :nama="$listing->nama"
@@ -66,7 +68,7 @@
         @endif
     </div>
 
-    {{-- BANNER BANNER CTA: DAFTAR MERCHANT (Hanya muncul jika user biasa) --}}
+    {{-- BANNER CTA: DAFTAR MERCHANT (Hanya muncul jika user biasa) --}}
     @if(Auth::user()->peran !== 'merchant')
         <div class="mt-12 bg-[#FDFDF5] border border-[#545523]/10 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4 transition-all hover:shadow-md">
             <div class="space-y-1">

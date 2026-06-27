@@ -6,6 +6,7 @@
 
     {{-- TOMBOL KEMBALI --}}
     <div class="flex items-center justify-between mb-2">
+        {{-- Menggunakan route dinamis Laravel --}}
         <a href="{{ route('merchant.dashboard') }}" class="inline-flex items-center text-xs font-bold text-[#545523] hover:underline gap-2">
             <i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard
         </a>
@@ -55,7 +56,7 @@
                     <div class="flex flex-col gap-1.5">
                         <label class="text-xs font-bold text-[#545523]">Kategori</label>
                         <div class="flex flex-wrap gap-2">
-                            <template x-for="kat in daftarKategori">
+                            <template x-for="kat in daftarKategori" :key="kat.id">
                                 <button type="button" @click="formData.kategori_id = kat.id" 
                                     :class="formData.kategori_id === kat.id ? 'bg-[#545523] text-white border-[#545523] shadow-xs' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'" 
                                     class="text-xs font-medium px-4 py-2 border rounded-full transition-all cursor-pointer"
@@ -96,8 +97,8 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-xs font-bold text-[#545523]">Stok Tersedia (Stok Total)</label>
-                            <input type="number" name="stok_total" x-model="formData.stok_total" placeholder="5"
+                            <label class="text-xs font-bold text-[#545523]">Stok Tersedia</label>
+                            <input type="number" x-model="formData.stok_total" placeholder="5"
                                 class="w-full border border-gray-200 bg-gray-50/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#545523] focus:bg-white transition-all">
                             <span class="text-[11px] text-red-500 font-medium flex items-center gap-1" x-show="errors.stok_total" x-cloak>
                                 <i class="fa-solid fa-circle-xmark"></i> <span x-text="errors.stok_total"></span>
@@ -173,7 +174,13 @@
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('uploadForm', () => ({
-            daftarKategori: @json($kategoris),
+            // Menggunakan data dinamis (jika dikirim dari controller), jika tidak akan menggunakan fallback kategori dari kode Anda
+            daftarKategori: {!! json_encode($kategoris ?? [
+                ['id' => 1, 'nama' => 'Nasi'],
+                ['id' => 2, 'nama' => 'Roti & Kue'],
+                ['id' => 3, 'nama' => 'Sayur/Buah'],
+                ['id' => 4, 'nama' => 'Minuman']
+            ]) !!},
             formData: {
                 nama: '',
                 kategori_id: '',
@@ -223,7 +230,8 @@
                 }
 
                 try {
-                    const response = await fetch('/api/merchant/listings', {
+                    // Endpoint dari kode kedua
+                    const response = await fetch('/merchant/listing', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
@@ -243,6 +251,7 @@
                         this.removeFile();
                         
                         setTimeout(() => {
+                            // Dialihkan menggunakan nama route dinamis untuk keamanan
                             window.location.href = '{{ route('merchant.produk-aktif') }}';
                         }, 1500);
                     } else {

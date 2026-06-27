@@ -135,7 +135,7 @@
             </div>
 
             {{-- Form Edit Area --}}
-            <form method="POST" :action="'/merchant/produk-aktif/' + formEdit.id" class="flex flex-col overflow-hidden">
+            <form method="POST" :action="'/merchant/listing/' + formEdit.id + '/update'" class="flex flex-col overflow-hidden">
                 @csrf
                 @method('PUT')
                 
@@ -158,8 +158,8 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">Stok Total</label>
-                            <input type="number" name="stok_total" x-model="formEdit.stok_total" required class="w-full text-sm px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#545523] focus:ring-1 focus:ring-[#545523] transition bg-gray-50/50">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Stok Sisa</label>
+                            <input type="number" name="stok_sisa" x-model="formEdit.stok_sisa" required class="w-full text-sm px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#545523] focus:ring-1 focus:ring-[#545523] transition bg-gray-50/50">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">Batas Waktu Ambil</label>
@@ -235,7 +235,7 @@
                     nama: '',
                     harga_normal: '',
                     harga_diskon: '',
-                    stok_total: '',
+                    stok_sisa: '', // Diperbarui dari stok_total menjadi stok_sisa
                     batas_waktu: ''
                 },
 

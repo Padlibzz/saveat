@@ -1,169 +1,181 @@
-@extends('layouts.app')
+@extends('layouts.profile')
 
-@section('title', 'Notifikasi')
+@section('title', 'Notifikasi Merchant - SaveEat')
+@section('page_title', 'Notifikasi')
+
+{{-- Ikon Gear di sudut kanan atas --}}
+@section('navbar_action')
+    <a href="{{ route('merchant.profile.settings') ?? '#' }}" class="text-[#545523] hover:opacity-75 transition text-lg">
+        <i class="fa-solid fa-gear"></i>
+    </a>
+@endsection
 
 @section('content')
-<div class="max-w-2xl mx-auto">
+<div class="max-w-md mx-auto bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden min-h-[600px]" 
+     x-data="{ activeTab: 'aktivitas' }">
+    
+    {{-- TOMBOL TANDAI SEMUA DIBACA --}}
+    @if($aktivitas->where('is_read', false)->count() + $sistem->where('is_read', false)->count() > 0)
+        <div class="px-4 pt-4 flex justify-end">
+            <form action="{{ route('notifikasi.read-all') }}" method="POST">
+                @csrf
+                <button type="submit" class="text-[11px] text-[#545523]/70 hover:text-[#545523] font-bold underline underline-offset-2 transition-colors">
+                    Tandai semua dibaca
+                </button>
+            </form>
+        </div>
+    @else
+        <div class="pt-4"></div> {{-- Spacer jika tidak ada tombol --}}
+    @endif
 
-    {{-- Header --}}
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-display font-bold text-olive">Notifikasi</h1>
-        @if($aktivitas->where('is_read', false)->count() + $sistem->where('is_read', false)->count() > 0)
-        <form action="{{ route('notifikasi.read-all') }}" method="POST">
-            @csrf
-            <button type="submit" class="text-sm text-olive/70 hover:text-olive underline underline-offset-2">
-                Tandai semua dibaca
-            </button>
-        </form>
-        @endif
-    </div>
-
-    {{-- Tab Navigation --}}
-    <div class="flex border-b border-gray-200 mb-6" id="tab-nav">
-        <button
-            onclick="switchTab('aktivitas')"
-            id="tab-btn-aktivitas"
-            class="tab-btn flex-1 pb-3 text-sm font-semibold text-center border-b-2 border-olive text-olive transition-all"
-        >
+    {{-- BAGIAN TABS HEADER --}}
+    <div class="flex px-4 pt-2 border-b border-gray-100 mt-2">
+        {{-- Tab Aktivitas --}}
+        <button @click="activeTab = 'aktivitas'" 
+                :class="activeTab === 'aktivitas' ? 'border-[#545523] text-[#545523] font-bold' : 'border-transparent text-gray-400 font-medium hover:text-gray-600'"
+                class="flex-1 pb-3 text-sm text-center border-b-2 transition duration-300 outline-none flex justify-center items-center gap-1.5">
             Aktivitas
             @php $unreadAktivitas = $aktivitas->where('is_read', false)->count() @endphp
             @if($unreadAktivitas > 0)
-                <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-olive text-cream text-[10px]">
+                <span class="inline-flex items-center justify-center px-1.5 min-w-[1.25rem] h-5 rounded-full bg-[#545523] text-[#F1F2CF] text-[10px] font-bold shadow-sm">
                     {{ $unreadAktivitas }}
                 </span>
             @endif
         </button>
-        <button
-            onclick="switchTab('sistem')"
-            id="tab-btn-sistem"
-            class="tab-btn flex-1 pb-3 text-sm font-semibold text-center border-b-2 border-transparent text-gray-400 hover:text-olive transition-all"
-        >
+        
+        {{-- Tab Sistem --}}
+        <button @click="activeTab = 'sistem'" 
+                :class="activeTab === 'sistem' ? 'border-[#545523] text-[#545523] font-bold' : 'border-transparent text-gray-400 font-medium hover:text-gray-600'"
+                class="flex-1 pb-3 text-sm text-center border-b-2 transition duration-300 outline-none flex justify-center items-center gap-1.5">
             Sistem
             @php $unreadSistem = $sistem->where('is_read', false)->count() @endphp
             @if($unreadSistem > 0)
-                <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-500 text-white text-[10px]">
+                <span class="inline-flex items-center justify-center px-1.5 min-w-[1.25rem] h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold shadow-sm">
                     {{ $unreadSistem }}
                 </span>
             @endif
         </button>
     </div>
 
-    {{-- TAB: Aktivitas --}}
-    <div id="tab-aktivitas">
+    {{-- KONTEN TAB: AKTIVITAS --}}
+    <div x-show="activeTab === 'aktivitas'" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-x-2"
+         x-transition:enter-end="opacity-100 translate-x-0"
+         class="p-4 space-y-4">
+        
         @forelse($aktivitas as $notif)
-            <div class="flex gap-4 p-4 mb-3 rounded-2xl border transition-all
-                {{ !$notif->is_read ? 'bg-white border-olive/30 shadow-sm' : 'bg-white/60 border-gray-100' }}">
+            @php
+                $isUnread = !$notif->is_read;
+                $isClaim = $notif->jenis === 'claims_masuk';
+                
+                // Menentukan kelas styling berdasarkan kondisi notifikasi
+                $bgClass = $isClaim 
+                            ? 'bg-white border-l-4 border-[#545523] border border-gray-100 shadow-sm' 
+                            : ($isUnread ? 'bg-white border border-[#545523]/30 shadow-sm' : 'bg-white/60 border border-gray-100');
+                
+                $iconBg = $isClaim ? 'bg-[#545523] text-white' : 'bg-[#545523]/80 text-white';
+                $icon = $isClaim ? 'fa-bag-shopping' : ($notif->jenis === 'pesanan_selesai' ? 'fa-circle-check' : 'fa-bell');
+            @endphp
 
-                {{-- Icon --}}
-                <div class="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center
-                    {{ $notif->jenis === 'claims_masuk' ? 'bg-olive' : 'bg-olive/80' }}">
-                    @if($notif->jenis === 'claims_masuk')
-                        <i class="fa-solid fa-bag-shopping text-cream text-base"></i>
-                    @elseif($notif->jenis === 'pesanan_selesai')
-                        <i class="fa-solid fa-circle-check text-cream text-base"></i>
-                    @else
-                        <i class="fa-solid fa-bell text-cream text-base"></i>
-                    @endif
-                </div>
-
-                {{-- Konten --}}
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-2">
-                        <p class="text-sm font-bold text-olive leading-tight">{{ $notif->judul }}</p>
-                        <span class="text-[11px] text-gray-400 whitespace-nowrap flex-shrink-0">
-                            {{ $notif->created_at->diffForHumans(null, true, true) }}
-                        </span>
-                    </div>
-                    <p class="text-sm text-gray-600 mt-1 leading-snug">{{ $notif->pesan }}</p>
-
-                    {{-- Action buttons hanya untuk klaim_masuk yang belum dibaca --}}
-                    @if($notif->jenis === 'claims_masuk' && $notif->claim_id)
-                        <div class="flex gap-2 mt-3">
-                            <a href="{{ route('merchant.klaim-masuk') }}"
-                               class="px-4 py-1.5 bg-olive text-cream text-xs font-semibold rounded-full hover:bg-olive-dark transition-colors">
-                                Konfirmasi
-                            </a>
-                            <a href="{{ route('merchant.klaim-masuk') }}"
-                               class="px-4 py-1.5 border border-gray-300 text-gray-600 text-xs font-semibold rounded-full hover:bg-gray-50 transition-colors">
-                                Detail
-                            </a>
-                        </div>
-                    @endif
-                </div>
-
-                {{-- Unread dot --}}
-                @if(!$notif->is_read)
-                    <div class="flex-shrink-0 w-2 h-2 rounded-full bg-olive mt-1.5"></div>
+            <div class="{{ $bgClass }} rounded-2xl p-4 relative transition-all">
+                {{-- Indikator Titik Belum Dibaca --}}
+                @if($isUnread)
+                    <div class="absolute top-4 right-4 w-2 h-2 rounded-full bg-[#545523]"></div>
                 @endif
+
+                <div class="flex items-start gap-3">
+                    {{-- Ikon --}}
+                    <div class="w-10 h-10 shrink-0 {{ $iconBg }} rounded-full flex items-center justify-center">
+                        <i class="fa-solid {{ $icon }} text-sm"></i>
+                    </div>
+                    
+                    {{-- Konten Text --}}
+                    <div class="flex-1 pr-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <h4 class="text-xs font-bold text-gray-800">{{ $notif->judul }}</h4>
+                            <span class="text-[10px] text-gray-400 whitespace-nowrap">{{ $notif->created_at->diffForHumans(null, true, true) }}</span>
+                        </div>
+                        <p class="text-xs text-gray-600 leading-relaxed {{ $isClaim && $notif->claim_id ? 'mb-3' : '' }}">
+                            {{ $notif->pesan }}
+                        </p>
+                        
+                        {{-- Tombol Aksi (Khusus Klaim Masuk) --}}
+                        @if($isClaim && $notif->claim_id)
+                            <div class="flex gap-2 mt-2">
+                                <a href="{{ route('merchant.klaim-masuk') }}" class="inline-block bg-[#545523] text-white px-4 py-1.5 rounded-lg text-[10px] font-bold hover:bg-[#43441c] transition text-center shadow-sm">
+                                    Konfirmasi
+                                </a>
+                                <a href="{{ route('merchant.klaim-masuk') }}" class="inline-block bg-white border border-gray-200 text-gray-600 px-4 py-1.5 rounded-lg text-[10px] font-bold hover:bg-gray-50 transition text-center shadow-sm">
+                                    Detail
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
         @empty
             <div class="text-center py-16">
                 <i class="fa-regular fa-bell-slash text-4xl text-gray-300 mb-3"></i>
-                <p class="text-gray-400 text-sm">Belum ada aktivitas</p>
+                <p class="text-gray-400 text-sm font-medium">Belum ada aktivitas saat ini.</p>
             </div>
         @endforelse
+        
     </div>
 
-    {{-- TAB: Sistem --}}
-    <div id="tab-sistem" class="hidden">
-        @forelse($sistem as $notif)
-            <div class="flex gap-4 p-4 mb-3 rounded-2xl border transition-all
-                {{ $notif->jenis === 'stok_menipis' ? 'bg-orange-50 border-orange-200' : 'bg-white/60 border-gray-100' }}">
+    {{-- KONTEN TAB: SISTEM --}}
+    <div x-show="activeTab === 'sistem'" style="display: none;"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 -translate-x-2"
+         x-transition:enter-end="opacity-100 translate-x-0"
+         class="p-4 space-y-4">
+        
+         @forelse($sistem as $notif)
+            @php
+                $isUnread = !$notif->is_read;
+                $isStock = $notif->jenis === 'stok_menipis';
+                
+                // Styling khusus jika jenisnya peringatan stok menipis vs sistem biasa
+                $bgClass = $isStock ? 'bg-amber-50/50 border border-amber-200 shadow-sm' : ($isUnread ? 'bg-blue-50/50 border border-blue-200 shadow-sm' : 'bg-gray-50 border border-gray-100');
+                $iconBg = $isStock ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white';
+                $icon = $isStock ? 'fa-triangle-exclamation' : 'fa-circle-info';
+                
+                $titleColor = $isStock ? 'text-amber-700' : 'text-gray-800';
+                $timeColor = $isStock ? 'text-amber-600/70' : 'text-gray-400';
+                $textColor = $isStock ? 'text-amber-800' : 'text-gray-600';
+            @endphp
 
-                {{-- Icon --}}
-                <div class="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center
-                    {{ $notif->jenis === 'stok_menipis' ? 'bg-orange-500' : 'bg-gray-400' }}">
-                    @if($notif->jenis === 'stok_menipis')
-                        <i class="fa-solid fa-triangle-exclamation text-white text-base"></i>
-                    @else
-                        <i class="fa-solid fa-clock text-white text-base"></i>
-                    @endif
-                </div>
-
-                {{-- Konten --}}
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-2">
-                        <p class="text-sm font-bold
-                            {{ $notif->jenis === 'stok_menipis' ? 'text-orange-600' : 'text-gray-700' }} leading-tight">
-                            {{ $notif->judul }}
-                        </p>
-                        <span class="text-[11px] text-gray-400 whitespace-nowrap flex-shrink-0">
-                            {{ $notif->created_at->diffForHumans(null, true, true) }}
-                        </span>
-                    </div>
-                    <p class="text-sm text-gray-600 mt-1 leading-snug">{{ $notif->pesan }}</p>
-                </div>
-
-                @if(!$notif->is_read)
-                    <div class="flex-shrink-0 w-2 h-2 rounded-full bg-orange-500 mt-1.5"></div>
+            <div class="{{ $bgClass }} rounded-2xl p-4 relative transition-all">
+                {{-- Indikator Titik Belum Dibaca --}}
+                @if($isUnread)
+                    <div class="absolute top-4 right-4 w-2 h-2 rounded-full {{ $isStock ? 'bg-amber-500' : 'bg-blue-500' }}"></div>
                 @endif
+
+                <div class="flex items-start gap-3">
+                    {{-- Ikon --}}
+                    <div class="w-10 h-10 shrink-0 {{ $iconBg }} rounded-full flex items-center justify-center">
+                        <i class="fa-solid {{ $icon }} text-sm"></i>
+                    </div>
+                    
+                    {{-- Konten Text --}}
+                    <div class="flex-1 pr-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <h4 class="text-xs font-bold {{ $titleColor }}">{{ $notif->judul }}</h4>
+                            <span class="text-[10px] {{ $timeColor }} whitespace-nowrap">{{ $notif->created_at->diffForHumans(null, true, true) }}</span>
+                        </div>
+                        <p class="text-xs {{ $textColor }} leading-relaxed">
+                            {{ $notif->pesan }}
+                        </p>
+                    </div>
+                </div>
             </div>
         @empty
             <div class="text-center py-16">
                 <i class="fa-regular fa-bell-slash text-4xl text-gray-300 mb-3"></i>
-                <p class="text-gray-400 text-sm">Tidak ada notifikasi sistem</p>
+                <p class="text-gray-400 text-sm font-medium">Tidak ada notifikasi sistem.</p>
             </div>
         @endforelse
     </div>
 
 </div>
-
-<script>
-function switchTab(tab) {
-    // Sembunyikan semua panel
-    document.getElementById('tab-aktivitas').classList.add('hidden');
-    document.getElementById('tab-sistem').classList.add('hidden');
-
-    // Reset semua tombol
-    document.getElementById('tab-btn-aktivitas').classList.remove('border-olive', 'text-olive');
-    document.getElementById('tab-btn-aktivitas').classList.add('border-transparent', 'text-gray-400');
-    document.getElementById('tab-btn-sistem').classList.remove('border-olive', 'text-olive');
-    document.getElementById('tab-btn-sistem').classList.add('border-transparent', 'text-gray-400');
-
-    // Aktifkan tab yang dipilih
-    document.getElementById('tab-' + tab).classList.remove('hidden');
-    document.getElementById('tab-btn-' + tab).classList.add('border-olive', 'text-olive');
-    document.getElementById('tab-btn-' + tab).classList.remove('border-transparent', 'text-gray-400');
-}
-</script>
 @endsection

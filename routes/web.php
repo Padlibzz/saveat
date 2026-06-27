@@ -23,24 +23,30 @@ Route::get('/listing-makanan', [ListingController::class, 'index'])->name('listi
 
 // ================= GUEST MIDDLEWARE (Belum Login) =================
 Route::middleware('guest')->group(function () {
-    Route::get('/auth/login', function () {
-        return view('auth.login');
-    })->name('login');
-    Route::post('/auth/login', [AuthController::class, 'login']);
-    Route::get('/auth/register', function () {
-        return view('auth.register');
-    })->name('register');
+    Route::get('/login', function () { return view('auth.login'); })->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+
+    Route::get('/register', function () { return view('auth.register'); })->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+
+    Route::get('/register.html', function () { return redirect()->route('register'); });
+    Route::get('/auth/register', function () { return redirect()->route('register'); });
     Route::post('/auth/register', [AuthController::class, 'register']);
 
-    // Password reset routes
-    Route::get('/auth/forgot-password', function () {
-        return view('auth.forgot-password');
-    })->name('password.request');
-    Route::post('/auth/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
-    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
-    Route::get('/auth/reset-password/{token}', function ($token) {
+    Route::get('/forgot-password', function () { return view('auth.forgot-password'); })->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+    
+    Route::get('/reset-password/{token}', function ($token) {
         return view('auth.reset-password', ['token' => $token]);
     })->name('password.reset');
+
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+    
+    Route::get('/lupa-password.html', function () { return redirect()->route('password.request'); });
+    
+    // Rute lama untuk kompatibilitas jika masih ada link yang mengarah ke sini
+    Route::get('/auth/login', function () { return view('auth.login'); });
+    Route::post('/auth/login', [AuthController::class, 'login']);
 });
 
 // Google Auth
@@ -66,10 +72,26 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifikasi/read-all', [NotificationController::class, 'readAllWeb'])->name('notifikasi.read-all');
     Route::get('/api/notifikasi/unread-count', [NotificationController::class, 'unreadCount'])->name('notifikasi.unread-count');
 
+    // Profil Global
+    Route::get('/profile', [ProfilController::class, 'index'])->name('profile');
+    Route::get('/profile/pembayaran', function () {
+        $user = auth()->user();
+        return ($user->peran === 'merchant') 
+            ? view('merchant.pengaturan-pembayaran') 
+            : view('customer.payment');
+    })->name('profile.payment');
+
     // ================= AREA KONSUMEN =================
     Route::middleware(['role:konsumen'])->group(function () {
         Route::get('/dashboard-konsumen', [RecommendationController::class, 'dashboard'])->name('dashboard.konsumen');
         Route::get('/notifikasi', [NotificationController::class, 'konsumenIndex'])->name('customer.notifikasi');
+        
+        // Profil Konsumen
+        Route::get('/profile/edit', function () { return view('customer.edit'); })->name('profile.edit');
+        Route::put('/profile/update', [ProfilController::class, 'update'])->name('profile.update');
+        // Route::get('/profile/pembayaran', function () { return view('customer.payment'); })->name('profile.payment');
+        Route::get('/profile/notifikasi', [NotificationController::class, 'konsumenIndex'])->name('profile.notifications');
+        Route::get('/profile/security', function () { return view('customer.privacy'); })->name('profile.security');
     });
 
     Route::get('/api/recommendations', [RecommendationController::class, 'index']);
@@ -97,7 +119,7 @@ Route::middleware('auth')->group(function () {
 
     // Pendaftaran Merchant
     Route::get('/merchant-application', function () {
-        return view('merchant-application');
+        return view('customer.merchant-application');
     })->name('merchant.application');
     Route::post('/merchant-application', [ProfilController::class, 'applyMerchant'])->name('merchant.application.submit');
 
@@ -124,6 +146,16 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/scan-qr', [ClaimController::class, 'scanForm'])->name('merchant.scan-qr');
         Route::post('/scan-qr', [ClaimController::class, 'verifikasiWeb'])->name('merchant.scan-qr.submit');
+
+        // Profil Merchant
+        Route::get('/profil', [ProfilController::class, 'index'])->name('merchant.profil');
+        Route::get('/profil/info', function () { return view('merchant.info'); })->name('merchant.profile.info');
+        Route::get('/profil/edit', function () { return view('merchant.info'); })->name('merchant.profile.edit');
+        Route::put('/profil/update', [ProfilController::class, 'update'])->name('merchant.profile.update');
+        Route::get('/profil/pembayaran', function () { return view('merchant.pengaturan-pembayaran'); })->name('merchant.profile.payment');
+        Route::get('/profil/notifikasi', [NotificationController::class, 'merchantIndex'])->name('merchant.profile.notifications');
+        Route::get('/profil/keamanan', function () { return view('merchant.security'); })->name('merchant.profile.security');
+        Route::get('/profil/settings', function () { return view('merchant.info'); })->name('merchant.profile.settings');
     });
 
     // ================= AREA ADMIN =================
@@ -132,6 +164,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/profile', [ProfilController::class, 'index'])->name('admin.profile');
         Route::get('/analisis-penjualan', [AdminController::class, 'analisisPenjualan'])->name('admin.analisis');
         Route::get('/users', [AdminController::class, 'daftarUser'])->name('admin.users');
+        Route::get('/user-management', [AdminController::class, 'daftarUser'])->name('admin.user-management');
+        Route::post('/users/{id}/status', [AdminController::class, 'ubahStatusUser'])->name('admin.ubahStatusUser');
         Route::get('/merchants/menunggu', [AdminController::class, 'merchantMenunggu'])->name('admin.merchant-menunggu');
         Route::get('/merchants/{id}', [AdminController::class, 'merchantDetail'])->name('admin.merchant-detail');
         Route::patch('/merchants/{id}/verifikasi', [ProfilController::class, 'verifikasiMerchant'])->name('admin.merchant-verifikasi');
@@ -161,7 +195,28 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/riwayat-pesanan', [ClaimController::class, 'riwayat'])->name('riwayat.pesanan');
 
-    // Shared Routes
-    Route::get('/profile', [ProfilController::class, 'index'])->name('profile');
+    // Rute Checkout
     Route::get('/checkout/{id}', [ListingController::class, 'checkout'])->name('checkout');
+
+    // ================= PENGATURAN UMUM =================
+    Route::get('/pengaturan', function () {
+        return view('main.pengaturan');
+    })->name('pengaturan');
+
+    Route::get('/main/pusat-bantuan', function () {
+        return view('main.pusat-bantuan');
+    })->name('pusat-bantuan');
+
+    Route::get('/main/laporkan', function () {
+        return view('main.laporkan');
+    })->name('laporkan');
+
+    Route::get('/main/bahasa', function () {
+        return view('main.bahasa');
+    })->name('bahasa');
+
+    Route::get('/main/dukungan', function () {
+        return view('main.dukungan');
+    })->name('dukungan');
 });
+

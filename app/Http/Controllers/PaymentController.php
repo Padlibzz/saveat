@@ -191,13 +191,15 @@ class PaymentController extends Controller
             'qris' => ['qris'],
             'gopay' => ['gopay'],
             'dana' => ['dana'],
-            'ovo' => ['other_qris'],
+            'ovo' => ['ovo'],
             'shopeepay' => ['shopeepay'],
-            'linkaja' => ['other_qris'],
-            'transfer_bank' => ['bca_va', 'bni_va', 'bri_va', 'mandiri_bill', 'permata_va', 'other_va'],
+            'linkaja' => ['linkaja'],
+            // Transfer bank dihapus sesuai permintaan
             'tunai' => ['indomaret', 'alfamart'],
         ];
 
-        return $map[$metode] ?? ['qris', 'gopay', 'dana', 'shopeepay', 'bca_va', 'bni_va', 'bri_va'];
+        // Jika metode ditemukan, gunakan metode tersebut.
+        // Jika tidak, gunakan default yang aman (semua kecuali VA).
+        return isset($map[$metode]) ? $map[$metode] : ['qris', 'gopay', 'dana', 'shopeepay', 'ovo', 'linkaja'];
     }
 }

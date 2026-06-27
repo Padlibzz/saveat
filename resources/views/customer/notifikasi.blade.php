@@ -1,174 +1,179 @@
-@extends('layouts.dashboard')
+@extends('layouts.profile')
 
+@section('title', 'Notifikasi - SaveEat')
 @section('page_title', 'Notifikasi')
 
+{{-- Ikon Gear di sudut kanan atas --}}
+@section('navbar_action')
+    <a href="{{ route('merchant.profile.settings') ?? '#' }}" class="text-[#545523] hover:opacity-75 transition text-lg">
+        <i class="fa-solid fa-gear"></i>
+    </a>
+@endsection
+
 @section('content')
-<div class="w-full max-w-5xl mx-auto">
+<div class="max-w-md mx-auto bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden min-h-[600px]" 
+     x-data="{ activeTab: 'aktivitas' }">
+    
+    {{-- TOMBOL TANDAI SEMUA DIBACA --}}
+    @if($aktivitas->where('is_read', false)->count() + $promo->where('is_read', false)->count() > 0)
+        <div class="px-4 pt-4 flex justify-end">
+            <form action="{{ route('notifikasi.read-all') }}" method="POST">
+                @csrf
+                <button type="submit" class="text-[11px] text-[#545523]/70 hover:text-[#545523] font-bold underline underline-offset-2 transition-colors">
+                    Tandai semua dibaca
+                </button>
+            </form>
+        </div>
+    @else
+        <div class="pt-4"></div> {{-- Spacer jika tidak ada notifikasi baru --}}
+    @endif
 
-    {{-- Header --}}
-    <div class="flex items-center justify-between mb-6">
-        @if($aktivitas->where('is_read', false)->count() + $promo->where('is_read', false)->count() > 0)
-        <form action="{{ route('notifikasi.read-all') }}" method="POST">
-            @csrf
-            <button type="submit" class="text-sm text-olive/70 hover:text-olive underline underline-offset-2">
-                Tandai semua dibaca
-            </button>
-        </form>
-        @endif
-    </div>
-
-    {{-- Tab Navigation --}}
-    <div class="flex border-b border-gray-200 mb-6">
-        <button
-            onclick="switchTab('aktivitas')"
-            id="tab-btn-aktivitas"
-            class="flex-1 pb-3 text-sm font-semibold text-center border-b-2 border-olive text-olive transition-all"
-        >
+    {{-- BAGIAN TABS HEADER --}}
+    <div class="flex px-4 pt-2 border-b border-gray-100 mt-2">
+        {{-- Tab Aktivitas --}}
+        <button @click="activeTab = 'aktivitas'" 
+                :class="activeTab === 'aktivitas' ? 'border-[#545523] text-[#545523] font-bold' : 'border-transparent text-gray-400 font-medium hover:text-gray-600'"
+                class="flex-1 pb-3 text-sm text-center border-b-2 transition duration-300 outline-none flex justify-center items-center gap-1.5">
             Aktivitas
             @php $unreadAktivitas = $aktivitas->where('is_read', false)->count() @endphp
             @if($unreadAktivitas > 0)
-                <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-olive text-cream text-[10px]">
+                <span class="inline-flex items-center justify-center px-1.5 min-w-[1.25rem] h-5 rounded-full bg-[#545523] text-[#F1F2CF] text-[10px] font-bold shadow-sm">
                     {{ $unreadAktivitas }}
                 </span>
             @endif
         </button>
-        <button
-            onclick="switchTab('promo')"
-            id="tab-btn-promo"
-            class="flex-1 pb-3 text-sm font-semibold text-center border-b-2 border-transparent text-gray-400 hover:text-olive transition-all"
-        >
+        
+        {{-- Tab Promo --}}
+        <button @click="activeTab = 'promo'" 
+                :class="activeTab === 'promo' ? 'border-[#545523] text-[#545523] font-bold' : 'border-transparent text-gray-400 font-medium hover:text-gray-600'"
+                class="flex-1 pb-3 text-sm text-center border-b-2 transition duration-300 outline-none flex justify-center items-center gap-1.5">
             Promo
             @php $unreadPromo = $promo->where('is_read', false)->count() @endphp
             @if($unreadPromo > 0)
-                <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-olive text-cream text-[10px]">
+                <span class="inline-flex items-center justify-center px-1.5 min-w-[1.25rem] h-5 rounded-full bg-[#545523] text-[#F1F2CF] text-[10px] font-bold shadow-sm">
                     {{ $unreadPromo }}
                 </span>
             @endif
         </button>
     </div>
 
-    {{-- TAB: Aktivitas --}}
-    <div id="tab-aktivitas">
+    {{-- KONTEN TAB: AKTIVITAS --}}
+    <div x-show="activeTab === 'aktivitas'" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-x-2"
+         x-transition:enter-end="opacity-100 translate-x-0"
+         class="flex flex-col divide-y divide-gray-50 p-2">
+        
         @forelse($aktivitas as $notif)
-            <div class="flex gap-4 p-4 mb-2 rounded-2xl bg-white border
-                {{ !$notif->is_read ? 'border-olive/20 shadow-sm' : 'border-gray-100' }}">
+            @php
+                $isUnread = !$notif->is_read;
+                $iconClass = 'fa-bell';
+                if($notif->jenis === 'claims_berhasil') $iconClass = 'fa-bag-shopping';
+                elseif($notif->jenis === 'pesanan_selesai') $iconClass = 'fa-suitcase';
+                elseif($notif->jenis === 'menunggu_pembayaran') $iconClass = 'fa-credit-card';
+            @endphp
 
-                {{-- Icon --}}
-                <div class="flex-shrink-0 w-11 h-11 rounded-full bg-olive flex items-center justify-center">
-                    @if($notif->jenis === 'claims_berhasil')
-                        <i class="fa-solid fa-bag-shopping text-cream text-base"></i>
-                    @elseif($notif->jenis === 'pesanan_selesai')
-                        <i class="fa-solid fa-suitcase text-cream text-base"></i>
-                    @elseif($notif->jenis === 'menunggu_pembayaran')
-                        <i class="fa-solid fa-credit-card text-cream text-base"></i>
-                    @else
-                        <i class="fa-solid fa-bell text-cream text-base"></i>
-                    @endif
+            <div class="flex items-start gap-3.5 p-3 transition rounded-xl {{ $isUnread ? 'bg-gray-50/70' : 'hover:bg-gray-50/70 cursor-pointer' }}">
+                
+                {{-- Ikon --}}
+                <div class="w-11 h-11 shrink-0 bg-[#545523] rounded-full flex items-center justify-center text-white shadow-sm">
+                    <i class="fa-solid {{ $iconClass }} text-sm"></i>
                 </div>
-
+                
                 {{-- Konten --}}
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-2">
-                        <p class="text-sm font-bold text-charcoal leading-tight">{{ $notif->judul }}</p>
-                        <div class="flex items-center gap-1.5 flex-shrink-0">
-                            <span class="text-[11px] text-gray-400">
-                                {{ $notif->created_at->diffForHumans(null, true, true) }}
-                            </span>
-                            @if(!$notif->is_read)
-                                <div class="w-2 h-2 rounded-full bg-olive"></div>
-                            @endif
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-1 leading-snug">{{ $notif->pesan }}</p>
+                <div class="flex-1 pt-0.5 min-w-0">
+                    <h4 class="text-sm font-bold text-gray-800 leading-tight mb-1">{{ $notif->judul }}</h4>
+                    <p class="text-xs text-gray-600 leading-relaxed">{{ $notif->pesan }}</p>
 
-                    {{-- Link ke detail pesanan --}}
+                    {{-- Link Aksi Dinamis --}}
                     @if($notif->claim_id && in_array($notif->jenis, ['claims_berhasil', 'pesanan_selesai']))
-                        <a href="{{ route('pesanan.detail', $notif->claim_id) }}"
-                           class="inline-block mt-2 text-xs text-olive font-semibold hover:underline">
-                            Lihat Detail →
+                        <a href="{{ route('pesanan.detail', $notif->claim_id) }}" class="inline-block mt-2 text-[11px] text-[#545523] font-bold hover:underline">
+                            Lihat Detail &rarr;
                         </a>
                     @endif
                     @if($notif->claim_id && $notif->jenis === 'menunggu_pembayaran')
-                        <a href="{{ route('pesanan.detail', $notif->claim_id) }}"
-                           class="inline-block mt-2 text-xs text-olive font-semibold hover:underline">
-                            Selesaikan Pembayaran →
+                        <a href="{{ route('pesanan.detail', $notif->claim_id) }}" class="inline-block mt-2 text-[11px] text-[#545523] font-bold hover:underline">
+                            Selesaikan Pembayaran &rarr;
                         </a>
+                    @endif
+                </div>
+
+                {{-- Waktu & Indikator Unread --}}
+                <div class="flex flex-col items-end gap-1.5 shrink-0 pt-0.5">
+                    <span class="text-[10px] font-medium text-gray-400 whitespace-nowrap">{{ $notif->created_at->diffForHumans(null, true, true) }}</span>
+                    @if($isUnread)
+                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
                     @endif
                 </div>
             </div>
         @empty
-            <div class="text-center py-16">
-                <i class="fa-regular fa-bell-slash text-4xl text-gray-300 mb-3"></i>
-                <p class="text-gray-400 text-sm">Belum ada aktivitas</p>
+            {{-- State Kosong --}}
+            <div class="flex flex-col items-center justify-center text-center h-64">
+                <div class="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-regular fa-bell-slash text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Belum Ada Aktivitas</h4>
+                <p class="text-xs text-gray-500 px-6">Notifikasi tentang pesanan dan aktivitas Anda akan muncul di sini.</p>
             </div>
         @endforelse
+
     </div>
 
-    {{-- TAB: Promo --}}
-    <div id="tab-promo" class="hidden">
+    {{-- KONTEN TAB: PROMO --}}
+    <div x-show="activeTab === 'promo'" style="display: none;"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 -translate-x-2"
+         x-transition:enter-end="opacity-100 translate-x-0"
+         class="flex flex-col divide-y divide-gray-50 p-2">
+        
         @forelse($promo as $notif)
-            <div class="flex gap-4 p-4 mb-2 rounded-2xl bg-white border
-                {{ !$notif->is_read ? 'border-olive/20 shadow-sm' : 'border-gray-100' }}">
+            @php
+                $isUnread = !$notif->is_read;
+                $iconClass = 'fa-tag';
+                if($notif->jenis === 'listing_baru') $iconClass = 'fa-utensils';
+                elseif($notif->jenis === 'tonggak_dampak') $iconClass = 'fa-leaf';
+            @endphp
 
-                {{-- Icon --}}
-                <div class="flex-shrink-0 w-11 h-11 rounded-full overflow-hidden
-                    {{ $notif->jenis === 'tonggak_dampak' ? 'bg-olive' : 'bg-olive' }} flex items-center justify-center">
+            <div class="flex items-start gap-3.5 p-3 transition rounded-xl {{ $isUnread ? 'bg-amber-50/40' : 'hover:bg-gray-50/70 cursor-pointer' }}">
+                
+                {{-- Ikon --}}
+                <div class="w-11 h-11 shrink-0 bg-[#545523] rounded-full flex items-center justify-center text-white shadow-sm">
+                    <i class="fa-solid {{ $iconClass }} text-sm"></i>
+                </div>
+                
+                {{-- Konten --}}
+                <div class="flex-1 pt-0.5 min-w-0">
+                    <h4 class="text-sm font-bold text-gray-800 leading-tight mb-1">{{ $notif->judul }}</h4>
+                    <p class="text-xs text-gray-600 leading-relaxed">{{ $notif->pesan }}</p>
+
+                    {{-- Link Aksi Dinamis --}}
                     @if($notif->jenis === 'listing_baru')
-                        {{-- Tampilkan icon makanan / foto listing jika ada --}}
-                        <i class="fa-solid fa-utensils text-cream text-base"></i>
-                    @elseif($notif->jenis === 'tonggak_dampak')
-                        <i class="fa-solid fa-leaf text-cream text-base"></i>
-                    @else
-                        <i class="fa-solid fa-tag text-cream text-base"></i>
+                        <a href="{{ route('listing-makanan') }}" class="inline-block mt-2 text-[11px] text-[#545523] font-bold hover:underline">
+                            Lihat Listing &rarr;
+                        </a>
                     @endif
                 </div>
 
-                {{-- Konten --}}
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-2">
-                        <p class="text-sm font-bold text-charcoal leading-tight">{{ $notif->judul }}</p>
-                        <div class="flex items-center gap-1.5 flex-shrink-0">
-                            <span class="text-[11px] text-gray-400">
-                                {{ $notif->created_at->diffForHumans(null, true, true) }}
-                            </span>
-                            @if(!$notif->is_read)
-                                <div class="w-2 h-2 rounded-full bg-olive"></div>
-                            @endif
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-1 leading-snug">{{ $notif->pesan }}</p>
-
-                    @if($notif->jenis === 'listing_baru')
-                        <a href="{{ route('listing-makanan') }}"
-                           class="inline-block mt-2 text-xs text-olive font-semibold hover:underline">
-                            Lihat Listing →
-                        </a>
+                {{-- Waktu & Indikator Unread --}}
+                <div class="flex flex-col items-end gap-1.5 shrink-0 pt-0.5">
+                    <span class="text-[10px] font-medium text-gray-400 whitespace-nowrap">{{ $notif->created_at->diffForHumans(null, true, true) }}</span>
+                    @if($isUnread)
+                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
                     @endif
                 </div>
             </div>
         @empty
-            <div class="text-center py-16">
-                <i class="fa-regular fa-tag text-4xl text-gray-300 mb-3"></i>
-                <p class="text-gray-400 text-sm">Belum ada promo atau notifikasi dampak</p>
+            {{-- State Kosong --}}
+            <div class="flex flex-col items-center justify-center text-center h-64">
+                <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-ticket text-2xl"></i>
+                </div>
+                <h4 class="font-bold text-gray-800 mb-2">Belum Ada Promo</h4>
+                <p class="text-xs text-gray-500 px-6">Voucher dan promo spesial untukmu akan muncul di sini nanti.</p>
             </div>
         @endforelse
+
     </div>
 
 </div>
-
-<script>
-function switchTab(tab) {
-    document.getElementById('tab-aktivitas').classList.add('hidden');
-    document.getElementById('tab-promo').classList.add('hidden');
-
-    document.getElementById('tab-btn-aktivitas').classList.remove('border-olive', 'text-olive');
-    document.getElementById('tab-btn-aktivitas').classList.add('border-transparent', 'text-gray-400');
-    document.getElementById('tab-btn-promo').classList.remove('border-olive', 'text-olive');
-    document.getElementById('tab-btn-promo').classList.add('border-transparent', 'text-gray-400');
-
-    document.getElementById('tab-' + tab).classList.remove('hidden');
-    document.getElementById('tab-btn-' + tab).classList.add('border-olive', 'text-olive');
-    document.getElementById('tab-btn-' + tab).classList.remove('border-transparent', 'text-gray-400');
-}
-</script>
 @endsection

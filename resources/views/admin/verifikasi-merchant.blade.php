@@ -84,7 +84,9 @@
         @forelse($merchants as $m)
             <div class="bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between border border-gray-100">
                 
+                {{-- Foto Toko --}}
                 <div class="relative h-40 md:h-48 w-full bg-gray-100">
+                    {{-- Menggunakan $m->foto sesuai database utama, ditambah fallback jika null --}}
                     <img src="{{ $m->foto ? asset('storage/'.$m->foto) : 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=600' }}" alt="Merchant Image" class="w-full h-full object-cover">
                     
                     {{-- Badge Status --}}
@@ -148,6 +150,7 @@
                     </div>
                 </div>
 
+                {{-- Modal Khusus Tiap Merchant --}}
                 <div id="modal-merchant-{{ $m->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
                     {{-- Overlay Hitam Transparan --}}
                     <div class="fixed inset-0 bg-black/50 transition-opacity" onclick="closeMerchantModal('{{ $m->id }}')"></div>
