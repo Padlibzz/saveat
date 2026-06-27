@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'SaveEat')</title>
+    <title>@yield('title', 'Pengaturan - SaveEat')</title>
     @vite(['resources/css/app.css'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -23,10 +23,8 @@
             {{-- Judul Halaman (Tengah) --}}
             <h2 class="text-xl font-bold text-[#545523]">@yield('page_title')</h2>
             
-            {{-- Tombol Pengaturan (Satu untuk Semua Role) --}}
-            <a href="{{ url('main/pengaturan') }}" class="text-[#545523] hover:opacity-75 transition p-2 -mr-2">
-                <i class="fa-solid fa-gear text-xl"></i>
-            </a>
+            {{-- Ruang Kosong (Kanan) sebagai penyeimbang flexbox --}}
+            <div class="w-9"></div> 
 
         </div>
 
